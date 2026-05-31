@@ -1,0 +1,21 @@
+{
+  "short_name": "Novabetx",
+  "name": "Novabetx Sports & Aviator",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/home",
+  "background_color": "#0B0E14",
+  "theme_color": "#1CDA3A",
+  "display": "standalone",
+  "orientation": "portrait"
+}
