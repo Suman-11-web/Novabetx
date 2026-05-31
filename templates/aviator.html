@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aviator Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { bgDark: '#080b12', panelBg: 'rgba(25, 30, 45, 0.6)', avRed: '#ff2a40', avGreen: '#1CDA3A', avYellow: '#ffc107', brand: '#1CDA3A' } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
+        .sky-bg { background-color: #0b0f19; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; animation: scrollBackground 20s linear infinite; }
+        @keyframes scrollBackground { 0% { background-position: 0px 0px; } 100% { background-position: -400px 0px; } }
+        .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+        .bet-input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
+        .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: bold; text-align: center; transition: all 0.2s; }
+        .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spin-slow { animation: spin 4s linear infinite; }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .animate-heartbeat { animation: heartbeat 0.5s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+
+    <div id="toast-container"></div>
+
+    <div class="flex justify-between items-center bg-[#0a0d14] px-4 py-3 border-b border-gray-800 shadow-md">
+        <div class="flex gap-3">
+            <div class="bg-avRed/20 text-avRed px-3 py-1 rounded-full text-xs font-black tracking-widest border border-avRed/30 flex items-center gap-2">
+                <i class="fa-solid fa-plane-up"></i> PRO
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+                <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-strip" class="bg-[#0f131a] flex items-center px-3 py-2.5 gap-2 overflow-x-auto whitespace-nowrap text-xs font-black border-b border-gray-800 scroll-smooth shadow-inner"></div>
+
+    <div class="relative w-full h-[300px] md:h-[450px] sky-bg border-b border-gray-800 overflow-hidden flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.8)]">
+        <div class="absolute top-3 left-3 text-gray-600 text-lg z-30 hover:text-white transition cursor-pointer"><i class="fa-solid fa-volume-xmark"></i></div>
+        <div id="multiplier-text" class="hidden absolute z-10 text-6xl md:text-8xl font-black text-white tracking-tighter drop-shadow-[0_0_20px_rgba(255,42,64,0.6)] animate-heartbeat">1.00x</div>
+        <div id="flew-away-msg" class="hidden absolute z-20 flex flex-col items-center justify-center text-avRed font-black">
+            <div class="text-2xl md:text-3xl tracking-widest uppercase mb-1 drop-shadow-[0_0_15px_rgba(255,42,64,0.8)]">Flew Away!</div>
+            <div id="flew-away-mult" class="text-5xl md:text-7xl drop-shadow-[0_0_15px_rgba(255,42,64,0.8)]">1.00x</div>
+        </div>
+        <div id="waiting-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+            <i class="fa-solid fa-dharmachakra text-avRed text-6xl opacity-30 spin-slow absolute mb-12"></i>
+            <div class="text-white text-xl md:text-2xl font-black tracking-widest mb-5 z-10 drop-shadow-md">PREPARING FLIGHT</div>
+            <div class="w-56 h-2 bg-gray-900 rounded-full overflow-hidden z-10 border border-gray-700 shadow-inner">
+                <div id="loading-bar-fill" class="h-full bg-gradient-to-r from-orange-500 to-avRed w-0 transition-all duration-75 shadow-[0_0_10px_rgba(255,42,64,0.8)]"></div>
+            </div>
+        </div>
+        <canvas id="graphCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+    </div>
+
+    <div class="flex-1 bg-bgDark p-3 flex flex-col gap-3 overflow-y-auto">
+        <div class="flex gap-3 w-full h-full max-h-[260px] max-w-4xl mx-auto">
+            <div class="flex-1 glass-panel rounded-xl p-3 flex flex-col justify-between relative">
+                <div class="flex items-center bg-black/50 border border-gray-700 rounded-xl px-2 py-1.5 mb-3 shadow-inner">
+                    <button onclick="adjustStake(-10)" class="text-gray-400 hover:text-white font-black px-3 text-lg">-</button>
+                    <input type="number" id="stake-amount" value="10" min="10" class="w-full bg-transparent text-center text-white font-black text-lg focus:outline-none">
+                    <button onclick="adjustStake(10)" class="text-gray-400 hover:text-white font-black px-3 text-lg">+</button>
+                </div>
+                <div class="bet-input-grid">
+                    <button onclick="setStake(10)" class="bet-amount-btn">10</button>
+                    <button onclick="setStake(50)" class="bet-amount-btn">50</button>
+                    <button onclick="setStake(100)" class="bet-amount-btn">100</button>
+                    <button onclick="setStake(500)" class="bet-amount-btn">500</button>
+                    <button onclick="setStake(1000)" class="bet-amount-btn">1000</button>
+                    <button onclick="setStake(5000)" class="bet-amount-btn">5000</button>
+                </div>
+                <button id="action-btn" onclick="handleAction()" class="w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl uppercase shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:shadow-[0_0_25px_rgba(28,218,58,0.6)] hover:bg-[#20e841] transition-all active:scale-[0.98]">
+                    BET
+                </button>
+            </div>
+            <div class="flex-1 glass-panel rounded-xl p-3 flex flex-col justify-between opacity-40 pointer-events-none grayscale">
+                <div class="flex items-center bg-black/50 border border-gray-700 rounded-xl px-2 py-1.5 mb-3">
+                    <div class="text-gray-400 font-black px-3 text-lg">-</div>
+                    <div class="w-full text-center text-white font-black text-lg">10</div>
+                    <div class="text-gray-400 font-black px-3 text-lg">+</div>
+                </div>
+                <div class="bet-input-grid"><div class="bet-amount-btn">10</div><div class="bet-amount-btn">50</div><div class="bet-amount-btn">100</div><div class="bet-amount-btn">500</div><div class="bet-amount-btn">1000</div><div class="bet-amount-btn">5000</div></div>
+                <div class="w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl text-center uppercase">BET</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform hover:-translate-y-1"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1 relative"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+
+    <script>
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
+            const toast = document.createElement('div'); const isSuccess = type === 'success';
+            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
+            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
+            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ==========================================
+        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
+        // ==========================================
+        let audioCtx;
+        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        const Sound = {
+            play: (f, t, dur, v=0.1) => {
+                if(!audioCtx) return;
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            },
+            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
+            
+            // Bright, triumphant 4-note ascending chime (Jackpot feel)
+            win: () => { 
+                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
+                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
+                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
+                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
+            },
+            
+            // Deep, sad, descending 3-note buzzer (Womp.. womp.. womp..)
+            lose: () => { 
+                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
+                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
+                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
+            },
+            
+            // Specific sounds for Cyber Mines
+            gem: () => { setTimeout(()=>Sound.play(800,'sine',0.1,0.05),0); setTimeout(()=>Sound.play(1200,'sine',0.2,0.05),50); },
+            boom: () => { Sound.play(100,'square',0.5,0.2); Sound.play(50,'sawtooth',0.8,0.2); }
+        };
+
+
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            const balWrapper = document.getElementById('balance-wrapper');
+            const balEl = document.getElementById('display-balance');
+            if(!balEl || !balWrapper) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth; 
+            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
+            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
+            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        }
+
+        const canvas = document.getElementById('graphCanvas'); const ctx = canvas.getContext('2d');
+        let localState = "WAITING"; let serverElapsed = 0; let syncTime = performance.now();
+        let hasBet = false; let isCashedOut = false; let stake = 10; let liveMultiplier = 1.00;
+
+        function setStake(amount) { initAudio(); Sound.tick(); if (localState === "WAITING" && !hasBet) document.getElementById('stake-amount').value = amount; }
+        function adjustStake(amount) { initAudio(); Sound.tick(); if (localState !== "WAITING" || hasBet) return; let val = parseInt(document.getElementById('stake-amount').value) || 0; document.getElementById('stake-amount').value = Math.max(10, val + amount); }
+        function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; } window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function renderHistory(historyArray) {
+            const strip = document.getElementById('history-strip'); strip.innerHTML = '';
+            historyArray.forEach(mult => {
+                let colorClass = "text-blue-400 border-blue-900 bg-blue-900/20";
+                if(mult >= 2.00 && mult < 5.00) colorClass = "text-purple-400 border-purple-900 bg-purple-900/20";
+                else if(mult >= 5.00) colorClass = "text-pink-500 border-pink-900 bg-pink-900/20 drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]";
+                strip.innerHTML += `<span class="${colorClass} px-3 py-1 rounded-full border">${mult.toFixed(2)}x</span>`;
+            });
+        }
+
+        function updateUIState() {
+            const btn = document.getElementById('action-btn');
+            if (localState === "WAITING") {
+                document.getElementById('waiting-overlay').classList.remove('hidden'); document.getElementById('multiplier-text').classList.add('hidden'); document.getElementById('flew-away-msg').classList.add('hidden');
+                if (hasBet) { btn.className = "w-full bg-red-700 text-white font-black text-xl py-3 rounded-xl pointer-events-none shadow-[inset_0_4px_15px_rgba(0,0,0,0.4)]"; btn.innerText = "WAITING FOR FLIGHT"; } 
+                else { btn.className = "w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl uppercase shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:shadow-[0_0_25px_rgba(28,218,58,0.6)] hover:bg-[#20e841] transition-all active:scale-[0.98]"; btn.innerText = "BET"; btn.disabled = false; }
+            } else if (localState === "FLYING") {
+                document.getElementById('waiting-overlay').classList.add('hidden'); document.getElementById('multiplier-text').classList.remove('hidden'); document.getElementById('flew-away-msg').classList.add('hidden');
+                if (hasBet && !isCashedOut) { btn.className = "w-full bg-orange-500 text-white font-black text-2xl py-2 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.6)] hover:bg-orange-400 active:scale-[0.98] transition-all"; btn.disabled = false; } 
+                else if (isCashedOut) { } else { btn.className = "w-full bg-gray-800 text-gray-600 font-black text-xl py-3 rounded-xl pointer-events-none uppercase shadow-inner border border-gray-700"; btn.innerText = "WAIT FOR NEXT ROUND"; }
+            }
+        }
+
+        async function handleAction() {
+            initAudio();
+            const btn = document.getElementById('action-btn'); stake = parseFloat(document.getElementById('stake-amount').value);
+            if (localState === "WAITING" && !hasBet) {
+                btn.disabled = true;
+                try {
+                    let res = await fetch("/aviator/bet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stake: stake }) }); let data = await res.json();
+                    if (data.success) { document.getElementById('display-balance').innerText = data.new_total.toFixed(2); hasBet = true; updateUIState(); showToast("Bet accepted for upcoming round.", "success"); } else { showToast(data.error, "error"); btn.disabled = false; }
+                } catch(e) { showToast("Network Error", "error"); btn.disabled = false; }
+            } else if (localState === "FLYING" && hasBet && !isCashedOut) {
+                btn.disabled = true;
+                try {
+                    let res = await fetch("/aviator/cashout", { method: "POST", headers: { "Content-Type": "application/json" } }); let data = await res.json();
+                    if (data.success) {
+                        isCashedOut = true;
+                        btn.className = "w-full bg-avGreen text-black font-black py-1.5 rounded-xl flex flex-col items-center pointer-events-none shadow-[0_0_15px_rgba(28,218,58,0.5)]";
+                        btn.innerHTML = `<span class="text-xs uppercase tracking-widest">Cashed Out</span><span class="text-2xl">₹${data.winnings.toFixed(2)}</span>`;
+                        showToast(`Cashed out! Won ₹${data.winnings.toFixed(2)}`, "success");
+                        triggerWinAnimation(data.winnings, data.new_total);
+                    } else { showToast(data.error, "error"); btn.disabled = false; }
+                } catch(e) { showToast("Network Error", "error"); btn.disabled = false; }
+            }
+        }
+
+        async function syncServer() {
+            try {
+                let res = await fetch('/aviator/sync'); let data = await res.json(); serverElapsed = data.elapsed; syncTime = performance.now(); renderHistory(data.history);
+                if (data.state !== localState) {
+                    localState = data.state;
+                    if (localState === 'WAITING') { hasBet = false; isCashedOut = false; } 
+                    else if (localState === 'CRASHED') {
+                        document.getElementById('multiplier-text').classList.add('hidden'); document.getElementById('flew-away-msg').classList.remove('hidden'); document.getElementById('flew-away-mult').innerText = data.crash_point.toFixed(2) + "x";
+                        const btn = document.getElementById('action-btn'); btn.className = "w-full bg-[#1a1515] text-gray-600 font-black text-xl py-3 rounded-xl pointer-events-none uppercase border border-red-900/30"; btn.innerText = "FLEW AWAY";
+                        if (hasBet && !isCashedOut) { Sound.lose(); }
+                    } updateUIState();
+                }
+            } catch(e) {}
+        } setInterval(syncServer, 1000); syncServer();
+
+        function drawPremiumGrid(totalElapsed) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#ff2a40'; let xOffset = (totalElapsed * 40) % 40;
+            for(let i = canvas.width - xOffset; i > 0; i -= 40) { ctx.beginPath(); ctx.arc(i, canvas.height - 10, 3, 0, Math.PI*2); ctx.fill(); }
+            let yOffset = (totalElapsed * 40) % 40; for(let i = yOffset; i < canvas.height; i += 40) { ctx.beginPath(); ctx.arc(10, i, 3, 0, Math.PI*2); ctx.fill(); }
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
+            for(let i=0; i<canvas.height; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+        }
+        function renderLoop() {
+            requestAnimationFrame(renderLoop); let localElapsed = (performance.now() - syncTime) / 1000; let totalElapsed = serverElapsed + localElapsed; drawPremiumGrid(totalElapsed);
+            if (localState === 'WAITING') { document.getElementById('loading-bar-fill').style.width = Math.min(100, (totalElapsed / 5.0) * 100) + '%'; } 
+            else if (localState === 'FLYING') {
+                liveMultiplier = 1.00 + Math.pow(totalElapsed, 1.4) * 0.08; document.getElementById('multiplier-text').innerText = liveMultiplier.toFixed(2) + "x";
+                if (hasBet && !isCashedOut) { let potential = (stake * liveMultiplier).toFixed(2); document.getElementById('action-btn').innerHTML = `CASH OUT<br><span class="text-sm tracking-widest font-bold">₹${potential}</span>`; }
+                ctx.strokeStyle = '#ff2a40'; ctx.lineWidth = 6; ctx.shadowBlur = 15; ctx.shadowColor = '#ff2a40'; ctx.beginPath(); ctx.moveTo(10, canvas.height - 10);
+                let progressX = Math.min(canvas.width * 0.85, 10 + (totalElapsed * 50)); let progressY = canvas.height - 10 - Math.min(canvas.height * 0.75, (Math.pow(totalElapsed, 1.4) * 15));
+                ctx.quadraticCurveTo(progressX * 0.6, canvas.height - 10, progressX, progressY); ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20; ctx.beginPath();
+                ctx.moveTo(progressX, progressY); ctx.lineTo(progressX - 45, progressY + 12); ctx.lineTo(progressX - 45, progressY - 12); ctx.lineTo(progressX - 15, progressY); ctx.fill(); ctx.shadowBlur = 0; 
+            }
+        } requestAnimationFrame(renderLoop);
+    </script>
+</body>
+</html>

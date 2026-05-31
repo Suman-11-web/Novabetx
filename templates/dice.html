@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Digital Dice - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#0f0814',brand:'#ec4899'}}}}</script>
+    <style>
+        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
+        .dice-bg { background-color: #0f0814; background-image: radial-gradient(circle at 50% 50%, #2e1025 0%, #0f0814 100%); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 32px; width: 32px; border-radius: 50%; background: #ec4899; cursor: pointer; margin-top: -12px; box-shadow: 0 0 15px rgba(236, 72, 153, 0.8), inset 0 0 5px rgba(255,255,255,0.8); border: 3px solid #fff; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #374151; border-radius: 4px; }
+        .glass-panel { background: rgba(20, 10, 25, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .roll-win { color: #22c55e !important; text-shadow: 0 0 20px rgba(34,197,94,0.8); transform: scale(1.1); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .roll-loss { color: #ef4444 !important; text-shadow: 0 0 20px rgba(239,68,68,0.8); opacity: 0.5; transition: all 0.3s; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+
+    <div id="toast-container"></div>
+
+    <div class="flex justify-between items-center bg-[#0a050d] px-4 py-3 border-b border-gray-800 shadow-md">
+        <div class="flex gap-2">
+            <div class="bg-pink-500/20 text-pink-400 px-3 py-1 rounded-full text-[10px] font-black tracking-widest border border-pink-500/30 flex items-center gap-2">
+                <i class="fa-solid fa-dice-d20"></i> DICE
+            </div>
+            <button onclick="document.getElementById('fairModal').classList.remove('hidden')" class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-[10px] font-bold border border-blue-500/30 flex items-center gap-1 hover:bg-blue-500/40">
+                <i class="fa-solid fa-shield-halved"></i> FAIR
+            </button>
+        </div>
+        <div class="text-right">
+            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+            <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </div>
+    </div>
+
+    <!-- MAIN DISPLAY -->
+    <div class="relative w-full h-[250px] md:h-[350px] dice-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)]">
+        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Roll Result</div>
+        <div id="roll-display" class="text-7xl md:text-9xl font-black font-mono text-white tracking-tighter tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">50.00</div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="flex-1 bg-bgDark p-4 overflow-y-auto">
+        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full">
+            <div class="flex bg-black/50 rounded-xl p-1 mb-6 border border-gray-700">
+                <button id="toggle-under" onclick="setCondition('under')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-pink-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.4)] transition-all">ROLL UNDER</button>
+                <button id="toggle-over" onclick="setCondition('over')" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all">ROLL OVER</button>
+            </div>
+
+            <div class="mb-8">
+                <div class="flex justify-between text-xs font-bold text-gray-400 mb-4 px-1">
+                    <span>0</span><span id="slider-val" class="text-xl text-white drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]">50</span><span>100</span>
+                </div>
+                <input type="range" id="target-slider" min="2" max="98" value="50" oninput="updateStats()">
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-black/30 border border-gray-700 rounded-xl p-3 mb-6 divide-x divide-gray-700">
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">Multiplier</div><div class="text-lg font-black text-white" id="stat-mult">1.98x</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">Win Chance</div><div class="text-lg font-black text-brand" id="stat-chance">50.00%</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">Payout</div><div class="text-lg font-black text-green-400" id="stat-payout">₹99.00</div>
+                </div>
+            </div>
+
+            <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-2 py-2 mb-5">
+                <button onclick="adjustStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-xl">-</button>
+                <input type="number" id="stake-amount" value="50" oninput="updateStats()" class="w-full bg-transparent text-center text-white font-black text-2xl focus:outline-none">
+                <button onclick="adjustStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-xl">+</button>
+            </div>
+
+            <button id="btn-roll" onclick="rollDice()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black text-2xl py-4 rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.5)] active:scale-95 transition-all">
+                ROLL DICE
+            </button>
+        </div>
+    </div>
+
+    <!-- PROVABLY FAIR MODAL -->
+    <div id="fairModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#111] border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-black text-white"><i class="fa-solid fa-shield-halved text-blue-500"></i> Provably Fair</h3>
+                <button onclick="document.getElementById('fairModal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-xs text-gray-400 mb-4">Your device's seed combines with our server's seed to generate an unbreakable SHA-256 hash. This guarantees the roll cannot be changed.</p>
+            
+            <div class="mb-4">
+                <label class="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Your Client Seed (Editable)</label>
+                <input type="text" id="client-seed" value="novabetx_player" class="w-full bg-black border border-gray-700 rounded-lg p-2 text-white text-sm font-mono focus:border-blue-500 outline-none">
+            </div>
+
+            <div class="bg-black/50 p-3 rounded-xl border border-gray-800 text-[10px] font-mono text-gray-400 break-all mb-4">
+                <div class="mb-2"><span class="text-white font-bold block mb-1">Previous Server Seed:</span> <span id="last-server-seed">Play a round to reveal!</span></div>
+                <div><span class="text-blue-400 font-bold block mb-1">Previous Result Hash:</span> <span id="last-hash">Play a round to reveal!</span></div>
+            </div>
+            
+            <button onclick="document.getElementById('fairModal').classList.add('hidden')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition shadow-[0_0_15px_rgba(59,130,246,0.4)]">Close</button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a050d]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+
+    <script>
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
+            const toast = document.createElement('div'); const isSuccess = type === 'success';
+            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
+            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
+            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ==========================================
+        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
+        // ==========================================
+        let audioCtx;
+        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        const Sound = {
+            play: (f, t, dur, v=0.1) => {
+                if(!audioCtx) return;
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            },
+            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
+            win: () => { 
+                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
+                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
+                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
+                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
+            },
+            lose: () => { 
+                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
+                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
+                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
+            }
+        };
+
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
+            if(!balEl || !balWrapper) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth; 
+            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
+            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
+            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        }
+
+        let condition = "under";
+
+        function setCondition(cond) {
+            initAudio(); Sound.tick();
+            condition = cond;
+            if(cond === "under") {
+                document.getElementById('toggle-under').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-pink-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.4)] transition-all";
+                document.getElementById('toggle-over').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all bg-transparent shadow-none";
+            } else {
+                document.getElementById('toggle-over').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-pink-500 text-white shadow-[0_0_10px_rgba(236,72,153,0.4)] transition-all";
+                document.getElementById('toggle-under').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all bg-transparent shadow-none";
+            }
+            updateStats();
+        }
+
+        function adjustStake(amt) {
+            initAudio(); Sound.tick();
+            let val = parseInt(document.getElementById('stake-amount').value) || 0;
+            document.getElementById('stake-amount').value = Math.max(10, val + amt);
+            updateStats();
+        }
+
+        function updateStats() {
+            let target = parseInt(document.getElementById('target-slider').value);
+            document.getElementById('slider-val').innerText = target;
+            let chance = condition === "under" ? target : (100 - target);
+            let mult = 99.0 / chance;
+            let stake = parseFloat(document.getElementById('stake-amount').value) || 0;
+            let payout = stake * mult;
+            document.getElementById('stat-chance').innerText = chance.toFixed(2) + '%';
+            document.getElementById('stat-mult').innerText = mult.toFixed(2) + 'x';
+            document.getElementById('stat-payout').innerText = '₹' + payout.toFixed(2);
+        }
+        updateStats();
+
+        async function rollDice() {
+            initAudio();
+            const btn = document.getElementById('btn-roll'); 
+            const display = document.getElementById('roll-display');
+            
+            const stake = parseFloat(document.getElementById('stake-amount').value); 
+            const target = parseFloat(document.getElementById('target-slider').value);
+            
+            const seedEl = document.getElementById('client-seed');
+            const clientSeed = seedEl ? seedEl.value.trim() : 'novabetx';
+
+            if(isNaN(stake) || stake < 10) { showToast('Minimum stake is ₹10', 'error'); return; }
+
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            display.className = "text-7xl md:text-9xl font-black font-mono text-gray-500 tracking-tighter tabular-nums blur-[2px]";
+            
+            let rollInterval = setInterval(() => { 
+                display.innerText = (Math.random() * 100).toFixed(2); 
+                Sound.tick(); 
+            }, 60);
+
+            try {
+                // BULLETPROOF NETWORK FETCH
+                const payload = {
+                    stake: Number(stake), 
+                    target: Number(target), 
+                    condition: String(condition), 
+                    client_seed: String(clientSeed) || 'player'
+                };
+                
+                const res = await fetch('/dice/roll', { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                // If backend crashes, show EXACTLY why instead of a generic error
+                if(!res.ok) {
+                    throw new Error("Server crashed or busy. Try again.");
+                }
+                
+                let data;
+                try {
+                    data = await res.json();
+                } catch(e) {
+                    throw new Error("Backend did not return valid JSON.");
+                }
+                
+                clearInterval(rollInterval); 
+                display.classList.remove('blur-[2px]'); 
+                display.innerText = data.roll.toFixed(2);
+
+                if(data.success) {
+                    document.getElementById('last-server-seed').innerText = data.server_seed;
+                    document.getElementById('last-hash').innerText = data.hash;
+
+                    if(data.win) {
+                        display.classList.add('roll-win');
+                        showToast(`Winner! Payout: ₹${data.winnings.toFixed(2)}`, 'success');
+                        triggerWinAnimation(data.winnings, data.new_total);
+                    } else {
+                        display.classList.add('roll-loss');
+                        Sound.lose();
+                        document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                    }
+                    setTimeout(() => { display.className = "text-7xl md:text-9xl font-black font-mono text-white tracking-tighter tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"; }, 2000);
+                } else { 
+                    showToast(data.error || "Action failed", 'error'); 
+                }
+            } catch(e) { 
+                console.error(e); 
+                clearInterval(rollInterval); 
+                display.classList.remove('blur-[2px]'); 
+                display.innerText = "ERR"; 
+                showToast(e.message || 'Network Error - Connection lost', 'error'); 
+            }
+            
+            btn.disabled = false; btn.innerText = 'ROLL DICE';
+        }
+    </script>
+</body>
+</html>

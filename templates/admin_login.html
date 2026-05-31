@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Admin Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 h-screen flex items-center justify-center font-sans">
+    
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-96 border-t-4 border-red-600">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-black text-gray-800">SYSTEM ADMIN</h2>
+            <p class="text-xs text-red-600 font-bold tracking-widest mt-1">RESTRICTED ACCESS</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-3 rounded text-sm font-bold text-center {{ 'bg-red-100 text-red-700' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Admin ID</label>
+                <input type="text" name="username" class="w-full border-2 border-gray-300 p-2 rounded focus:outline-none focus:border-red-600" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Passkey</label>
+                <input type="password" name="password" class="w-full border-2 border-gray-300 p-2 rounded focus:outline-none focus:border-red-600" required>
+            </div>
+            <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded hover:bg-red-700 transition mt-4">
+                AUTHENTICATE
+            </button>
+        </form>
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('login') }}" class="text-xs text-gray-400 hover:text-gray-600 underline">Return to Public Portal</a>
+        </div>
+    </div>
+
+</body>
+</html>

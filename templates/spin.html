@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Spin - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',brand:'#1CDA3A'}}}}</script>
+    <style>
+        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
+        .radial-bg { background: radial-gradient(circle at 50% 40%, #1e1b4b 0%, #06090e 100%); }
+        .wheel-container { width: 300px; height: 300px; margin: 0 auto; border-radius: 50%; position: relative; border: 12px solid #1a222d; box-shadow: 0 0 40px rgba(28,218,58,0.2), inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; position: relative; transition: transform 5s cubic-bezier(0.2, 0.8, 0.1, 1); background: conic-gradient( #ef4444 0deg 60deg, #22c55e 60deg 120deg, #3b82f6 120deg 180deg, #a855f7 180deg 240deg, #f97316 240deg 300deg, #eab308 300deg 360deg ); }
+        .segment { position: absolute; top: 0; left: 50%; width: 100px; height: 50%; margin-left: -50px; transform-origin: bottom center; display: flex; justify-content: center; padding-top: 15px; font-weight: 900; font-size: 1.5rem; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+        .seg-1 { transform: rotate(30deg); } .seg-2 { transform: rotate(90deg); } .seg-3 { transform: rotate(150deg); } .seg-4 { transform: rotate(210deg); } .seg-5 { transform: rotate(270deg); } .seg-6 { transform: rotate(330deg); }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #fff; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); z-index: 10; }
+        .center-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 5; }
+        .glass-panel { background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+
+    <div id="toast-container"></div>
+
+    <div class="flex justify-between items-center bg-[#0a0d14] px-4 py-3 border-b border-gray-800 shadow-md">
+        <div class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-yellow-500/30 flex items-center gap-2">
+            <i class="fa-solid fa-star"></i> DAILY BONUS
+        </div>
+        <div class="text-right">
+            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+            <div class="font-black text-brand text-sm transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </div>
+    </div>
+
+    <div class="relative w-full flex-1 radial-bg border-b border-gray-800 flex flex-col items-center justify-center p-6 shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)]">
+        <h1 class="text-3xl font-black italic tracking-wide text-white uppercase mb-8 drop-shadow-lg text-center">Spin to <span class="text-brand">Win</span></h1>
+
+        <div class="relative">
+            <div class="pointer"></div>
+            <div class="wheel-container"><div class="center-dot"></div><div id="the-wheel" class="wheel"><div class="segment seg-1">₹0</div><div class="segment seg-2">₹5</div><div class="segment seg-3">₹10</div><div class="segment seg-4">₹50</div><div class="segment seg-5">₹0</div><div class="segment seg-6">₹500</div></div></div>
+        </div>
+        
+        <div class="mt-10 w-full max-w-sm glass-panel p-5 rounded-2xl text-center shadow-2xl">
+            {% if can_spin %}
+                <p class="text-gray-400 text-sm font-bold mb-4">You have <span class="text-brand">1 Free Spin</span> available today!</p>
+                <button id="spin-btn" onclick="startSpin()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-2xl py-4 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.5)] active:scale-95 transition-transform">
+                    SPIN NOW
+                </button>
+            {% else %}
+                <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl"><i class="fa-solid fa-clock"></i></div>
+                <h3 class="text-xl font-bold text-white mb-2">Come Back Tomorrow</h3>
+                <p class="text-gray-400 text-sm">Your next free spin unlocks in:</p>
+                <div id="countdown" class="text-3xl font-black text-brand tracking-widest mt-2 font-mono">00:00:00</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+
+    <script>
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
+            const toast = document.createElement('div'); const isSuccess = type === 'success';
+            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
+            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
+            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ==========================================
+        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
+        // ==========================================
+        let audioCtx;
+        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        const Sound = {
+            play: (f, t, dur, v=0.1) => {
+                if(!audioCtx) return;
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            },
+            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
+            
+            // Bright, triumphant 4-note ascending chime (Jackpot feel)
+            win: () => { 
+                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
+                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
+                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
+                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
+            },
+            
+            // Deep, sad, descending 3-note buzzer (Womp.. womp.. womp..)
+            lose: () => { 
+                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
+                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
+                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
+            },
+            
+            // Specific sounds for Cyber Mines
+            gem: () => { setTimeout(()=>Sound.play(800,'sine',0.1,0.05),0); setTimeout(()=>Sound.play(1200,'sine',0.2,0.05),50); },
+            boom: () => { Sound.play(100,'square',0.5,0.2); Sound.play(50,'sawtooth',0.8,0.2); }
+        };
+
+
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
+            if(!balEl || !balWrapper) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth; 
+            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
+            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
+            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        }
+
+        let isSpinning = false;
+        
+        async function startSpin() {
+            initAudio();
+            if(isSpinning) return;
+            isSpinning = true;
+            const btn = document.getElementById('spin-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-brand');
+            btn.classList.add('bg-gray-700', 'text-gray-400');
+            
+            try {
+                const res = await fetch('/spin/claim', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const wheel = document.getElementById('the-wheel');
+                    let targetDeg = 0;
+                    if(data.prize === 500) targetDeg = 330;      
+                    else if(data.prize === 50) targetDeg = 210;   
+                    else if(data.prize === 10) targetDeg = 150;   
+                    else if(data.prize === 5) targetDeg = 90;     
+                    else { targetDeg = Math.random() > 0.5 ? 30 : 270; }
+                    
+                    const finalRotation = (360 - targetDeg) + (360 * 5);
+                    
+                    let tickInterval = setInterval(() => Sound.tick(), 300);
+                    setTimeout(() => clearInterval(tickInterval), 4000);
+                    
+                    wheel.style.transform = `rotate(${finalRotation}deg)`;
+                    
+                    setTimeout(() => {
+                        if(data.prize > 0) {
+                            showToast(`Congratulations! You won ₹${data.prize} Bonus!`, 'success');
+                            triggerWinAnimation(data.prize, data.new_total);
+                        } else {
+                            Sound.lose();
+                            showToast('Better luck next time!', 'error');
+                        }
+                        setTimeout(() => location.reload(), 3000); 
+                    }, 5200);
+
+                } else {
+                    showToast(data.error, 'error');
+                    btn.innerText = 'SPIN NOW';
+                    btn.classList.remove('bg-gray-700', 'text-gray-400');
+                    btn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-brand');
+                    isSpinning = false;
+                }
+            } catch(e) { showToast('Network Error', 'error'); isSpinning = false; }
+        }
+
+        {% if not can_spin %}
+        let timeLeft = {{ time_left }};
+        const timerEl = document.getElementById('countdown');
+        setInterval(() => {
+            if(timeLeft <= 0) return location.reload();
+            timeLeft--;
+            const h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+            const m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(timeLeft % 60).toString().padStart(2, '0');
+            timerEl.innerText = `${h}:${m}:${s}`;
+        }, 1000);
+        {% endif %}
+    </script>
+</body>
+</html>

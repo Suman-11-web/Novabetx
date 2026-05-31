@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Command Center - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { bgDark: '#080b12', surface: '#121824', brand: '#1CDA3A' } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(18, 24, 36, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-btn.active { background-color: rgba(28,218,58,0.1); color: #1CDA3A; border-left: 3px solid #1CDA3A; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-full md:w-64 bg-surface border-r border-gray-800 flex flex-col z-50 shadow-xl relative">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center md:block">
+            <div>
+                <div class="text-2xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+                <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1"><i class="fa-solid fa-shield-halved text-brand mr-1"></i> Admin Portal</div>
+            </div>
+            <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden text-gray-400 text-2xl"><i class="fa-solid fa-bars"></i></button>
+        </div>
+
+        <nav id="mobile-menu" class="hidden md:flex flex-col flex-1 py-4 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn active w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-chart-pie w-5"></i> Dashboard</button>
+            <button onclick="switchTab('users')" id="nav-users" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-users w-5"></i> Player Management</button>
+            <button onclick="switchTab('financials')" id="nav-financials" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3 relative">
+                <i class="fa-solid fa-money-bill-transfer w-5"></i> Financials
+                {% set pending_fin = (deposits|selectattr('status','equalto','Pending')|list|length) + (withdrawals|selectattr('status','equalto','Pending')|list|length) %}
+                {% if pending_fin > 0 %}<span class="absolute right-4 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]">{{ pending_fin }}</span>{% endif %}
+            </button>
+            <button onclick="switchTab('sports')" id="nav-sports" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-trophy w-5"></i> Sports Book</button>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800 hidden md:block">
+            <a href="{{ url_for('logout') }}" class="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 transition py-3 rounded-xl font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-power-off"></i> Secure Logout</a>
+        </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="flex-1 p-4 md:p-8 h-screen overflow-y-auto custom-scrollbar relative">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-2">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl font-bold text-sm shadow-lg flex items-center justify-between {{ 'bg-green-500/10 text-brand border border-brand/30' if category == 'success' else 'bg-red-500/10 text-red-500 border border-red-500/30' }}">
+                        <div class="flex items-center gap-3"><i class="fa-solid {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }} text-lg"></i> {{ message }}</div>
+                        <button onclick="this.parentElement.style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content active space-y-6">
+            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-brand pl-3">Command Center</h2>
+            
+            {% set total_real = users | sum(attribute='balance') %}
+            {% set total_bonus = users | sum(attribute='bonus_balance') %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-blue-500 relative overflow-hidden">
+                    <i class="fa-solid fa-users absolute right-4 top-8 text-6xl text-blue-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Players</div>
+                    <div class="text-3xl font-black text-white">{{ users|length }}</div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-brand relative overflow-hidden">
+                    <i class="fa-solid fa-wallet absolute right-4 top-8 text-6xl text-brand/10"></i>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Real Balance</div>
+                    <div class="text-3xl font-black text-brand">₹{{ "%.2f"|format(total_real) }}</div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-purple-500 relative overflow-hidden">
+                    <i class="fa-solid fa-gift absolute right-4 top-8 text-6xl text-purple-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Bonus Active</div>
+                    <div class="text-3xl font-black text-purple-400">₹{{ "%.2f"|format(total_bonus) }}</div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-orange-500 relative overflow-hidden">
+                    <i class="fa-solid fa-trophy absolute right-4 top-8 text-6xl text-orange-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Matches</div>
+                    <div class="text-3xl font-black text-orange-400">{{ matches|length }}</div>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-black uppercase tracking-wider mt-8 mb-4 border-l-4 border-red-500 pl-3 flex items-center gap-2"><i class="fa-solid fa-bell text-red-500 animate-pulse"></i> Action Required</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Pending Users -->
+                <div class="glass-panel rounded-2xl p-4 border border-gray-700">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-gray-300">New Registrations</h4>
+                        <span class="bg-blue-500/20 text-blue-400 text-[10px] font-black px-2 py-0.5 rounded">{{ pending_users|length }}</span>
+                    </div>
+                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        {% for p in pending_users %}
+                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-white text-sm">{{ p.username }}</div>
+                                <div class="text-[10px] text-gray-500 font-mono">{{ p.mobile }}</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <form method="POST"><input type="hidden" name="action" value="approve_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-green-500/20 text-brand w-8 h-8 rounded hover:bg-green-500 hover:text-black transition"><i class="fa-solid fa-check"></i></button></form>
+                                <form method="POST"><input type="hidden" name="action" value="reject_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-red-500/20 text-red-500 w-8 h-8 rounded hover:bg-red-500 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button></form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-500 italic text-center py-4">No pending registrations.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pending Deposits -->
+                <div class="glass-panel rounded-2xl p-4 border border-gray-700 shadow-[0_0_15px_rgba(28,218,58,0.1)]">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-brand">Deposit Queue</h4>
+                        <span class="bg-brand/20 text-brand text-[10px] font-black px-2 py-0.5 rounded">{{ deposits|selectattr('status','equalto','Pending')|list|length }}</span>
+                    </div>
+                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        {% for d in deposits if d.status == 'Pending' %}
+                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800">
+                            <div class="flex justify-between items-start mb-2">
+                                <div><span class="font-bold text-white">{{ d.username }}</span> <span class="text-xs text-brand font-black ml-1">₹{{ "%.2f"|format(d.amount) }}</span></div>
+                                <a href="/static/uploads/{{ d.screenshot }}" target="_blank" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500 hover:text-white transition"><i class="fa-solid fa-image"></i> Proof</a>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono mb-3">UTR: {{ d.utr }}</div>
+                            <div class="flex gap-2">
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-brand text-black font-bold py-1.5 rounded text-xs hover:bg-green-500 shadow-md">Approve</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded text-xs hover:bg-red-500 hover:text-white transition">Reject</button></form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-500 italic text-center py-4">No pending deposits.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pending Withdrawals -->
+                <div class="glass-panel rounded-2xl p-4 border border-gray-700 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-red-400">Withdrawal Queue</h4>
+                        <span class="bg-red-500/20 text-red-500 text-[10px] font-black px-2 py-0.5 rounded">{{ withdrawals|selectattr('status','equalto','Pending')|list|length }}</span>
+                    </div>
+                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        {% for w in withdrawals if w.status == 'Pending' %}
+                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-white">{{ w.username }}</span>
+                                <span class="text-sm text-red-400 font-black">₹{{ "%.2f"|format(w.amount) }}</span>
+                            </div>
+                            <div class="bg-gray-900 rounded p-2 text-[10px] font-mono text-gray-400 mb-3 space-y-1">
+                                <div>Bank: {{ w.bank_name }}</div>
+                                <div>A/c: <span class="text-white">{{ w.account_number }}</span></div>
+                                <div>IFSC: {{ w.ifsc }}</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-blue-600 text-white font-bold py-1.5 rounded text-xs hover:bg-blue-500 shadow-md">Paid</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded text-xs hover:bg-red-500 hover:text-white transition">Reject & Refund</button></form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-500 italic text-center py-4">No pending withdrawals.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PLAYERS -->
+        <div id="tab-users" class="tab-content space-y-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black uppercase tracking-wider border-l-4 border-blue-500 pl-3">Player Database</h2>
+                <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Create User</button>
+            </div>
+
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+                <div class="p-4 border-b border-gray-800 bg-black/40">
+                    <input type="text" id="userSearch" onkeyup="filterTable('userSearch', 'userTable')" placeholder="Search by Username..." class="w-full bg-surface border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm" id="userTable">
+                        <thead class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider font-bold">
+                            <tr><th class="p-4">ID</th><th class="p-4">Username</th><th class="p-4">Real Balance</th><th class="p-4">Bonus Balance</th><th class="p-4 text-center">Actions & Fine Tuning</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            {% for u in users %}
+                            <tr class="hover:bg-gray-800/30 transition">
+                                <td class="p-4 text-gray-500 font-mono font-bold">#{{ u.id }}</td>
+                                <td class="p-4 font-bold text-white">{{ u.username }}</td>
+                                <td class="p-4 font-black text-brand">₹{{ "%.2f"|format(u.balance) }}</td>
+                                <td class="p-4 font-black text-purple-400">₹{{ "%.2f"|format(u.bonus_balance) }}</td>
+                                <td class="p-4">
+                                    <!-- RESTORED & UPGRADED: ADD (+) AND SUBTRACT (-) MANAGEMENT SIDE-BY-SIDE -->
+                                    <form method="POST" class="flex justify-center items-center gap-2 max-w-sm mx-auto">
+                                        <input type="hidden" name="action" value="adjust_balance">
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        
+                                        <!-- Shared numerical input box -->
+                                        <input type="number" name="amount" placeholder="Amt" class="w-24 bg-black border border-gray-700 rounded-lg px-3 py-1.5 text-white font-bold text-sm focus:outline-none focus:border-blue-500" required>
+                                        
+                                        <!-- Action togglers -->
+                                        <button type="submit" name="mode" value="remove" class="bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-red-600 hover:text-white transition flex items-center gap-1">
+                                            <i class="fa-solid fa-minus"></i> Remove
+                                        </button>
+                                        <button type="submit" name="mode" value="add" class="bg-brand/20 text-brand border border-brand/30 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-brand hover:text-black transition flex items-center gap-1">
+                                            <i class="fa-solid fa-plus"></i> Add
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FINANCIALS LOG -->
+        <div id="tab-financials" class="tab-content space-y-6">
+            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-yellow-500 pl-3">Financial Logs</h2>
+            
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <!-- All Deposits Table -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+                    <div class="p-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
+                        <h3 class="font-bold text-brand uppercase tracking-wider"><i class="fa-solid fa-circle-arrow-down mr-2"></i> Deposits History</h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-black/80 text-gray-500 uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+                                <tr><th class="p-3">User</th><th class="p-3">Amount / UTR</th><th class="p-3">Date</th><th class="p-3 text-right">Status</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                {% for d in deposits %}
+                                <tr class="hover:bg-gray-800/20">
+                                    <td class="p-3 font-bold text-white">{{ d.username }}</td>
+                                    <td class="p-3">
+                                        <div class="font-black text-brand text-sm">₹{{ "%.2f"|format(d.amount) }}</div>
+                                        <div class="text-[9px] text-gray-500 font-mono">{{ d.utr }}</div>
+                                    </td>
+                                    <td class="p-3 text-gray-400 font-mono text-[10px]">{{ d.date }}</td>
+                                    <td class="p-3 text-right">
+                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
+                                            {% if d.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
+                                            {% elif d.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
+                                            {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                                            {{ d.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- All Withdrawals Table -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+                    <div class="p-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
+                        <h3 class="font-bold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-building-columns mr-2"></i> Withdrawals History</h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-black/80 text-gray-500 uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+                                <tr><th class="p-3">User</th><th class="p-3">Amount / Bank</th><th class="p-3">Date</th><th class="p-3 text-right">Status</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                {% for w in withdrawals %}
+                                <tr class="hover:bg-gray-800/20">
+                                    <td class="p-3 font-bold text-white">{{ w.username }}</td>
+                                    <td class="p-3">
+                                        <div class="font-black text-blue-400 text-sm">₹{{ "%.2f"|format(w.amount) }}</div>
+                                        <div class="text-[9px] text-gray-500">{{ w.bank_name }} - {{ w.account_number }}</div>
+                                    </td>
+                                    <td class="p-3 text-gray-400 font-mono text-[10px]">{{ w.date }}</td>
+                                    <td class="p-3 text-right">
+                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
+                                            {% if w.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
+                                            {% elif w.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
+                                            {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                                            {{ w.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SPORTS -->
+        <div id="tab-sports" class="tab-content space-y-6">
+            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-orange-500 pl-3">Sports Book Control</h2>
+
+            <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl mb-6">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-plus-circle text-orange-500 mr-2"></i> Create New Match</h3>
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <input type="hidden" name="action" value="add_match">
+                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Sport</label><input type="text" name="sport" placeholder="e.g. Cricket" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">League</label><input type="text" name="league" placeholder="e.g. IPL" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Team 1</label><input type="text" name="team1" placeholder="MI" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Team 2</label><input type="text" name="team2" placeholder="CSK" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    
+                    <div><label class="block text-[10px] text-brand font-black uppercase mb-1">Odds T1</label><input type="number" step="0.01" name="odds1" placeholder="1.85" class="w-full bg-black border border-brand/50 rounded p-2 text-brand font-black focus:border-brand outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Odds Draw</label><input type="number" step="0.01" name="oddsX" placeholder="5.50" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-blue-400 font-black uppercase mb-1">Odds T2</label><input type="number" step="0.01" name="odds2" placeholder="2.10" class="w-full bg-black border border-blue-500/50 rounded p-2 text-blue-400 font-black focus:border-blue-500 outline-none" required></div>
+                    
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer bg-red-500/10 border border-red-500/30 px-3 py-2 rounded text-xs font-bold text-red-400 w-full justify-center">
+                            <input type="checkbox" name="is_live" class="accent-red-500 w-4 h-4"> Mark as Live
+                        </label>
+                        <button type="submit" class="w-full bg-orange-500 text-white font-black py-2 rounded shadow-lg hover:bg-orange-400 transition uppercase tracking-wider">Add Match</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+                <div class="p-4 border-b border-gray-800 bg-gray-900/50">
+                    <h3 class="font-bold text-white uppercase tracking-wider"><i class="fa-solid fa-list text-gray-400 mr-2"></i> Active Matches & Resolution</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-black/80 text-gray-500 text-xs uppercase tracking-wider">
+                            <tr><th class="p-4">Match Details</th><th class="p-4">Odds (1 | X | 2)</th><th class="p-4">Status & Action</th><th class="p-4 text-right">Resolve & Payout</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            {% for m in matches %}
+                            <tr class="hover:bg-gray-800/20">
+                                <td class="p-4">
+                                    <div class="font-bold text-white mb-1">{{ m.team1 }} <span class="text-xs text-gray-500 font-black px-1">vs</span> {{ m.team2 }}</div>
+                                    <div class="text-[10px] font-bold text-gray-500 uppercase">{{ m.sport }} - {{ m.league }}</div>
+                                </td>
+                                <td class="p-4 font-mono text-xs">
+                                    <span class="text-brand">{{ "%.2f"|format(m.odds1) }}</span> | 
+                                    <span class="text-gray-400">{{ "%.2f"|format(m.oddsX) }}</span> | 
+                                    <span class="text-blue-400">{{ "%.2f"|format(m.odds2) }}</span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-2">
+                                        {% if m.is_live %}
+                                            <span class="bg-red-500/10 text-red-500 border border-red-500/30 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest"><i class="fa-solid fa-circle text-[6px] mr-1 animate-pulse"></i> Live</span>
+                                        {% else %}
+                                            <span class="bg-gray-800 text-gray-400 border border-gray-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Upcoming</span>
+                                        {% endif %}
+                                        
+                                        {% if not m.status or 'Winner' not in m.status %}
+                                        <form method="POST" class="inline-block">
+                                            <input type="hidden" name="action" value="toggle_live">
+                                            <input type="hidden" name="match_id" value="{{ m.id }}">
+                                            <button type="submit" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white px-2 py-1 rounded text-[10px] font-bold transition shadow-sm" title="Toggle Live/Upcoming"><i class="fa-solid fa-rotate"></i> Swap</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="p-4 text-right">
+                                    {% if not m.status or 'Winner' not in m.status %}
+                                    <form method="POST" class="flex justify-end gap-2 items-center">
+                                        <input type="hidden" name="action" value="resolve_match"><input type="hidden" name="match_id" value="{{ m.id }}">
+                                        <select name="winning_team" class="bg-black border border-gray-700 rounded px-2 py-1.5 text-white text-xs focus:border-brand outline-none" required>
+                                            <option value="">Select Winner...</option><option value="{{ m.team1 }}">{{ m.team1 }}</option><option value="Draw">Draw</option><option value="{{ m.team2 }}">{{ m.team2 }}</option>
+                                        </select>
+                                        <button type="submit" class="bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-1.5 rounded text-xs shadow-md transition" onclick="return confirm('WARNING: This will instantly payout all winning bets. Proceed?')">Payout</button>
+                                    </form>
+                                    <form method="POST" class="mt-2 text-right"><input type="hidden" name="action" value="delete_match"><input type="hidden" name="match_id" value="{{ m.id }}"><button type="submit" class="text-[10px] text-red-500 hover:underline" onclick="return confirm('Delete match and void all bets?')"><i class="fa-solid fa-trash mr-1"></i> Delete Match</button></form>
+                                    {% else %}
+                                    <span class="text-xs font-bold text-gray-400 bg-gray-900 px-3 py-1 rounded">{{ m.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- CREATE USER MODAL -->
+    <div id="createUserModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+            <h3 class="text-xl font-black mb-4 text-white"><i class="fa-solid fa-user-plus text-blue-500 mr-2"></i> Create Admin User</h3>
+            <form method="POST" class="space-y-4">
+                <input type="hidden" name="action" value="create_user">
+                <div><label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Username</label><input type="text" name="new_username" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none" required></div>
+                <div><label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Password</label><input type="password" name="new_password" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none" required></div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-bold py-3 rounded-lg hover:bg-gray-700">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-500 shadow-lg">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.getElementById('nav-' + tabId).classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('mobile-menu').classList.remove('flex');
+        }
+
+        function filterTable(inputId, tableId) {
+            let input = document.getElementById(inputId);
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById(tableId);
+            let tr = table.getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td")[1]; 
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } 
+                    else { tr[i].style.display = "none"; }
+                }       
+            }
+        }
+    </script>
+</body>
+</html>

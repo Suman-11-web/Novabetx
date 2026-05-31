@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    
+    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-blue-600">Admin Control Panel</h1>
+        <div class="space-x-4 font-semibold">
+            <a href="{{ url_for('home') }}" class="text-gray-600 hover:text-blue-600" target="_blank">View Live Site</a>
+            <a href="{{ url_for('logout') }}" class="text-red-500 hover:text-red-700">Logout</a>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="col-span-1 bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+            <h2 class="text-xl font-bold mb-4">Add New Match</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-3 rounded {{ 'bg-green-100 text-green-700' if category == 'success' else 'bg-red-100 text-red-700' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-4 text-sm">
+                <input type="hidden" name="action" value="add_match">
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" name="sport" placeholder="Sport (e.g. Cricket)" class="border p-2 rounded w-full" required>
+                    <input type="text" name="league" placeholder="League (e.g. IPL)" class="border p-2 rounded w-full" required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" name="team1" placeholder="Team 1 Name" class="border p-2 rounded w-full" required>
+                    <input type="text" name="team2" placeholder="Team 2 Name" class="border p-2 rounded w-full" required>
+                </div>
+
+                <input type="text" name="score" placeholder="Score (e.g. 128/4 - Yet to bat)" class="border p-2 rounded w-full">
+                <input type="text" name="status" placeholder="Status (e.g. India opt to bat, Today 7:30PM)" class="border p-2 rounded w-full">
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" step="0.01" name="odds1" placeholder="Odds T1" class="border p-2 rounded w-full" required>
+                    <input type="number" step="0.01" name="oddsX" placeholder="Odds Draw (X)" class="border p-2 rounded w-full">
+                    <input type="number" step="0.01" name="odds2" placeholder="Odds T2" class="border p-2 rounded w-full" required>
+                </div>
+
+                <label class="flex items-center space-x-2 font-bold cursor-pointer">
+                    <input type="checkbox" name="is_live" class="w-4 h-4 text-blue-600">
+                    <span>Is this a LIVE match?</span>
+                </label>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700">Add Match to Database</button>
+            </form>
+        </div>
+
+        <div class="col-span-2 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Manage Matches</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                            <th class="p-3 border-b">ID</th>
+                            <th class="p-3 border-b">Match Info</th>
+                            <th class="p-3 border-b">Odds (1 / X / 2)</th>
+                            <th class="p-3 border-b">Live?</th>
+                            <th class="p-3 border-b">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in matches %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border-b font-bold">{{ match.id }}</td>
+                            <td class="p-3 border-b">
+                                <span class="font-bold">{{ match.team1 }} vs {{ match.team2 }}</span><br>
+                                <span class="text-xs text-gray-500">{{ match.sport }} - {{ match.league }}</span>
+                            </td>
+                            <td class="p-3 border-b">{{ match.odds1 }} / {{ match.oddsX }} / {{ match.odds2 }}</td>
+                            <td class="p-3 border-b">
+                                {% if match.is_live %}
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">Live</span>
+                                {% else %}
+                                    <span class="bg-gray-300 text-gray-700 px-2 py-1 rounded text-xs">Upcoming</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 border-b">
+                                <form method="POST" onsubmit="return confirm('Delete this match?');">
+                                    <input type="hidden" name="action" value="delete_match">
+                                    <input type="hidden" name="match_id" value="{{ match.id }}">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="p-6 text-center text-gray-500">No matches in the database yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

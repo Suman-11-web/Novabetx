@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { background: '#0B0E14', surface: '#151A22', brand: '#1CDA3A' } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glow-bg { position: absolute; width: 400px; height: 400px; background: rgba(28, 218, 58, 0.15); filter: blur(100px); border-radius: 50%; z-index: 0; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1CDA3A; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-white m-0 p-0 antialiased">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="glow-bg top-[-100px] left-[-100px]"></div>
+        <div class="glow-bg bottom-[-100px] right-[-100px]" style="background: rgba(52, 152, 219, 0.1);"></div>
+    </div>
+
+    <div class="relative z-10 flex min-h-[100dvh] w-full items-center justify-center p-4">
+        <div class="bg-surface/90 backdrop-blur-md border border-gray-800 rounded-2xl p-8 md:p-10 w-full max-w-md shadow-2xl relative">
+            <div class="text-center mb-8">
+                <div class="text-4xl font-black italic tracking-wider mb-2">Nova<span class="text-brand">betx</span></div>
+                <p class="text-sm text-gray-400 font-semibold">Welcome back. Sign in to continue.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category != 'fast_track' %}
+                        <div class="mb-6 p-4 rounded-lg text-sm font-bold flex items-center gap-3 {{ 'bg-red-500/10 text-red-500 border border-red-500/30' if category == 'error' else 'bg-green-500/10 text-brand border border-brand/30' }}">
+                            <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} text-lg"></i>
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500"><i class="fa-solid fa-user"></i></div>
+                        <input type="text" name="username" placeholder="Enter your Player ID" class="w-full bg-[#1a222d] border border-gray-700 rounded-lg py-3.5 pl-11 pr-4 text-white focus:outline-none focus:border-brand transition" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500"><i class="fa-solid fa-lock"></i></div>
+                        <input type="password" name="password" placeholder="••••••••" class="w-full bg-[#1a222d] border border-gray-700 rounded-lg py-3.5 pl-11 pr-4 text-white focus:outline-none focus:border-brand transition" required>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 mt-4 mb-2">
+                    <input type="checkbox" required id="tc_check" class="mt-1 w-4 h-4 accent-brand cursor-pointer">
+                    <label for="tc_check" class="text-xs text-gray-400 leading-relaxed cursor-pointer select-none">
+                        I confirm that I am strictly <span class="text-white font-bold">18+ years of age</span> and I fully accept the 
+                        <button type="button" onclick="document.getElementById('tcModal').classList.remove('hidden')" class="text-brand font-bold hover:underline">Terms & Conditions</button>.
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full bg-brand text-black font-bold text-lg py-3.5 rounded-lg hover:bg-green-500 transition shadow-[0_0_15px_rgba(28,218,58,0.2)]">Sign In</button>
+            </form>
+
+            <div class="text-center mt-6 text-sm text-gray-400 font-semibold">
+                Don't have an account? <button onclick="document.getElementById('registerModal').classList.remove('hidden')" class="text-brand hover:underline">Register now.</button>
+            </div>
+        </div>
+    </div>
+
+    {% with fast_tracks = get_flashed_messages(category_filter=['fast_track']) %}
+        {% if fast_tracks %}
+        {% set new_user_id = fast_tracks[0] %}
+        <div id="fastTrackModal" class="hidden relative z-[100]">
+            <div class="fixed inset-0 bg-black/90 backdrop-blur-sm transition-opacity"></div>
+            <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div class="flex min-h-full items-center justify-center p-4 text-center">
+                    <div class="relative transform bg-surface border border-brand/50 rounded-2xl text-left shadow-[0_0_30px_rgba(28,218,58,0.2)] transition-all w-full max-w-md p-6 flex flex-col max-h-[90vh]">
+                        
+                        <div class="text-center mb-6 shrink-0">
+                            <div class="w-16 h-16 bg-green-500/20 text-brand rounded-full flex items-center justify-center mx-auto mb-3 text-3xl">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-1">Registration Pending</h3>
+                            <p class="text-sm text-gray-400">Make your first deposit to get fast-track approval from the Admin!</p>
+                        </div>
+
+                        <div class="overflow-y-auto custom-scrollbar flex-1 pr-1">
+                            <div class="bg-[#1a222d] p-3 rounded-xl border border-gray-700 mb-6 text-xs font-mono text-gray-300 space-y-2 text-left">
+                                <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800">
+                                    <div><span class="text-brand font-bold uppercase">UPI ID:</span> 799648613</div>
+                                    <button type="button" onclick="copyText('799648613', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                                </div>
+                                <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800">
+                                    <div><span class="text-brand font-bold uppercase">Bank A/c:</span> pay for above upi id</div>
+                                    <button type="button" onclick="copyText('pay for above upi id', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                                </div>
+                                <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800">
+                                    <div><span class="text-brand font-bold uppercase">IFSC:</span> pay for above upi id</div>
+                                    <button type="button" onclick="copyText('pay for above upi id', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                                </div>
+                                <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800">
+                                    <div><span class="text-brand font-bold uppercase">QR Code:</span> Scan to Pay</div>
+                                    <button type="button" onclick="document.getElementById('fastQR').classList.toggle('hidden')" class="bg-brand text-black px-3 py-1 rounded font-bold uppercase text-[10px] shadow-[0_0_10px_rgba(28,218,58,0.3)] hover:bg-green-500 transition">Show QR</button>
+                                </div>
+                                <div id="fastQR" class="hidden mt-2 flex justify-center">
+                                    <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                                        <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black>qr.png missing in static folder</p>')" alt="QR Code" class="w-32 h-32 object-contain">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form method="POST" action="{{ url_for('fast_track_deposit') }}" enctype="multipart/form-data" class="space-y-4 text-left">
+                                <input type="hidden" name="user_id" value="{{ new_user_id }}">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Deposit Amount (₹)</label>
+                                    <input type="number" step="0.01" min="100" name="amount" placeholder="Min Deposit ₹100" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand font-bold" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Transaction UTR Number</label>
+                                    <input type="text" name="utr" placeholder="12-digit UTR" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Payment Screenshot Proof</label>
+                                    <input type="file" name="screenshot" accept="image/*" class="w-full bg-[#1a222d] border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-brand" required>
+                                </div>
+
+                                <div class="mt-6 flex gap-3 pb-2 border-t border-gray-800 pt-4">
+                                    <button type="button" onclick="document.getElementById('fastTrackModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-bold py-3 rounded-lg hover:bg-gray-700 transition">Skip for Now</button>
+                                    <button type="submit" class="flex-1 bg-brand text-black font-bold py-3 rounded-lg hover:bg-green-500 transition shadow-lg">Submit Proof</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script> document.getElementById('fastTrackModal').classList.remove('hidden'); </script>
+        {% endif %}
+    {% endwith %}
+
+    <div id="registerModal" class="hidden relative z-[100]">
+        <div class="fixed inset-0 bg-black/90 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="relative transform bg-surface border border-gray-700 rounded-2xl text-left shadow-2xl transition-all w-full max-w-md flex flex-col max-h-[90vh]">
+                    <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-surface rounded-t-2xl shrink-0">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-plus text-brand"></i> Create Account</h3>
+                        <button type="button" onclick="document.getElementById('registerModal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    </div>
+                    <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                        <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Player ID</label><input type="text" name="username" placeholder="e.g. rohan12" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand" required></div>
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Mobile Number</label><input type="text" name="mobile" placeholder="10-digit number" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand" required></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Password</label><input type="password" name="password" placeholder="••••••••" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand" required></div>
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1 uppercase">Confirm Pass</label><input type="password" name="confirm_password" placeholder="••••••••" class="w-full bg-[#1a222d] border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-brand" required></div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-800">
+                                <label class="block text-xs font-bold text-brand mb-1 uppercase"><i class="fa-solid fa-gift"></i> Referral Code (Optional)</label>
+                                <p class="text-[10px] text-gray-500 mb-2">If your friend invited you, enter their username to get a ₹50 Bonus!</p>
+                                <input type="text" name="referral_code" placeholder="Enter friend's username" class="w-full bg-[#1a222d] border border-brand/50 rounded p-3 text-white focus:outline-none focus:border-brand">
+                            </div>
+                            <div class="mt-6 border-t border-gray-800 pt-4">
+                                <button type="submit" class="w-full bg-brand text-black font-bold text-lg py-4 rounded-lg hover:bg-green-500 transition shadow-lg">Register Account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tcModal" class="hidden relative z-[100]">
+        <div class="fixed inset-0 bg-black/90 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="relative transform bg-surface border border-gray-700 rounded-2xl text-left shadow-2xl transition-all w-full max-w-lg flex flex-col max-h-[85vh]">
+                    <div class="p-6 border-b border-gray-800 flex justify-between items-center shrink-0">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-brand"></i> Terms & Conditions</h3>
+                        <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    </div>
+                    <div class="p-6 overflow-y-auto custom-scrollbar text-sm text-gray-300 space-y-4 flex-1">
+                        <p class="font-bold text-white">1. Age Requirement and Eligibility</p><p>You must be at least 18 years of age (or the legal age of majority in your jurisdiction) to use Novabetx. By accessing this platform, you legally declare that you meet this requirement. Accounts created by minors will be immediately terminated and funds forfeited.</p>
+                        <p class="font-bold text-white mt-4">2. Financial Risk Acknowledgment</p><p>Sports betting and casino games involve financial risk. You acknowledge that you are using this platform at your own risk and that Novabetx is not liable for any financial losses incurred. Bet responsibly and never wager more than you can afford to lose.</p>
+                        <p class="font-bold text-white mt-4">3. Account Security</p><p>You are solely responsible for maintaining the confidentiality of your login credentials. Any bets placed using your account will be considered valid. Novabetx is not responsible for unauthorized access resulting from user negligence.</p>
+                        <p class="font-bold text-white mt-4">4. Deposits and Withdrawals</p><p>All deposits must be made using payment methods registered in your own name. Withdrawals will only be processed to bank accounts matching the verified user details. We reserve the right to delay withdrawals for security verification.</p>
+                        <p class="font-bold text-white mt-4">5. Fair Play and Anti-Fraud</p><p>The use of bots, automated betting software, or exploiting system glitches is strictly prohibited. Any suspicion of fraudulent activity, match-fixing, or abuse of bonuses will result in immediate account suspension and confiscation of all balances.</p>
+                        <p class="font-bold text-white mt-4">6. Jurisdiction</p><p>It is the user's responsibility to ensure that online betting is legal in their country, state, or region. Novabetx does not accept responsibility for users who violate their local laws by accessing this platform.</p>
+                    </div>
+                    <div class="p-6 border-t border-gray-800 bg-[#1a222d] rounded-b-2xl shrink-0">
+                        <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="w-full bg-brand text-black font-bold py-3 rounded-lg hover:bg-green-500 transition">I Understand</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-green-500 scale-125 transition-transform"></i>';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        }
+    </script>
+</body>
+</html>

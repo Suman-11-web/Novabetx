@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novabetx - All Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config={theme:{extend:{colors:{background:'#0a0d13',surface:'#121721',surfaceLight:'#1C232E',brand:'#1CDA3A'}}}}</script>
+</head>
+<body class="bg-background text-white min-h-screen pb-20">
+
+    <header class="bg-[#0f131a]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+            <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
+                <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)]"><i class="fa-solid fa-plus text-sm"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <div class="px-4 py-6 max-w-[1200px] mx-auto">
+        <h1 class="text-3xl font-black italic tracking-wide mb-6 uppercase border-l-4 border-brand pl-3">Live <span class="text-brand">Games</span></h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            
+            <a href="{{ url_for('spin_game') }}" class="block bg-gradient-to-br from-indigo-900 to-black rounded-2xl border border-indigo-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-dharmachakra absolute right-[-20px] top-[-10px] text-8xl text-indigo-500 opacity-20 group-hover:opacity-40 group-hover:animate-spin transition-opacity"></i>
+                <div class="bg-indigo-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Free Bonus</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Daily Spin</h2>
+                <p class="text-sm text-gray-300 mt-2">Spin the 3D Wheel of Fortune once every 24 hours to win up to ₹500 Bonus Cash!</p>
+                <div class="mt-6 bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+
+            <a href="{{ url_for('aviator_game') }}" class="block bg-gradient-to-br from-red-900 to-black rounded-2xl border border-red-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-plane-up absolute right-[-20px] top-[-10px] text-8xl text-red-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Live Multiplier</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Aviator</h2>
+                <p class="text-sm text-gray-300 mt-2">Cash out before the plane flies away! High risk, huge rewards.</p>
+                <div class="mt-6 bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(231,76,60,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+
+            <a href="{{ url_for('dragon_tiger_game') }}" class="block bg-gradient-to-br from-yellow-900 via-orange-900 to-black rounded-2xl border border-yellow-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-dragon absolute right-[-20px] top-[-10px] text-8xl text-yellow-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-yellow-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Card Flip</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Dragon Tiger</h2>
+                <p class="text-sm text-gray-300 mt-2">The fastest 50/50 card game. Pick the winning side in 15 seconds.</p>
+                <div class="mt-6 bg-yellow-500 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+
+            <a href="{{ url_for('heads_tails_game') }}" class="block bg-gradient-to-br from-slate-800 to-black rounded-2xl border border-gray-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-coins absolute right-[-20px] top-[-10px] text-8xl text-gray-400 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-gray-200 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Coin Toss</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Heads <span class="text-gray-500">v</span> Tails</h2>
+                <p class="text-sm text-gray-300 mt-2">A classic 3D coin flip. Predict the landing side to double your money.</p>
+                <div class="mt-6 bg-gray-200 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+
+            <a href="{{ url_for('color_prediction_game') }}" class="block bg-gradient-to-br from-purple-900 to-black rounded-2xl border border-purple-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-palette absolute right-[-20px] top-[-10px] text-8xl text-purple-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-purple-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Fast Parity</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Color Predict</h2>
+                <p class="text-sm text-gray-300 mt-2">Bet on Green, Red, Violet, or exact numbers in this fast-paced 30s game.</p>
+                <div class="mt-6 bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+            
+            <a href="{{ url_for('mines_game') }}" class="block bg-gradient-to-br from-cyan-900 to-black rounded-2xl border border-cyan-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-bomb absolute right-[-20px] top-[-10px] text-8xl text-cyan-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-cyan-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Grid Logic</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Cyber Mines</h2>
+                <p class="text-sm text-gray-300 mt-2">Find diamonds to boost your multiplier, but beware the hidden bombs!</p>
+                <div class="mt-6 bg-cyan-500 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+            
+            <a href="{{ url_for('dice_game') }}" class="block bg-gradient-to-br from-pink-900 to-black rounded-2xl border border-pink-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
+                <i class="fa-solid fa-dice-d20 absolute right-[-20px] top-[-10px] text-8xl text-pink-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
+                <div class="bg-pink-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Adjustable</div>
+                <h2 class="text-3xl font-black italic text-white uppercase">Digital Dice</h2>
+                <p class="text-sm text-gray-300 mt-2">Set your own risk and reward slider. Roll the digital dice instantly.</p>
+                <div class="mt-6 bg-pink-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
+            </a>
+
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+</body>
+</html>

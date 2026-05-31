@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Heads vs Tails Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { bgDark: '#080a0f', panelBg: 'rgba(15, 20, 30, 0.7)', brand: '#1CDA3A' } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
+        .stadium-bg { background: radial-gradient(circle at 50% 30%, #1e293b 0%, #030712 100%); }
+        .coin-container { perspective: 800px; width: 140px; height: 140px; margin: 0 auto; position: relative; z-index: 20; }
+        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: rotateX(0deg); }
+        .coin-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 50%; border: 6px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
+        .coin-heads { background: radial-gradient(circle, #fbbf24 0%, #b45309 100%); border-color: #fef08a; color: #fff; text-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .coin-tails { background: radial-gradient(circle, #9ca3af 0%, #374151 100%); border-color: #e5e7eb; color: #fff; transform: rotateX(180deg); text-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        @keyframes pulseHeadsWin { 0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px #fbbf24; border-color: #fef08a; } 50% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 60px #fbbf24; border-color: #fff; transform: scale(1.05); } }
+        @keyframes pulseTailsWin { 0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px #9ca3af; border-color: #e5e7eb; } 50% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 60px #9ca3af; border-color: #fff; transform: rotateX(180deg) scale(1.05); } }
+        .win-glow-heads { animation: pulseHeadsWin 1.2s infinite ease-in-out; z-index: 10; }
+        .win-glow-tails { animation: pulseTailsWin 1.2s infinite ease-in-out; z-index: 10; }
+        @keyframes tossHeads { 0% { transform: translateY(0) scale(1) rotateX(0deg); } 50% { transform: translateY(-140px) scale(1.5) rotateX(1080deg); } 100% { transform: translateY(0) scale(1) rotateX(2160deg); } }
+        @keyframes tossTails { 0% { transform: translateY(0) scale(1) rotateX(0deg); } 50% { transform: translateY(-140px) scale(1.5) rotateX(1080deg); } 100% { transform: translateY(0) scale(1) rotateX(2340deg); } }
+        .coin-shadow { width: 100px; height: 15px; background: rgba(0,0,0,0.8); border-radius: 50%; margin: -10px auto 0; filter: blur(5px); opacity: 0.8; z-index: 10; }
+        @keyframes shadowShrink { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(0.3); opacity: 0.2; } 100% { transform: scale(1); opacity: 0.8; } }
+        .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5); }
+        .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 8px 0; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+        .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+
+    <div id="toast-container"></div>
+
+    <div class="flex justify-between items-center bg-[#050810] px-4 py-3 border-b border-gray-800 shadow-md">
+        <div class="bg-gray-200/20 text-gray-200 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-gray-400/30 flex items-center gap-2">
+            <i class="fa-solid fa-coins"></i> LIVE
+        </div>
+        <div class="text-right">
+            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+            <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </div>
+    </div>
+
+    <div id="history-strip" class="bg-[#0c1018] flex items-center px-3 py-2.5 gap-2 overflow-x-auto whitespace-nowrap text-xs font-black border-b border-gray-800 shadow-inner"></div>
+
+    <div class="relative w-full h-[280px] md:h-[400px] stadium-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)]">
+        <div id="game-status" class="absolute top-6 z-20 bg-black/60 px-6 py-2 rounded-full border border-gray-700 backdrop-blur-md text-center shadow-lg">
+            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div>
+            <div id="timer-text" class="text-2xl font-black text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:12</div>
+        </div>
+        <div id="result-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <div id="result-text" class="text-5xl md:text-7xl font-black italic tracking-widest uppercase drop-shadow-[0_0_20px_rgba(0,0,0,1)] text-white">HEADS</div>
+        </div>
+        <div class="flex flex-col items-center justify-center mt-6">
+            <div class="coin-container drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+                <div id="the-coin" class="coin">
+                    <div id="face-heads" class="coin-face coin-heads"><span class="text-7xl font-black leading-none tracking-tighter">H</span><span class="text-[9px] font-bold uppercase tracking-widest opacity-80 mt-1">Heads</span></div>
+                    <div id="face-tails" class="coin-face coin-tails"><span class="text-7xl font-black leading-none tracking-tighter">T</span><span class="text-[9px] font-bold uppercase tracking-widest opacity-80 mt-1">Tails</span></div>
+                </div>
+            </div>
+            <div id="the-shadow" class="coin-shadow"></div>
+        </div>
+    </div>
+
+    <div class="flex-1 bg-bgDark p-3 overflow-y-auto flex flex-col justify-center">
+        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full relative">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button id="btn-heads" onclick="placeBet('Heads')" class="bg-gradient-to-b from-yellow-500 to-yellow-700 border-2 border-yellow-400 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:shadow-[0_0_25px_rgba(234,179,8,0.6)] transition-all active:scale-95 text-black">
+                    <span class="font-black text-3xl tracking-wider leading-none mb-1">H</span><span class="font-black text-lg tracking-wider">HEADS</span><span class="text-[10px] mt-1 font-bold bg-black/20 px-2 py-0.5 rounded text-yellow-100">PAYS 1.95x</span>
+                </button>
+                <button id="btn-tails" onclick="placeBet('Tails')" class="bg-gradient-to-b from-gray-500 to-gray-700 border-2 border-gray-400 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(156,163,175,0.3)] hover:shadow-[0_0_25px_rgba(156,163,175,0.6)] transition-all active:scale-95 text-white">
+                    <span class="font-black text-3xl tracking-wider leading-none mb-1">T</span><span class="font-black text-lg tracking-wider">TAILS</span><span class="text-[10px] mt-1 font-bold bg-black/30 px-2 py-0.5 rounded text-gray-200">PAYS 1.95x</span>
+                </button>
+            </div>
+            
+            <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-2 py-2 mb-4 shadow-inner">
+                <button onclick="adjustStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">-</button>
+                <input type="number" id="stake-amount" value="50" class="w-full bg-transparent text-center text-white font-black text-2xl focus:outline-none">
+                <button onclick="adjustStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">+</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setStake(50)" class="bet-amount-btn">50</button><button onclick="setStake(100)" class="bet-amount-btn">100</button><button onclick="setStake(500)" class="bet-amount-btn">500</button>
+                <button onclick="setStake(1000)" class="bet-amount-btn">1000</button><button onclick="setStake(2500)" class="bet-amount-btn">2500</button><button onclick="setStake(5000)" class="bet-amount-btn">5000</button>
+            </div>
+            <div id="my-bet-info" class="hidden mt-5 text-center text-sm font-bold text-gray-300 bg-black/50 py-3 rounded-xl border border-gray-700 shadow-inner">
+                Bet Placed: ₹<span id="my-bet-amt" class="text-white text-lg ml-1">0</span> on <span id="my-bet-target" class="text-brand uppercase tracking-wider ml-1">Target</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+
+    <script>
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
+            const toast = document.createElement('div'); const isSuccess = type === 'success';
+            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
+            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
+            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ==========================================
+        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
+        // ==========================================
+        let audioCtx;
+        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        const Sound = {
+            play: (f, t, dur, v=0.1) => {
+                if(!audioCtx) return;
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            },
+            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
+            win: () => { 
+                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
+                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
+                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
+                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
+            },
+            lose: () => { 
+                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
+                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
+                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
+            }
+        };
+
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win(); // THIS IS THE ONLY PLACE THE WIN SOUND PLAYS
+            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
+            if(!balEl || !balWrapper) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth; 
+            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
+            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
+            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        }
+
+        let localState = "WAITING"; let hasBet = false;
+        const theCoin = document.getElementById('the-coin'); const theShadow = document.getElementById('the-shadow');
+        const faceHeads = document.getElementById('face-heads'); const faceTails = document.getElementById('face-tails');
+
+        function setStake(val) { initAudio(); Sound.tick(); if(!hasBet && localState === "WAITING") document.getElementById('stake-amount').value = val; }
+        function adjustStake(amt) { initAudio(); Sound.tick(); if(hasBet || localState !== "WAITING") return; let val = parseInt(document.getElementById('stake-amount').value) || 0; document.getElementById('stake-amount').value = Math.max(10, val + amt); }
+
+        function renderHistory(hist) {
+            const strip = document.getElementById('history-strip'); strip.innerHTML = '';
+            hist.forEach(r => {
+                let col = r === "H" ? "text-yellow-500 border-yellow-500/50 bg-yellow-900/20" : "text-gray-300 border-gray-400/50 bg-gray-800/50";
+                strip.innerHTML += `<div class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full border shadow-sm ${col}">${r}</div>`;
+            });
+        }
+
+        function disableButtons(disable) {
+            ['btn-heads', 'btn-tails'].forEach(id => { document.getElementById(id).style.opacity = disable ? '0.5' : '1'; document.getElementById(id).style.transform = disable ? 'scale(0.98)' : 'scale(1)'; document.getElementById(id).disabled = disable; });
+        }
+
+        async function placeBet(target) {
+            initAudio();
+            if(localState !== "WAITING" || hasBet) return;
+            let stake = parseFloat(document.getElementById('stake-amount').value);
+            disableButtons(true);
+            try {
+                let res = await fetch("/heads_tails/bet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stake: stake, target: target }) }); let data = await res.json();
+                if(data.success) { document.getElementById('display-balance').innerText = data.new_total.toFixed(2); hasBet = true; document.getElementById('my-bet-info').classList.remove('hidden'); document.getElementById('my-bet-amt').innerText = stake; document.getElementById('my-bet-target').innerText = target; showToast(`Bet accepted on ${target}`, "success"); } 
+                else { showToast(data.error, "error"); disableButtons(false); }
+            } catch(e) { showToast("Network Error", "error"); disableButtons(false); }
+        }
+
+        async function syncLoop() {
+            try {
+                let res = await fetch('/heads_tails/sync'); let data = await res.json(); renderHistory(data.history);
+
+                if (data.state !== localState) {
+                    localState = data.state;
+                    
+                    if (localState === "WAITING") {
+                        hasBet = false;
+                        theCoin.style.animation = 'none'; theShadow.style.animation = 'none';
+                        faceHeads.classList.remove('win-glow-heads'); faceTails.classList.remove('win-glow-tails');
+                        theCoin.style.transform = 'rotateX(0deg)';
+                        document.getElementById('result-overlay').classList.add('hidden'); document.getElementById('my-bet-info').classList.add('hidden');
+                        disableButtons(false);
+                    } 
+                    else if (localState === "FLIPPING") {
+                        disableButtons(true);
+                        document.getElementById('game-status').innerHTML = `<div class="text-brand font-black uppercase text-xl drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">FLIPPING</div>`;
+                        
+                        void theCoin.offsetWidth; 
+                        if(data.result === "Heads") { theCoin.style.animation = 'tossHeads 3s ease-in-out forwards'; } 
+                        else { theCoin.style.animation = 'tossTails 3s ease-in-out forwards'; }
+                        theShadow.style.animation = 'shadowShrink 3s ease-in-out forwards';
+                        
+                        setTimeout(() => {
+                            const ro = document.getElementById('result-overlay'); const rt = document.getElementById('result-text'); ro.classList.remove('hidden');
+                            
+                            if(data.result === "Heads") { rt.innerText = "HEADS WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-yellow-500 drop-shadow-[0_0_20px_rgba(234,179,8,1)]"; faceHeads.classList.add('win-glow-heads'); } 
+                            else { rt.innerText = "TAILS WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-gray-100 drop-shadow-[0_0_20px_rgba(255,255,255,1)]"; faceTails.classList.add('win-glow-tails'); }
+                            
+                            if(hasBet) { 
+                                // Clean foolproof checking: fetch the new balance exactly ONCE to see if we won or lost
+                                fetch('/heads_tails').then(r => r.text()).then(html => {
+                                    const match = html.match(/id="display-balance">([\d.]+)<\/span>/);
+                                    if(match && match[1]) {
+                                        let newBal = parseFloat(match[1]); 
+                                        let oldBal = parseFloat(document.getElementById('display-balance').innerText);
+                                        
+                                        if (newBal > oldBal) { 
+                                            // THIS TRIGGERS THE 1 WIN SOUND AND GREEN ANIMATION
+                                            triggerWinAnimation(newBal - oldBal, newBal); 
+                                        } 
+                                        else { 
+                                            // THIS TRIGGERS THE 1 LOSE SOUND
+                                            Sound.lose();
+                                            document.getElementById('display-balance').innerText = newBal.toFixed(2); 
+                                        }
+                                    }
+                                });
+                            }
+                        }, 3000);
+                    }
+                }
+
+                if (localState === "WAITING") {
+                    let rem = Math.max(0, 12.0 - data.elapsed); let displayRem = Math.ceil(rem); let pad = displayRem < 10 ? '0' : '';
+                    document.getElementById('game-status').innerHTML = `<div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div><div class="text-2xl font-black ${rem < 4 ? 'text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]'}">00:${pad}${displayRem}</div>`;
+                }
+            } catch(e) {}
+        } setInterval(syncLoop, 1000); syncLoop();
+    </script>
+</body>
+</html>

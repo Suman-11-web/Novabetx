@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIP Profile - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { bgDark: '#0a0d13', surface: '#121721', surfaceLight: '#1C232E', brand: '#1CDA3A' } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass-panel { background: rgba(18, 23, 33, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .vip-card { background: linear-gradient(135deg, #1f2937 0%, #0f131a 100%); position: relative; overflow: hidden; }
+        .vip-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(28,218,58,0.1) 0%, transparent 50%); animation: rotateGlow 10s linear infinite; pointer-events: none; }
+        @keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-btn.active { color: #1CDA3A; border-bottom: 2px solid #1CDA3A; background: linear-gradient(to top, rgba(28,218,58,0.1), transparent); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] pb-24 flex flex-col">
+
+    <div id="toast-container"></div>
+
+    <!-- HEADER -->
+    <header class="bg-[#0f131a]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+            <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
+                <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                <button onclick="document.getElementById('depositModal').classList.remove('hidden')" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)]"><i class="fa-solid fa-plus text-sm"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 max-w-2xl mx-auto w-full p-4">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-3 rounded-xl text-center font-bold text-sm shadow-lg {{ 'bg-green-500/20 text-brand border border-brand/50' if category == 'success' else 'bg-red-500/20 text-red-500 border border-red-500/50' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- VIP PLAYER CARD -->
+        <div class="vip-card rounded-2xl border border-gray-700 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.8)] mb-6">
+            <div class="flex justify-between items-start mb-6 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-gray-700 to-black rounded-full flex items-center justify-center border-2 border-brand shadow-[0_0_15px_rgba(28,218,58,0.3)]">
+                        <i class="fa-solid fa-user-astronaut text-2xl text-gray-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-white uppercase tracking-wider">{{ user.username }}</h2>
+                        <div class="text-[10px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded border border-brand/20 inline-block mt-1">
+                            <i class="fa-solid fa-gem mr-1"></i> VIP MEMBER
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Bets</div>
+                    <div class="text-lg font-black text-white font-mono">{{ bet_count }}</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 relative z-10">
+                <div class="bg-black/40 rounded-xl p-3 border border-gray-800 backdrop-blur-sm">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-wallet text-brand mr-1"></i> Real Cash</div>
+                    <div class="text-2xl font-black text-white">₹{{ "%.2f"|format(user.balance) }}</div>
+                </div>
+                <div class="bg-brand/5 rounded-xl p-3 border border-brand/20 backdrop-blur-sm">
+                    <div class="text-[10px] text-brand font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-gift text-brand mr-1"></i> Bonus Cash</div>
+                    <div class="text-2xl font-black text-brand">₹{{ "%.2f"|format(user.bonus_balance) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP TABS -->
+        <div class="flex border-b border-gray-800 mb-5 sticky top-[60px] bg-bgDark/95 backdrop-blur-md z-40 pt-2">
+            <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active flex-1 py-3 text-xs font-black uppercase tracking-wider text-gray-400 transition-all"><i class="fa-solid fa-layer-group mr-1"></i> Overview</button>
+            <button onclick="switchTab('deposits')" id="tab-deposits" class="tab-btn flex-1 py-3 text-xs font-black uppercase tracking-wider text-gray-400 transition-all"><i class="fa-solid fa-arrow-down mr-1"></i> Deposits</button>
+            <button onclick="switchTab('withdrawals')" id="tab-withdrawals" class="tab-btn flex-1 py-3 text-xs font-black uppercase tracking-wider text-gray-400 transition-all"><i class="fa-solid fa-arrow-up mr-1"></i> Withdrawals</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="content-overview" class="tab-content active space-y-5">
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="document.getElementById('depositModal').classList.remove('hidden')" class="bg-gradient-to-r from-green-600 to-brand text-black font-black py-4 rounded-xl shadow-[0_0_15px_rgba(28,218,58,0.3)] hover:scale-[1.02] transition-transform flex flex-col items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-arrow-down text-xl"></i>
+                    <span class="text-xs uppercase tracking-widest">Deposit</span>
+                </button>
+                <button onclick="document.getElementById('withdrawModal').classList.remove('hidden')" class="bg-surfaceLight border border-gray-700 text-white font-black py-4 rounded-xl shadow-lg hover:bg-gray-800 hover:scale-[1.02] transition-transform flex flex-col items-center justify-center gap-1">
+                    <i class="fa-solid fa-building-columns text-xl text-blue-400"></i>
+                    <span class="text-xs uppercase tracking-widest">Withdraw</span>
+                </button>
+            </div>
+
+            <!-- Refer & Earn -->
+            <div class="glass-panel rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 text-brand opacity-10 text-8xl pointer-events-none"><i class="fa-solid fa-users"></i></div>
+                <h3 class="text-lg font-black text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-gift text-brand"></i> Refer & Earn ₹50</h3>
+                <p class="text-xs text-gray-400 mb-4 leading-relaxed pr-8">Share your username. When friends register and get approved, you <span class="font-bold text-white">BOTH get ₹50 Bonus</span> instantly!</p>
+                
+                <div class="bg-black/50 p-3 rounded-xl border border-gray-700 flex justify-between items-center relative">
+                    <div>
+                        <div class="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-0.5">Your Referral Code</div>
+                        <div class="text-xl font-mono font-black text-brand tracking-widest" id="referralText">{{ user.username }}</div>
+                    </div>
+                    <button onclick="copyText('{{ user.username }}', this)" class="bg-gray-800 text-white w-10 h-10 rounded-lg flex items-center justify-center transition hover:bg-gray-700 active:scale-95">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+                
+                {% if not user.referrer_id %}
+                <div class="mt-5 pt-4 border-t border-gray-800">
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Claim Friend's Code</h4>
+                    <form method="POST" action="{{ url_for('claim_referral') }}" class="flex gap-2">
+                        <input type="text" name="referral_code" placeholder="Enter username" class="flex-1 bg-black/50 border border-gray-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand" required>
+                        <button type="submit" class="bg-brand text-black font-black text-xs px-4 rounded-lg transition active:scale-95 uppercase tracking-wider">Claim</button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="mt-5 pt-4 border-t border-gray-800">
+                    <div class="text-xs font-bold text-green-500 bg-green-500/10 py-2.5 px-4 rounded-lg border border-green-500/20 text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i> Bonus Claimed
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="w-full block text-center bg-red-500/10 text-red-500 border border-red-500/30 font-black py-4 rounded-xl hover:bg-red-500 hover:text-white transition uppercase tracking-widest text-sm shadow-md">
+                <i class="fa-solid fa-power-off mr-2"></i> Secure Logout
+            </a>
+        </div>
+
+        <!-- TAB 2: DEPOSIT HISTORY -->
+        <div id="content-deposits" class="tab-content space-y-3">
+            {% for d in deposits %}
+            <div class="glass-panel p-4 rounded-xl shadow-md border-l-4 {{ 'border-l-green-500' if d.status == 'Approved' else 'border-l-red-500' if d.status == 'Rejected' else 'border-l-yellow-500' }}">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 border border-gray-700">
+                            {% if 'UPI' in d.method or 'QR' in d.method %}<i class="fa-brands fa-google-pay text-lg"></i>
+                            {% else %}<i class="fa-solid fa-building-columns"></i>{% endif %}
+                        </div>
+                        <div>
+                            <div class="font-black text-lg text-white">₹{{ "%.2f"|format(d.amount) }}</div>
+                            <div class="text-[10px] text-gray-500 font-mono">{{ d.date }}</div>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
+                        {% if d.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
+                        {% elif d.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
+                        {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                        {{ d.status }}
+                    </span>
+                </div>
+                <div class="bg-black/40 rounded-lg p-2.5 text-xs border border-gray-800 flex flex-col gap-1.5">
+                    <div class="flex justify-between"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">Method</span> <span class="text-white font-medium">{{ d.method }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">UTR/Ref No.</span> <span class="text-brand font-mono font-bold">{{ d.utr }}</span></div>
+                </div>
+            </div>
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-10 bg-surfaceLight/30 rounded-2xl border border-dashed border-gray-700">
+                <i class="fa-solid fa-receipt text-4xl text-gray-600 mb-3"></i>
+                <div class="text-sm font-bold text-gray-400">No Deposits Yet</div>
+                <button onclick="switchTab('overview'); document.getElementById('depositModal').classList.remove('hidden')" class="mt-4 text-brand text-xs font-bold hover:underline">Make your first deposit</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- TAB 3: WITHDRAWAL HISTORY -->
+        <div id="content-withdrawals" class="tab-content space-y-3">
+            {% for w in withdrawals %}
+            <div class="glass-panel p-4 rounded-xl shadow-md border-l-4 {{ 'border-l-green-500' if w.status == 'Approved' else 'border-l-red-500' if w.status == 'Rejected' else 'border-l-yellow-500' }}">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                            <i class="fa-solid fa-building-columns text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="font-black text-lg text-white">₹{{ "%.2f"|format(w.amount) }}</div>
+                            <div class="text-[10px] text-gray-500 font-mono">{{ w.date }}</div>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
+                        {% if w.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
+                        {% elif w.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
+                        {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                        {{ w.status }}
+                    </span>
+                </div>
+                <div class="bg-black/40 rounded-lg p-3 text-xs border border-gray-800 space-y-2">
+                    <div class="flex justify-between items-center"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">Bank Name</span> <span class="text-white font-black">{{ w.bank_name }}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">A/C Name</span> <span class="text-gray-300">{{ w.account_name }}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">A/C Number</span> <span class="text-brand font-mono font-bold tracking-widest">●●●●{{ w.account_number[-4:] if w.account_number|length >= 4 else w.account_number }}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-500 font-bold uppercase tracking-wider text-[9px]">IFSC Code</span> <span class="text-gray-300 font-mono uppercase">{{ w.ifsc }}</span></div>
+                </div>
+            </div>
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-10 bg-surfaceLight/30 rounded-2xl border border-dashed border-gray-700">
+                <i class="fa-solid fa-money-bill-transfer text-4xl text-gray-600 mb-3"></i>
+                <div class="text-sm font-bold text-gray-400">No Withdrawals Yet</div>
+                <div class="text-xs text-gray-500 mt-1">Play games to convert bonus to real cash!</div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- DEPOSIT MODAL (Exact same hardcoded UPI details as before) -->
+    <div id="depositModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h3 class="text-xl font-black mb-2 text-white flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down text-brand"></i> Deposit Funds</h3>
+            <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">Transfer to admin, then submit proof.</p>
+            
+            <div class="bg-black/50 p-3 rounded-xl border border-gray-700 mb-5 text-xs font-mono text-gray-300 space-y-2">
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">UPI ID:</span> 799648613</div>
+                    <button type="button" onclick="copyText('799648613', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">Bank A/c:</span> pay for above upi id</div>
+                    <button type="button" onclick="copyText('pay for above upi id', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">IFSC:</span> pay for above upi id</div>
+                    <button type="button" onclick="copyText('pay for above upi id', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <!-- QR CODE SECTION -->
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">QR Code:</span> Scan to Pay</div>
+                    <button type="button" onclick="document.getElementById('profileQR').classList.toggle('hidden')" class="bg-brand text-black px-3 py-1 rounded font-black uppercase text-[9px] tracking-wider shadow-[0_0_10px_rgba(28,218,58,0.3)] hover:bg-green-500 transition">Show QR</button>
+                </div>
+                <div id="profileQR" class="hidden mt-2 flex justify-center">
+                    <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                        <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black font-bold>qr.png missing in static folder</p>')" alt="QR Code" class="w-32 h-32 object-contain">
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('deposit') }}" enctype="multipart/form-data" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Method</label>
+                        <select name="method" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-brand font-bold" required>
+                            <option value="UPI">UPI (GPay/PhonePe)</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="QR Code Scan">QR Code Scan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-brand mb-1 uppercase tracking-widest">Amount (₹)</label>
+                        <input type="number" step="0.01" name="amount" placeholder="0.00" class="w-full bg-black/50 border border-brand/50 rounded-lg p-3 text-white font-black focus:outline-none focus:border-brand transition" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Transaction UTR Number</label>
+                    <input type="text" name="utr" placeholder="Enter 12-digit UTR" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white font-mono text-sm focus:outline-none focus:border-brand transition" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Payment Screenshot Proof</label>
+                    <input type="file" name="screenshot" accept="image/*" class="w-full bg-black/50 border border-gray-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-brand transition file:bg-gray-800 file:border-0 file:text-white file:px-3 file:py-1 file:rounded file:font-bold file:text-xs file:mr-3 cursor-pointer" required>
+                </div>
+                <div class="flex gap-3 mt-6 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="document.getElementById('depositModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-black text-sm py-3.5 rounded-xl hover:bg-gray-700 transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="flex-1 bg-brand text-black font-black text-sm py-3.5 rounded-xl hover:bg-green-500 transition shadow-[0_0_15px_rgba(28,218,58,0.3)] active:scale-95 uppercase tracking-wider">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- WITHDRAWAL MODAL -->
+    <div id="withdrawModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h3 class="text-xl font-black mb-2 text-white flex items-center gap-2"><i class="fa-solid fa-building-columns text-blue-400"></i> Withdraw Funds</h3>
+            
+            {% if not has_deposited %}
+                <div class="text-center py-6">
+                    <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl border border-red-500/20 shadow-inner">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h4 class="text-lg font-black text-white mb-2 uppercase tracking-wide">Withdrawal Locked</h4>
+                    <p class="text-xs text-gray-400 mb-8 leading-relaxed px-4">Make at least <span class="text-white font-bold">one successful deposit</span> to verify your identity and unlock real cash withdrawals.</p>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-black py-3.5 rounded-xl hover:bg-gray-700 transition uppercase text-xs tracking-wider">Close</button>
+                        <button type="button" onclick="document.getElementById('withdrawModal').classList.add('hidden'); document.getElementById('depositModal').classList.remove('hidden')" class="flex-1 bg-brand text-black font-black py-3.5 rounded-xl hover:bg-green-500 transition shadow-[0_0_15px_rgba(28,218,58,0.4)] uppercase text-xs tracking-wider active:scale-95">Deposit Now</button>
+                    </div>
+                </div>
+            {% elif user.balance <= 0 %}
+                <div class="text-center py-6">
+                    <div class="w-20 h-20 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl border border-yellow-500/20 shadow-inner">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h4 class="text-lg font-black text-white mb-2 uppercase tracking-wide">Insufficient Real Balance</h4>
+                    <p class="text-xs text-gray-400 mb-8 leading-relaxed px-4">Your Real Balance is ₹0.00. Bonus cash cannot be withdrawn. Play games to convert your bonus into real winnings!</p>
+                    <button type="button" onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="w-full bg-gray-800 text-white font-black py-3.5 rounded-xl hover:bg-gray-700 transition uppercase text-xs tracking-wider">Understood</button>
+                </div>
+            {% else %}
+                <p class="text-[10px] text-gray-400 mb-6 uppercase tracking-wider font-bold">Enter bank details. Deducts from Real Balance.</p>
+                
+                {% set last_w = withdrawals[0] if withdrawals else None %}
+                
+                <form method="POST" action="{{ url_for('withdraw') }}" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Account Holder Name</label>
+                        <input type="text" name="account_name" value="{{ last_w.account_name if last_w else '' }}" placeholder="John Doe" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 transition" required>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Account Number</label>
+                        <input type="text" name="account_number" value="{{ last_w.account_number if last_w else '' }}" placeholder="XXXXXXXXXXXX" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white font-mono text-sm focus:outline-none focus:border-blue-500 transition" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">IFSC Code</label>
+                            <input type="text" name="ifsc" value="{{ last_w.ifsc if last_w else '' }}" placeholder="SBIN0001234" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-blue-500 transition" required>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Bank Name</label>
+                            <input type="text" name="bank_name" value="{{ last_w.bank_name if last_w else '' }}" placeholder="SBI" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 transition" required>
+                        </div>
+                    </div>
+                    <div class="mt-5 pt-5 border-t border-gray-800">
+                        <label class="block text-[10px] font-bold text-blue-400 mb-1 uppercase tracking-widest">Withdraw Amount (Max ₹{{ "%.2f"|format(user.balance) }})</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-black text-xl">₹</div>
+                            <input type="number" step="0.01" name="amount" placeholder="0.00" max="{{ user.balance }}" class="w-full bg-black/50 border border-blue-500/50 rounded-lg py-3 pl-9 pr-4 text-white font-black text-2xl focus:outline-none focus:border-blue-500 shadow-[inset_0_0_10px_rgba(59,130,246,0.1)] transition" required>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-6 pt-4">
+                        <button type="button" onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-black text-sm py-3.5 rounded-xl hover:bg-gray-700 transition uppercase tracking-wider">Cancel</button>
+                        <button type="submit" class="flex-1 bg-blue-600 text-white font-black text-sm py-3.5 rounded-xl hover:bg-blue-500 transition shadow-[0_0_15px_rgba(59,130,246,0.4)] active:scale-95 uppercase tracking-wider">Withdraw</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="fixed bottom-0 w-full bg-[#0a0d13]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden pb-safe">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-brand transition-transform"><i class="fa-solid fa-user text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+    
+    <script>
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-brand scale-125 transition-transform"></i>';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        }
+
+        function switchTab(tabId) {
+            // Remove active classes
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active to clicked
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('content-' + tabId).classList.add('active');
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'deposit') {
+            document.getElementById('depositModal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
