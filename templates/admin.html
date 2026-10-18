@@ -8,59 +8,101 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { bgDark: '#080b12', surface: '#121824', brand: '#1CDA3A' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06080f',
+                        surface: '#0e131f',
+                        surfaceLight: '#171f32',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-panel { background: rgba(18, 24, 36, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .tab-btn.active { background-color: rgba(28,218,58,0.1); color: #1CDA3A; border-left: 3px solid #1CDA3A; }
-        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .glass-panel {
+            background: rgba(14, 19, 31, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+        .tab-btn.active {
+            background: linear-gradient(90deg, rgba(28, 218, 58, 0.16), transparent);
+            color: #1CDA3A;
+            border-left: 3px solid #1CDA3A;
+        }
+        .tab-content { display: none; animation: fadeIn 0.25s ease-out; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { height: 5px; width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .cat-pill.active { background: #a855f7; color: #fff; border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
     </style>
 </head>
 <body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row">
 
-    <aside class="w-full md:w-64 bg-surface border-r border-gray-800 flex flex-col z-50 shadow-xl relative">
-        <div class="p-6 border-b border-gray-800 flex justify-between items-center md:block">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-full md:w-64 bg-surface border-r border-gray-800/80 flex flex-col z-50 shadow-2xl shrink-0">
+        <div class="p-6 border-b border-gray-800/80 flex justify-between items-center md:block">
             <div>
                 <div class="text-2xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
-                <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1"><i class="fa-solid fa-shield-halved text-brand mr-1"></i> Admin Portal</div>
+                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-brand animate-ping"></span> God Mode Portal
+                </div>
             </div>
             <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden text-gray-400 text-2xl"><i class="fa-solid fa-bars"></i></button>
         </div>
 
+        {% set pending_fin = (deposits|selectattr('status','equalto','Pending')|list|length) + (withdrawals|selectattr('status','equalto','Pending')|list|length) %}
+        {% set rigged_count = game_control.values() | reject('none') | list | length %}
+
         <nav id="mobile-menu" class="hidden md:flex flex-col flex-1 py-4 space-y-1">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn active w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-chart-pie w-5"></i> Dashboard</button>
-            <button onclick="switchTab('users')" id="nav-users" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-users w-5"></i> Player Management</button>
-            <button onclick="switchTab('financials')" id="nav-financials" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3 relative">
-                <i class="fa-solid fa-money-bill-transfer w-5"></i> Financials
-                {% set pending_fin = (deposits|selectattr('status','equalto','Pending')|list|length) + (withdrawals|selectattr('status','equalto','Pending')|list|length) %}
-                {% if pending_fin > 0 %}<span class="absolute right-4 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]">{{ pending_fin }}</span>{% endif %}
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn active w-full text-left px-6 py-3.5 text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition flex items-center gap-3">
+                <i class="fa-solid fa-chart-pie w-5"></i> Command Center
             </button>
-            <button onclick="switchTab('sports')" id="nav-sports" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-trophy w-5"></i> Sports Book</button>
-            <button onclick="switchTab('games')" id="nav-games" class="tab-btn w-full text-left px-6 py-4 text-sm font-bold text-gray-400 hover:bg-gray-800/50 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-gamepad w-5"></i> God Mode Control</button>
-            
+            <button onclick="switchTab('games')" id="nav-games" class="tab-btn w-full text-left px-6 py-3.5 text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition flex items-center justify-between">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-bolt w-5 text-purple-400"></i> All 37 Games Control</span>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full {{ 'bg-red-500 text-white animate-pulse' if rigged_count > 0 else 'bg-gray-800 text-gray-400' }}">{{ rigged_count }}/37</span>
+            </button>
+            <button onclick="switchTab('users')" id="nav-users" class="tab-btn w-full text-left px-6 py-3.5 text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition flex items-center justify-between">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-users w-5"></i> Player Database</span>
+                <span class="text-[10px] font-mono bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full">{{ users|length }}</span>
+            </button>
+            <button onclick="switchTab('financials')" id="nav-financials" class="tab-btn w-full text-left px-6 py-3.5 text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition flex items-center justify-between">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-money-bill-transfer w-5"></i> Financials & UPI</span>
+                {% if pending_fin > 0 %}<span class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ pending_fin }}</span>{% endif %}
+            </button>
+            <button onclick="switchTab('sports')" id="nav-sports" class="tab-btn w-full text-left px-6 py-3.5 text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition flex items-center gap-3">
+                <i class="fa-solid fa-trophy w-5"></i> Sportsbook Control
+            </button>
+
             <div class="mt-auto p-4 md:hidden border-t border-gray-800">
                 <a href="{{ url_for('logout') }}" class="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 transition py-3 rounded-xl font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-power-off"></i> Secure Logout</a>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-gray-800 hidden md:block">
-            <a href="{{ url_for('logout') }}" class="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 transition py-3 rounded-xl font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-power-off"></i> Secure Logout</a>
+        <div class="p-4 border-t border-gray-800/80 hidden md:block space-y-2">
+            <a href="{{ url_for('home') }}" target="_blank" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-white/10 transition">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> View Player Lobby
+            </a>
+            <a href="{{ url_for('logout') }}" class="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 transition py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-power-off"></i> Secure Logout
+            </a>
         </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="flex-1 p-4 md:p-8 h-screen overflow-y-auto custom-scrollbar relative">
-        
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="mb-6 space-y-2">
                 {% for category, message in messages %}
-                    <div class="p-4 rounded-xl font-bold text-sm shadow-lg flex items-center justify-between {{ 'bg-green-500/10 text-brand border border-brand/30' if category == 'success' else 'bg-red-500/10 text-red-500 border border-red-500/30' }}">
+                    <div class="p-4 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-between {{ 'bg-emerald-500/15 text-brand border border-brand/40' if category == 'success' else 'bg-red-500/15 text-red-400 border border-red-500/40' }}">
                         <div class="flex items-center gap-3"><i class="fa-solid {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }} text-lg"></i> {{ message }}</div>
                         <button onclick="this.parentElement.style.display='none'"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -69,64 +111,70 @@
             {% endif %}
         {% endwith %}
 
-        <!-- DASHBOARD TAB -->
+        <!-- ========================================================= -->
+        <!-- TAB 1: COMMAND CENTER DASHBOARD                           -->
+        <!-- ========================================================= -->
         <div id="tab-dashboard" class="tab-content active space-y-6">
-            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-brand pl-3">Command Center</h2>
-            
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <h2 class="text-2xl font-black uppercase tracking-wider border-l-4 border-brand pl-3">Executive Command Center</h2>
+                <button onclick="switchTab('games')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-sliders"></i> Manage All 37 Games ({{ rigged_count }} Rigged)
+                </button>
+            </div>
+
             {% set total_real = users | sum(attribute='balance') %}
             {% set total_bonus = users | sum(attribute='bonus_balance') %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-blue-500 relative overflow-hidden">
-                    <i class="fa-solid fa-users absolute right-4 top-8 text-6xl text-blue-500/10"></i>
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Players</div>
-                    <div class="text-3xl font-black text-white">{{ users|length }}</div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-blue-500 relative overflow-hidden">
+                    <i class="fa-solid fa-users absolute right-4 top-6 text-5xl text-blue-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Approved Players</div>
+                    <div class="text-3xl font-black text-white font-mono">{{ users|length }}</div>
                 </div>
-                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-brand relative overflow-hidden">
-                    <i class="fa-solid fa-wallet absolute right-4 top-8 text-6xl text-brand/10"></i>
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Real Balance</div>
-                    <div class="text-3xl font-black text-brand">₹{{ "%.2f"|format(total_real) }}</div>
+                <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-brand relative overflow-hidden">
+                    <i class="fa-solid fa-wallet absolute right-4 top-6 text-5xl text-brand/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Real Balance</div>
+                    <div class="text-3xl font-black text-brand font-mono">₹{{ "%.2f"|format(total_real) }}</div>
                 </div>
-                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-purple-500 relative overflow-hidden">
-                    <i class="fa-solid fa-gift absolute right-4 top-8 text-6xl text-purple-500/10"></i>
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Bonus Active</div>
-                    <div class="text-3xl font-black text-purple-400">₹{{ "%.2f"|format(total_bonus) }}</div>
+                <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-purple-500 relative overflow-hidden">
+                    <i class="fa-solid fa-gift absolute right-4 top-6 text-5xl text-purple-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active Bonus Liability</div>
+                    <div class="text-3xl font-black text-purple-400 font-mono">₹{{ "%.2f"|format(total_bonus) }}</div>
                 </div>
-                <div class="glass-panel p-5 rounded-2xl shadow-lg border-t-4 border-t-orange-500 relative overflow-hidden">
-                    <i class="fa-solid fa-trophy absolute right-4 top-8 text-6xl text-orange-500/10"></i>
-                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Matches</div>
-                    <div class="text-3xl font-black text-orange-400">{{ matches|length }}</div>
+                <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-orange-500 relative overflow-hidden">
+                    <i class="fa-solid fa-trophy absolute right-4 top-6 text-5xl text-orange-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Sportsbook Fixtures</div>
+                    <div class="text-3xl font-black text-orange-400 font-mono">{{ matches|length }}</div>
                 </div>
             </div>
 
-            <div class="glass-panel p-5 rounded-2xl shadow-lg border border-gray-700 mt-6 relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
-                <h3 class="font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3">
-                    <i class="fa-solid fa-chart-line text-blue-400"></i> Platform Liquidity & Action
+            <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                <h3 class="font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3 text-sm">
+                    <i class="fa-solid fa-chart-line text-blue-400"></i> Platform Telemetry Overview
                 </h3>
-                <div class="w-full h-64">
+                <div class="w-full h-60">
                     <canvas id="adminAnalyticsChart"></canvas>
                 </div>
             </div>
 
-            <h3 class="text-lg font-black uppercase tracking-wider mt-8 mb-4 border-l-4 border-red-500 pl-3 flex items-center gap-2"><i class="fa-solid fa-bell text-red-500 animate-pulse"></i> Action Required</h3>
-            
+            <!-- Action Queues -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="glass-panel rounded-2xl p-4 border border-gray-700">
+                <!-- Pending Users -->
+                <div class="glass-panel rounded-2xl p-4">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
-                        <h4 class="font-bold text-sm uppercase tracking-wider text-gray-300">New Registrations</h4>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-gray-300">New Registrations</h4>
                         <span class="bg-blue-500/20 text-blue-400 text-[10px] font-black px-2 py-0.5 rounded">{{ pending_users|length }}</span>
                     </div>
-                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                    <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
                         {% for p in pending_users %}
-                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
+                        <div class="bg-black/50 p-3 rounded-xl border border-gray-800 flex justify-between items-center">
                             <div>
                                 <div class="font-bold text-white text-sm">{{ p.username }}</div>
                                 <div class="text-[10px] text-gray-500 font-mono">{{ p.mobile }}</div>
                             </div>
-                            <div class="flex gap-2">
-                                <form method="POST"><input type="hidden" name="action" value="approve_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-green-500/20 text-brand w-8 h-8 rounded hover:bg-green-500 hover:text-black transition"><i class="fa-solid fa-check"></i></button></form>
-                                <form method="POST"><input type="hidden" name="action" value="reject_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-red-500/20 text-red-500 w-8 h-8 rounded hover:bg-red-500 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button></form>
+                            <div class="flex gap-1.5">
+                                <form method="POST"><input type="hidden" name="action" value="approve_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-brand/20 text-brand w-8 h-8 rounded-lg hover:bg-brand hover:text-black transition"><i class="fa-solid fa-check"></i></button></form>
+                                <form method="POST"><input type="hidden" name="action" value="reject_user"><input type="hidden" name="user_id" value="{{ p.id }}"><button class="bg-red-500/20 text-red-500 w-8 h-8 rounded-lg hover:bg-red-500 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button></form>
                             </div>
                         </div>
                         {% else %}
@@ -135,22 +183,23 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 border border-gray-700 shadow-[0_0_15px_rgba(28,218,58,0.1)]">
+                <!-- Pending Deposits -->
+                <div class="glass-panel rounded-2xl p-4">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
-                        <h4 class="font-bold text-sm uppercase tracking-wider text-brand">Deposit Queue</h4>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-brand">Deposit Queue</h4>
                         <span class="bg-brand/20 text-brand text-[10px] font-black px-2 py-0.5 rounded">{{ deposits|selectattr('status','equalto','Pending')|list|length }}</span>
                     </div>
-                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                    <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
                         {% for d in deposits if d.status == 'Pending' %}
-                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800">
-                            <div class="flex justify-between items-start mb-2">
-                                <div><span class="font-bold text-white">{{ d.username }}</span> <span class="text-xs text-brand font-black ml-1">₹{{ "%.2f"|format(d.amount) }}</span></div>
-                                <a href="/static/uploads/{{ d.screenshot }}" target="_blank" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500 hover:text-white transition"><i class="fa-solid fa-image"></i> Proof</a>
+                        <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                            <div class="flex justify-between items-start mb-1.5">
+                                <div><span class="font-bold text-white text-sm">{{ d.username }}</span> <span class="text-xs text-brand font-black font-mono ml-1">₹{{ "%.2f"|format(d.amount) }}</span></div>
+                                <a href="/static/uploads/{{ d.screenshot }}" target="_blank" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold hover:bg-blue-500 hover:text-white transition"><i class="fa-solid fa-image"></i> Proof</a>
                             </div>
-                            <div class="text-[10px] text-gray-500 font-mono mb-3">UTR: {{ d.utr }}</div>
+                            <div class="text-[10px] text-gray-400 font-mono mb-2.5">UTR: {{ d.utr }}</div>
                             <div class="flex gap-2">
-                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-brand text-black font-bold py-1.5 rounded text-xs hover:bg-green-500 shadow-md">Approve</button></form>
-                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded text-xs hover:bg-red-500 hover:text-white transition">Reject</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-brand text-black font-black py-1.5 rounded-lg text-xs hover:bg-green-400">Approve</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_deposit"><input type="hidden" name="deposit_id" value="{{ d.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded-lg text-xs hover:bg-red-500 hover:text-white">Reject</button></form>
                             </div>
                         </div>
                         {% else %}
@@ -159,26 +208,25 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 border border-gray-700 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                <!-- Pending Withdrawals -->
+                <div class="glass-panel rounded-2xl p-4">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
-                        <h4 class="font-bold text-sm uppercase tracking-wider text-red-400">Withdrawal Queue</h4>
-                        <span class="bg-red-500/20 text-red-500 text-[10px] font-black px-2 py-0.5 rounded">{{ withdrawals|selectattr('status','equalto','Pending')|list|length }}</span>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-red-400">Withdrawal Queue</h4>
+                        <span class="bg-red-500/20 text-red-400 text-[10px] font-black px-2 py-0.5 rounded">{{ withdrawals|selectattr('status','equalto','Pending')|list|length }}</span>
                     </div>
-                    <div class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                    <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
                         {% for w in withdrawals if w.status == 'Pending' %}
-                        <div class="bg-black/50 p-3 rounded-lg border border-gray-800">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-bold text-white">{{ w.username }}</span>
-                                <span class="text-sm text-red-400 font-black">₹{{ "%.2f"|format(w.amount) }}</span>
+                        <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="font-bold text-white text-sm">{{ w.username }}</span>
+                                <span class="text-sm text-red-400 font-black font-mono">₹{{ "%.2f"|format(w.amount) }}</span>
                             </div>
-                            <div class="bg-gray-900 rounded p-2 text-[10px] font-mono text-gray-400 mb-3 space-y-1">
-                                <div>Bank: {{ w.bank_name }}</div>
-                                <div>A/c: <span class="text-white">{{ w.account_number }}</span></div>
-                                <div>IFSC: {{ w.ifsc }}</div>
+                            <div class="bg-gray-900/90 rounded-lg p-2 text-[10px] font-mono text-gray-400 mb-2.5">
+                                <div>{{ w.bank_name }} • A/c: <span class="text-white">{{ w.account_number }}</span> ({{ w.ifsc }})</div>
                             </div>
                             <div class="flex gap-2">
-                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-blue-600 text-white font-bold py-1.5 rounded text-xs hover:bg-blue-500 shadow-md">Paid</button></form>
-                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded text-xs hover:bg-red-500 hover:text-white transition">Reject & Refund</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="approve_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-blue-500">Mark Paid</button></form>
+                                <form method="POST" class="flex-1"><input type="hidden" name="action" value="reject_withdraw"><input type="hidden" name="withdraw_id" value="{{ w.id }}"><button class="w-full bg-gray-800 text-gray-400 font-bold py-1.5 rounded-lg text-xs hover:bg-red-500 hover:text-white">Refund</button></form>
                             </div>
                         </div>
                         {% else %}
@@ -189,40 +237,346 @@
             </div>
         </div>
 
-        <!-- USERS TAB -->
-        <div id="tab-users" class="tab-content space-y-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black uppercase tracking-wider border-l-4 border-blue-500 pl-3">Player Database</h2>
-                <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-lg flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Create User</button>
+        <!-- ========================================================= -->
+        <!-- TAB 2: UNIVERSAL GOD MODE CONTROL (ALL 37 GAMES)          -->
+        <!-- ========================================================= -->
+        <div id="tab-games" class="tab-content space-y-6">
+
+            <!-- Global Master Override Banner -->
+            <div class="glass-panel rounded-3xl p-5 border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-[#0e131f] to-black flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full mb-2">
+                        <i class="fa-solid fa-crown"></i> Universal God Mode Engine • 37/37 Games Connected
+                    </div>
+                    <h2 class="text-2xl font-black uppercase tracking-wider text-white">Master Game Outcome Controller</h2>
+                    <p class="text-xs text-gray-400 mt-1">Control exact crash points, card winners, number draws, or force instant player Win/Loss across all 37 casino games.</p>
+                </div>
+
+                <!-- Master 1-Click All Games Switch -->
+                <form method="POST" class="flex flex-wrap items-center gap-2 shrink-0">
+                    <input type="hidden" name="action" value="control_game">
+                    <input type="hidden" name="game" value="ALL">
+                    <button type="submit" name="mode" value="auto" class="bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/40 font-black text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition">
+                        <i class="fa-solid fa-rotate mr-1"></i> Reset All 37 to Auto
+                    </button>
+                    <button type="submit" name="mode" value="loss" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 font-black text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition">
+                        <i class="fa-solid fa-skull mr-1"></i> Force All House Win (Loss)
+                    </button>
+                    <button type="submit" name="mode" value="win" class="bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 font-black text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition">
+                        <i class="fa-solid fa-trophy mr-1"></i> Force All Player Win
+                    </button>
+                </form>
             </div>
 
-            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+            <!-- SECTION A: 5 LIVE MULTIPLAYER MANIPULATORS (EXACT VALUE + MATCH ID SYNC) -->
+            <div>
+                <h3 class="text-sm font-black uppercase tracking-widest text-purple-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish animate-pulse"></i> Live Multiplayer & Timer Manipulators (Exact Value Control)
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+                    <!-- 1. AVIATOR -->
+                    <div class="glass-panel rounded-2xl p-4 border border-red-500/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-black text-white uppercase flex items-center gap-2 text-sm"><i class="fa-solid fa-plane-up text-red-500"></i> Aviator Crash</h4>
+                            <div class="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                <span id="aviator-match-id">#{{ "%06d"|format(aviator_state.match_number) }}</span>
+                                <button type="button" onclick="refreshMatchID('aviator', 'aviator-match-id', event)" class="hover:text-white"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-xs font-bold bg-black/50 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            {% if game_control.get('aviator') is none %}
+                                <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AUTO (FAIR RNG)</span>
+                            {% else %}
+                                <span class="text-red-400 bg-red-500/15 px-2 py-0.5 rounded border border-red-500/30 animate-pulse">RIGGED ({{ game_control.get('aviator') }})</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="flex gap-2 mb-2">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="aviator">
+                            <input type="number" step="0.01" min="1.00" name="value" placeholder="Crash e.g. 1.20 or 15.0" class="w-full bg-black border border-gray-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-red-500 outline-none" required>
+                            <button type="submit" name="mode" value="force" class="bg-red-600 hover:bg-red-500 text-white font-black px-3 py-2 rounded-xl uppercase text-[10px] tracking-wider shrink-0">Set Mult</button>
+                        </form>
+                        <form method="POST" class="grid grid-cols-3 gap-1.5">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="aviator">
+                            <button type="submit" name="mode" value="loss" class="bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">1.00x Bust</button>
+                            <button type="submit" name="mode" value="win" class="bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">High Fly</button>
+                            <button type="submit" name="mode" value="auto" class="bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">Auto</button>
+                        </form>
+                    </div>
+
+                    <!-- 2. JETX -->
+                    <div class="glass-panel rounded-2xl p-4 border border-amber-500/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-black text-white uppercase flex items-center gap-2 text-sm"><i class="fa-solid fa-rocket text-amber-500"></i> JetX Rocket</h4>
+                            <div class="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                <span id="jetx-match-id">#{{ "%06d"|format(jetx_state.match_number) }}</span>
+                                <button type="button" onclick="refreshMatchID('jetx', 'jetx-match-id', event)" class="hover:text-white"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-xs font-bold bg-black/50 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            {% if game_control.get('jetx') is none %}
+                                <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AUTO (FAIR RNG)</span>
+                            {% else %}
+                                <span class="text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">RIGGED ({{ game_control.get('jetx') }})</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="flex gap-2 mb-2">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="jetx">
+                            <input type="number" step="0.01" min="1.00" name="value" placeholder="Crash e.g. 1.15 or 20.0" class="w-full bg-black border border-gray-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-amber-500 outline-none" required>
+                            <button type="submit" name="mode" value="force" class="bg-amber-500 hover:bg-amber-400 text-black font-black px-3 py-2 rounded-xl uppercase text-[10px] tracking-wider shrink-0">Set Mult</button>
+                        </form>
+                        <form method="POST" class="grid grid-cols-3 gap-1.5">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="jetx">
+                            <button type="submit" name="mode" value="loss" class="bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">1.00x Bust</button>
+                            <button type="submit" name="mode" value="win" class="bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">High Fly</button>
+                            <button type="submit" name="mode" value="auto" class="bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">Auto</button>
+                        </form>
+                    </div>
+
+                    <!-- 3. DRAGON VS TIGER -->
+                    <div class="glass-panel rounded-2xl p-4 border border-yellow-500/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-black text-white uppercase flex items-center gap-2 text-sm"><i class="fa-solid fa-dragon text-yellow-500"></i> Dragon vs Tiger</h4>
+                            <div class="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                <span id="dt-match-id">#{{ "%06d"|format(dt_state.match_number) }}</span>
+                                <button type="button" onclick="refreshMatchID('dragon_tiger', 'dt-match-id', event)" class="hover:text-white"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-xs font-bold bg-black/50 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            {% if game_control.get('dt') is none %}
+                                <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AUTO (FAIR RNG)</span>
+                            {% else %}
+                                <span class="text-yellow-400 bg-yellow-500/15 px-2 py-0.5 rounded border border-yellow-500/30 animate-pulse">RIGGED ({{ game_control.get('dt') }})</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="grid grid-cols-3 gap-2 mb-2">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="dt">
+                            <button type="submit" name="mode" value="Dragon" class="bg-red-600 hover:bg-red-500 text-white font-black py-2 rounded-xl uppercase text-[10px] tracking-wider">Dragon</button>
+                            <button type="submit" name="mode" value="Tie" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl uppercase text-[10px] tracking-wider">Tie (8x)</button>
+                            <button type="submit" name="mode" value="Tiger" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-2 rounded-xl uppercase text-[10px] tracking-wider">Tiger</button>
+                        </form>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="dt">
+                            <button type="submit" name="mode" value="auto" class="w-full bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">Reset to Auto</button>
+                        </form>
+                    </div>
+
+                    <!-- 4. HEADS & TAILS -->
+                    <div class="glass-panel rounded-2xl p-4 border border-cyan-500/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-black text-white uppercase flex items-center gap-2 text-sm"><i class="fa-solid fa-coins text-cyan-400"></i> Heads & Tails</h4>
+                            <div class="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                <span id="ht-match-id">#{{ "%06d"|format(ht_state.match_number) }}</span>
+                                <button type="button" onclick="refreshMatchID('heads_tails', 'ht-match-id', event)" class="hover:text-white"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-xs font-bold bg-black/50 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            {% if game_control.get('ht') is none %}
+                                <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AUTO (FAIR RNG)</span>
+                            {% else %}
+                                <span class="text-cyan-400 bg-cyan-500/15 px-2 py-0.5 rounded border border-cyan-500/30 animate-pulse">RIGGED ({{ game_control.get('ht') }})</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="grid grid-cols-2 gap-2 mb-2">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="ht">
+                            <button type="submit" name="mode" value="Heads" class="bg-amber-500 hover:bg-amber-400 text-black font-black py-2 rounded-xl uppercase text-[10px] tracking-wider">Force Heads</button>
+                            <button type="submit" name="mode" value="Tails" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-2 rounded-xl uppercase text-[10px] tracking-wider">Force Tails</button>
+                        </form>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="ht">
+                            <button type="submit" name="mode" value="auto" class="w-full bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">Reset to Auto</button>
+                        </form>
+                    </div>
+
+                    <!-- 5. COLOR PREDICTION (WINGO) -->
+                    <div class="glass-panel rounded-2xl p-4 border border-pink-500/30 md:col-span-2 xl:col-span-2">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-black text-white uppercase flex items-center gap-2 text-sm"><i class="fa-solid fa-palette text-pink-500"></i> Color Prediction (WinGo 0-9)</h4>
+                            <div class="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                <span id="cp-match-id">#{{ "%06d"|format(cp_state.match_number) }}</span>
+                                <button type="button" onclick="refreshMatchID('color_prediction', 'cp-match-id', event)" class="hover:text-white"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-xs font-bold bg-black/50 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            {% if game_control.get('cp') is none %}
+                                <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">AUTO (FAIR RNG)</span>
+                            {% else %}
+                                <span class="text-pink-400 bg-pink-500/15 px-2 py-0.5 rounded border border-pink-500/30 animate-pulse">RIGGED (BALL #{{ game_control.get('cp') }})</span>
+                            {% endif %}
+                        </div>
+                        <!-- Direct 0-9 Ball Buttons -->
+                        <form method="POST" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 mb-2">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="cp"><input type="hidden" name="mode" value="force">
+                            {% for n in range(10) %}
+                            <button type="submit" name="value" value="{{ n }}" class="py-2 rounded-lg font-mono font-black text-xs text-white border border-white/15 hover:scale-105 transition {{ 'bg-purple-600' if n in [0,5] else ('bg-emerald-600' if n in [1,3,7,9] else 'bg-red-600') }}">
+                                {{ n }}
+                            </button>
+                            {% endfor %}
+                        </form>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="cp">
+                            <button type="submit" name="mode" value="auto" class="w-full bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black border border-emerald-500/30 font-bold py-1.5 rounded-lg text-[10px] uppercase transition">Reset to Auto</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION B: ALL REMAINING 32 CASINO GAMES CONTROLLER MATRIX -->
+            {% set full_catalog = [
+                {"id": "plinko", "title": "Plinko Ball", "category": "Instant Win", "icon": "fa-circle-nodes", "color": "pink"},
+                {"id": "blackjack", "title": "Blackjack 21", "category": "Cards & Tables", "icon": "fa-heart", "color": "emerald"},
+                {"id": "roulette", "title": "European Roulette", "category": "Cards & Tables", "icon": "fa-circle-notch", "color": "red"},
+                {"id": "baccarat", "title": "Baccarat Pro", "category": "Cards & Tables", "icon": "fa-diamond", "color": "blue"},
+                {"id": "craps", "title": "Craps Street", "category": "Dice & Numbers", "icon": "fa-dice", "color": "orange"},
+                {"id": "poker", "title": "Video Poker", "category": "Cards & Tables", "icon": "fa-crown", "color": "indigo"},
+                {"id": "andar_bahar", "title": "Andar Bahar", "category": "Cards & Tables", "icon": "fa-layer-group", "color": "teal"},
+                {"id": "teen_patti", "title": "Teen Patti Live", "category": "Cards & Tables", "icon": "fa-shield-halved", "color": "yellow"},
+                {"id": "limbo", "title": "Limbo Rocket", "category": "Crash", "icon": "fa-arrow-trend-up", "color": "cyan"},
+                {"id": "mines", "title": "Cyber Mines", "category": "Instant Win", "icon": "fa-bomb", "color": "cyan"},
+                {"id": "dice", "title": "Digital Dice", "category": "Dice & Numbers", "icon": "fa-dice-d20", "color": "pink"},
+                {"id": "spin", "title": "Daily Spin", "category": "Bonus", "icon": "fa-dharmachakra", "color": "indigo"},
+                {"id": "seven_up_down", "title": "7 Up 7 Down", "category": "Dice & Numbers", "icon": "fa-dice", "color": "yellow"},
+                {"id": "penalty", "title": "Penalty Shootout", "category": "Instant Win", "icon": "fa-futbol", "color": "emerald"},
+                {"id": "hilo", "title": "Hi-Lo Cards", "category": "Cards & Tables", "icon": "fa-arrow-up-wide-short", "color": "cyan"},
+                {"id": "slots", "title": "Neon 777 Slots", "category": "Crash", "icon": "fa-gem", "color": "pink"},
+                {"id": "thimbles", "title": "Thimbles", "category": "Instant Win", "icon": "fa-cubes", "color": "amber"},
+                {"id": "tower", "title": "Tower Climb", "category": "Crash", "icon": "fa-cubes-stacked", "color": "purple"},
+                {"id": "keno", "title": "Classic Keno", "category": "Dice & Numbers", "icon": "fa-ticket", "color": "blue"},
+                {"id": "wheel", "title": "Turbo Wheel", "category": "Crash", "icon": "fa-circle-radiation", "color": "red"},
+                {"id": "jhandi_munda", "title": "Jhandi Munda", "category": "Dice & Numbers", "icon": "fa-crown", "color": "teal"},
+                {"id": "coin_field", "title": "Coin Field", "category": "Instant Win", "icon": "fa-border-all", "color": "brand"},
+                {"id": "scratch", "title": "Scratch & Win", "category": "Instant Win", "icon": "fa-ticket", "color": "purple"},
+                {"id": "casino_war", "title": "Casino War", "category": "Cards & Tables", "icon": "fa-khanda", "color": "red"},
+                {"id": "horse_racing", "title": "Virtual Racing", "category": "Arcade", "icon": "fa-horse", "color": "amber"},
+                {"id": "russian_roulette", "title": "Russian Roulette", "category": "Crash", "icon": "fa-gun", "color": "gray"},
+                {"id": "safes", "title": "Magic Safes", "category": "Instant Win", "icon": "fa-vault", "color": "yellow"},
+                {"id": "rps", "title": "Ro-Sham-Bo", "category": "Arcade", "icon": "fa-hand-scissors", "color": "cyan"},
+                {"id": "red_dog", "title": "Red Dog", "category": "Cards & Tables", "icon": "fa-dog", "color": "orange"},
+                {"id": "pharaoh_slot", "title": "Pharaoh's Tomb", "category": "Slots", "icon": "fa-gem", "color": "amber"},
+                {"id": "hilo_dice", "title": "Hi-Lo Dice", "category": "Dice & Numbers", "icon": "fa-dice-two", "color": "pink"},
+                {"id": "coin_streak", "title": "Coin Streak", "category": "Instant Win", "icon": "fa-coins", "color": "brand"}
+            ] %}
+
+            <div class="pt-2">
+                <div class="glass-panel rounded-2xl p-4 mb-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
+                        <button type="button" onclick="filterGameCards('ALL', this)" class="cat-pill active px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border border-white/10 transition shrink-0">All 32 Instant Games</button>
+                        <button type="button" onclick="filterGameCards('Crash', this)" class="cat-pill bg-black/40 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">Crash & Climb</button>
+                        <button type="button" onclick="filterGameCards('Cards & Tables', this)" class="cat-pill bg-black/40 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">Cards & Tables</button>
+                        <button type="button" onclick="filterGameCards('Instant Win', this)" class="cat-pill bg-black/40 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">Instant Win</button>
+                        <button type="button" onclick="filterGameCards('Dice & Numbers', this)" class="cat-pill bg-black/40 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">Dice & Numbers</button>
+                        <button type="button" onclick="filterGameCards('Arcade', this)" class="cat-pill bg-black/40 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">Slots & Arcade</button>
+                    </div>
+
+                    <div class="relative md:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        <input type="text" id="gameControlSearch" oninput="applyGameCardFilter()" placeholder="Search any game..." class="w-full bg-black/60 border border-gray-700 rounded-xl py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="all-games-grid">
+                    {% for g in full_catalog %}
+                    {% set g_state = game_control.get(g.id) %}
+                    <div class="glass-panel rounded-2xl p-4 border {{ 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)]' if g_state == 'LOSS' else ('border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.15)]' if g_state == 'WIN' else 'border-gray-800') }} flex flex-col justify-between game-control-card" data-category="{{ g.category }}" data-title="{{ g.title|lower }} {{ g.id|lower }}">
+                        <div>
+                            <div class="flex justify-between items-start mb-2.5">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sm text-purple-400">
+                                        <i class="fa-solid {{ g.icon }}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-white text-sm leading-tight">{{ g.title }}</h4>
+                                        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{{ g.category }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 text-[11px] font-bold bg-black/50 px-3 py-2 rounded-xl border border-gray-800/90 flex justify-between items-center">
+                                <span class="text-gray-400">Status:</span>
+                                {% if g_state is none %}
+                                    <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono text-[10px]">AUTO (FAIR)</span>
+                                {% elif g_state == 'WIN' %}
+                                    <span class="text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40 font-mono text-[10px] animate-pulse">FORCE WIN</span>
+                                {% elif g_state == 'LOSS' %}
+                                    <span class="text-red-400 bg-red-500/20 px-2 py-0.5 rounded border border-red-500/40 font-mono text-[10px] animate-pulse">HOUSE WIN (LOSS)</span>
+                                {% else %}
+                                    <span class="text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/40 font-mono text-[10px] animate-pulse">RIGGED ({{ g_state }})</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <form method="POST" class="grid grid-cols-3 gap-1.5 pt-1">
+                            <input type="hidden" name="action" value="control_game">
+                            <input type="hidden" name="game" value="{{ g.id }}">
+                            <button type="submit" name="mode" value="win" class="py-2 rounded-xl font-black text-[10px] uppercase tracking-wider border transition {{ 'bg-amber-500 text-black border-amber-400 shadow-md' if g_state == 'WIN' else 'bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-black border-amber-500/30' }}">
+                                <i class="fa-solid fa-trophy mr-0.5"></i> Win
+                            </button>
+                            <button type="submit" name="mode" value="loss" class="py-2 rounded-xl font-black text-[10px] uppercase tracking-wider border transition {{ 'bg-red-600 text-white border-red-400 shadow-md' if g_state == 'LOSS' else 'bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border-red-500/30' }}">
+                                <i class="fa-solid fa-xmark mr-0.5"></i> Loss
+                            </button>
+                            <button type="submit" name="mode" value="auto" class="py-2 rounded-xl font-black text-[10px] uppercase tracking-wider border transition {{ 'bg-emerald-500 text-black border-emerald-400' if g_state is none else 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-black border-emerald-500/30' }}">
+                                Auto
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TAB 3: PLAYER MANAGEMENT DATABASE                         -->
+        <!-- ========================================================= -->
+        <div id="tab-users" class="tab-content space-y-6">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                <h2 class="text-2xl font-black uppercase tracking-wider border-l-4 border-blue-500 pl-3">Player Database</h2>
+                <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider py-2.5 px-4 rounded-xl shadow-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-user-plus"></i> Create Approved Player
+                </button>
+            </div>
+
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800 shadow-xl">
                 <div class="p-4 border-b border-gray-800 bg-black/40">
-                    <input type="text" id="userSearch" onkeyup="filterTable('userSearch', 'userTable')" placeholder="Search by Username..." class="w-full bg-surface border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 transition">
+                    <input type="text" id="userSearch" onkeyup="filterTable('userSearch', 'userTable')" placeholder="Search by Username or Phone..." class="w-full bg-surface border border-gray-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm" id="userTable">
-                        <thead class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider font-bold">
-                            <tr><th class="p-4">ID</th><th class="p-4">Username</th><th class="p-4">Phone Number</th><th class="p-4">Real Balance</th><th class="p-4">Bonus Balance</th><th class="p-4 text-center">Actions & Fine Tuning</th></tr>
+                        <thead class="bg-gray-900/90 text-gray-400 text-xs uppercase tracking-wider font-bold">
+                            <tr>
+                                <th class="p-4">ID</th>
+                                <th class="p-4">Username</th>
+                                <th class="p-4">Mobile</th>
+                                <th class="p-4">Real Balance</th>
+                                <th class="p-4">Bonus Balance</th>
+                                <th class="p-4 text-center">Wallet Tuning & Actions</th>
+                            </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-800">
+                        <tbody class="divide-y divide-gray-800/80">
                             {% for u in users %}
-                            <tr class="hover:bg-gray-800/30 transition">
+                            <tr class="hover:bg-white/[0.02] transition">
                                 <td class="p-4 text-gray-500 font-mono font-bold">#{{ u.id }}</td>
                                 <td class="p-4 font-bold text-white">{{ u.username }}</td>
-                                <td class="p-4 font-mono text-blue-400 font-bold">{{ u.mobile or 'Not Provided' }}</td>
-                                <td class="p-4 font-black text-brand">₹{{ "%.2f"|format(u.balance) }}</td>
-                                <td class="p-4 font-black text-purple-400">₹{{ "%.2f"|format(u.bonus_balance) }}</td>
+                                <td class="p-4 font-mono text-blue-400 text-xs">{{ u.mobile or 'N/A' }}</td>
+                                <td class="p-4 font-black text-brand font-mono">₹{{ "%.2f"|format(u.balance) }}</td>
+                                <td class="p-4 font-black text-purple-400 font-mono">₹{{ "%.2f"|format(u.bonus_balance) }}</td>
                                 <td class="p-4">
                                     <div class="flex justify-center items-center gap-2 max-w-sm mx-auto">
-                                        <form method="POST" class="flex justify-center items-center gap-2">
+                                        <form method="POST" class="flex justify-center items-center gap-1.5">
                                             <input type="hidden" name="action" value="adjust_balance">
                                             <input type="hidden" name="user_id" value="{{ u.id }}">
-                                            <input type="number" name="amount" placeholder="Amt" class="w-24 bg-black border border-gray-700 rounded-lg px-3 py-1.5 text-white font-bold text-sm focus:outline-none focus:border-blue-500" required>
-                                            <button type="submit" name="mode" value="remove" class="bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-red-600 hover:text-white transition flex items-center gap-1">
+                                            <input type="number" step="0.01" name="amount" placeholder="₹ Amt" class="w-24 bg-black border border-gray-700 rounded-lg px-2.5 py-1.5 text-white font-mono font-bold text-xs focus:outline-none focus:border-blue-500" required>
+                                            <button type="submit" name="mode" value="remove" class="bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-2.5 py-1.5 rounded-lg text-xs hover:bg-red-600 hover:text-white transition" title="Subtract Balance">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
-                                            <button type="submit" name="mode" value="add" class="bg-brand/20 text-brand border border-brand/30 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-brand hover:text-black transition flex items-center gap-1">
+                                            <button type="submit" name="mode" value="add" class="bg-brand/20 text-brand border border-brand/30 font-bold px-2.5 py-1.5 rounded-lg text-xs hover:bg-brand hover:text-black transition" title="Add Balance">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </form>
@@ -230,8 +584,8 @@
                                         <form method="POST" class="inline-block">
                                             <input type="hidden" name="action" value="delete_user_permanently">
                                             <input type="hidden" name="user_id" value="{{ u.id }}">
-                                            <button type="submit" class="bg-red-900/40 text-red-500 border border-red-900/50 hover:bg-red-600 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center shadow-lg" title="Permanently Delete Player" onclick="return confirm('CRITICAL WARNING: This will PERMANENTLY delete player {{ u.username }} and ALL their bet/transaction history. Proceed?')">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                            <button type="submit" class="bg-red-900/30 text-red-500 border border-red-900/50 hover:bg-red-600 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center" title="Delete User Permanently" onclick="return confirm('CRITICAL WARNING: Permanently delete {{ u.username }} and all history?')">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -244,58 +598,59 @@
             </div>
         </div>
 
-        <!-- FINANCIALS TAB -->
+        <!-- ========================================================= -->
+        <!-- TAB 4: FINANCIALS & GLOBAL PAYMENT SETTINGS               -->
+        <!-- ========================================================= -->
         <div id="tab-financials" class="tab-content space-y-6">
-            <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-[0_0_20px_rgba(59,130,246,0.1)] mb-8 relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-48 h-48 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
-                <h3 class="font-black text-white uppercase tracking-wider mb-5 flex items-center gap-2 text-xl"><i class="fa-solid fa-building-columns text-blue-400"></i> Global Payment Settings</h3>
-                
+            <div class="glass-panel rounded-2xl p-5 border border-gray-800 relative overflow-hidden">
+                <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2 text-lg">
+                    <i class="fa-solid fa-building-columns text-blue-400"></i> Global Payment Gateway Settings
+                </h3>
                 <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input type="hidden" name="action" value="update_payment">
                     <div>
-                        <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Official UPI ID</label>
-                        <input type="text" name="upi_id" value="{{ site_settings.upi_id }}" class="w-full bg-black/60 border border-gray-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none shadow-inner" required>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Official UPI ID</label>
+                        <input type="text" name="upi_id" value="{{ site_settings.upi_id }}" class="w-full bg-black/60 border border-gray-700 rounded-xl p-3 text-white text-sm focus:border-blue-500 outline-none" required>
                     </div>
                     <div>
-                        <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Bank Account Number</label>
-                        <input type="text" name="bank_account" value="{{ site_settings.bank_account }}" class="w-full bg-black/60 border border-gray-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none shadow-inner" required>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Bank Account Number</label>
+                        <input type="text" name="bank_account" value="{{ site_settings.bank_account }}" class="w-full bg-black/60 border border-gray-700 rounded-xl p-3 text-white text-sm focus:border-blue-500 outline-none" required>
                     </div>
                     <div>
-                        <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">IFSC Code</label>
-                        <input type="text" name="ifsc_code" value="{{ site_settings.ifsc_code }}" class="w-full bg-black/60 border border-gray-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none shadow-inner" required>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">IFSC Code</label>
+                        <input type="text" name="ifsc_code" value="{{ site_settings.ifsc_code }}" class="w-full bg-black/60 border border-gray-700 rounded-xl p-3 text-white text-sm focus:border-blue-500 outline-none" required>
                     </div>
-                    <div class="md:col-span-3 flex justify-end mt-2">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 px-8 rounded-xl shadow-lg uppercase text-xs tracking-widest transition-all active:scale-95 flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Update Payment Details</button>
+                    <div class="md:col-span-3 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 px-6 rounded-xl shadow-lg uppercase text-xs tracking-widest transition flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Payment Settings
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-yellow-500 pl-3">Financial Logs</h2>
-            
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
-                    <div class="p-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
-                        <h3 class="font-bold text-brand uppercase tracking-wider"><i class="fa-solid fa-circle-arrow-down mr-2"></i> Deposits History</h3>
+                <!-- Deposits Log -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                    <div class="p-4 border-b border-gray-800 bg-gray-900/50">
+                        <h3 class="font-bold text-brand uppercase tracking-wider text-sm"><i class="fa-solid fa-circle-arrow-down mr-2"></i> Deposits History</h3>
                     </div>
-                    <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+                    <div class="overflow-x-auto max-h-[500px] custom-scrollbar">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-black/80 text-gray-500 uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+                            <thead class="bg-black/80 text-gray-500 uppercase sticky top-0">
                                 <tr><th class="p-3">User</th><th class="p-3">Amount / UTR</th><th class="p-3">Date</th><th class="p-3 text-right">Status</th></tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800">
                                 {% for d in deposits %}
-                                <tr class="hover:bg-gray-800/20">
+                                <tr class="hover:bg-white/[0.02]">
                                     <td class="p-3 font-bold text-white">{{ d.username }}</td>
                                     <td class="p-3">
-                                        <div class="font-black text-brand text-sm">₹{{ "%.2f"|format(d.amount) }}</div>
-                                        <div class="text-[9px] text-gray-500 font-mono">{{ d.utr }}</div>
+                                        <div class="font-black text-brand font-mono text-sm">₹{{ "%.2f"|format(d.amount) }}</div>
+                                        <div class="text-[10px] text-gray-500 font-mono">UTR: {{ d.utr }}</div>
                                     </td>
                                     <td class="p-3 text-gray-400 font-mono text-[10px]">{{ d.date }}</td>
                                     <td class="p-3 text-right">
-                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
-                                            {% if d.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
-                                            {% elif d.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
-                                            {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase
+                                            {{ 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' if d.status == 'Approved' else ('bg-red-500/10 text-red-400 border-red-500/30' if d.status == 'Rejected' else 'bg-amber-500/10 text-amber-400 border-amber-500/30') }}">
                                             {{ d.status }}
                                         </span>
                                     </td>
@@ -306,29 +661,28 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
-                    <div class="p-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
-                        <h3 class="font-bold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-building-columns mr-2"></i> Withdrawals History</h3>
+                <!-- Withdrawals Log -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                    <div class="p-4 border-b border-gray-800 bg-gray-900/50">
+                        <h3 class="font-bold text-blue-400 uppercase tracking-wider text-sm"><i class="fa-solid fa-building-columns mr-2"></i> Withdrawals History</h3>
                     </div>
-                    <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+                    <div class="overflow-x-auto max-h-[500px] custom-scrollbar">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-black/80 text-gray-500 uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+                            <thead class="bg-black/80 text-gray-500 uppercase sticky top-0">
                                 <tr><th class="p-3">User</th><th class="p-3">Amount / Bank</th><th class="p-3">Date</th><th class="p-3 text-right">Status</th></tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800">
                                 {% for w in withdrawals %}
-                                <tr class="hover:bg-gray-800/20">
+                                <tr class="hover:bg-white/[0.02]">
                                     <td class="p-3 font-bold text-white">{{ w.username }}</td>
                                     <td class="p-3">
-                                        <div class="font-black text-blue-400 text-sm">₹{{ "%.2f"|format(w.amount) }}</div>
-                                        <div class="text-[9px] text-gray-500">{{ w.bank_name }} - {{ w.account_number }}</div>
+                                        <div class="font-black text-blue-400 font-mono text-sm">₹{{ "%.2f"|format(w.amount) }}</div>
+                                        <div class="text-[10px] text-gray-500">{{ w.bank_name }} - {{ w.account_number }}</div>
                                     </td>
                                     <td class="p-3 text-gray-400 font-mono text-[10px]">{{ w.date }}</td>
                                     <td class="p-3 text-right">
-                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase tracking-widest
-                                            {% if w.status == 'Approved' %}bg-green-500/10 text-green-500 border-green-500/30
-                                            {% elif w.status == 'Rejected' %}bg-red-500/10 text-red-500 border-red-500/30
-                                            {% else %}bg-yellow-500/10 text-yellow-500 border-yellow-500/30{% endif %}">
+                                        <span class="text-[9px] font-black px-2 py-1 rounded border uppercase
+                                            {{ 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' if w.status == 'Approved' else ('bg-red-500/10 text-red-400 border-red-500/30' if w.status == 'Rejected' else 'bg-amber-500/10 text-amber-400 border-amber-500/30') }}">
                                             {{ w.status }}
                                         </span>
                                     </td>
@@ -341,66 +695,69 @@
             </div>
         </div>
 
-        <!-- SPORTS BOOK TAB -->
+        <!-- ========================================================= -->
+        <!-- TAB 5: SPORTSBOOK CONTROL                                 -->
+        <!-- ========================================================= -->
         <div id="tab-sports" class="tab-content space-y-6">
-            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-orange-500 pl-3">Sports Book Control</h2>
+            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-orange-500 pl-3">Sportsbook Fixture Control</h2>
 
-            <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl mb-6">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-plus-circle text-orange-500 mr-2"></i> Create New Match</h3>
+            <div class="glass-panel rounded-2xl p-5 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
+                    <i class="fa-solid fa-plus-circle text-orange-500 mr-2"></i> Add New Sports Match
+                </h3>
                 <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <input type="hidden" name="action" value="add_match">
-                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Sport</label><input type="text" name="sport" placeholder="e.g. Cricket" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
-                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">League</label><input type="text" name="league" placeholder="e.g. IPL" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
-                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Team 1</label><input type="text" name="team1" placeholder="MI" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
-                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Team 2</label><input type="text" name="team2" placeholder="CSK" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
-                    
-                    <div><label class="block text-[10px] text-brand font-black uppercase mb-1">Odds T1</label><input type="number" step="0.01" name="odds1" placeholder="1.85" class="w-full bg-black border border-brand/50 rounded p-2 text-brand font-black focus:border-brand outline-none" required></div>
-                    <div><label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Odds Draw</label><input type="number" step="0.01" name="oddsX" placeholder="5.50" class="w-full bg-black border border-gray-700 rounded p-2 text-white text-sm focus:border-orange-500 outline-none" required></div>
-                    <div><label class="block text-[10px] text-blue-400 font-black uppercase mb-1">Odds T2</label><input type="number" step="0.01" name="odds2" placeholder="2.10" class="w-full bg-black border border-blue-500/50 rounded p-2 text-blue-400 font-black focus:border-blue-500 outline-none" required></div>
-                    
-                    <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-2 cursor-pointer bg-red-500/10 border border-red-500/30 px-3 py-2 rounded text-xs font-bold text-red-400 w-full justify-center">
-                            <input type="checkbox" name="is_live" class="accent-red-500 w-4 h-4"> Mark as Live
+                    <div><label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Sport</label><input type="text" name="sport" placeholder="Cricket" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">League</label><input type="text" name="league" placeholder="IPL" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Team 1</label><input type="text" name="team1" placeholder="MI" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Team 2</label><input type="text" name="team2" placeholder="CSK" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-sm focus:border-orange-500 outline-none" required></div>
+
+                    <div><label class="block text-[10px] text-brand font-black uppercase mb-1">Odds Team 1</label><input type="number" step="0.01" name="odds1" placeholder="1.85" class="w-full bg-black border border-brand/50 rounded-xl p-2.5 text-brand font-black focus:border-brand outline-none" required></div>
+                    <div><label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Odds Draw</label><input type="number" step="0.01" name="oddsX" placeholder="5.50" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-sm focus:border-orange-500 outline-none" required></div>
+                    <div><label class="block text-[10px] text-blue-400 font-black uppercase mb-1">Odds Team 2</label><input type="number" step="0.01" name="odds2" placeholder="2.10" class="w-full bg-black border border-blue-500/50 rounded-xl p-2.5 text-blue-400 font-black focus:border-blue-500 outline-none" required></div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer bg-red-500/10 border border-red-500/30 px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 w-full justify-center">
+                            <input type="checkbox" name="is_live" class="accent-red-500 w-4 h-4"> Live
                         </label>
-                        <button type="submit" class="w-full bg-orange-500 text-white font-black py-2 rounded shadow-lg hover:bg-orange-400 transition uppercase tracking-wider">Add Match</button>
+                        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-400 text-black font-black py-2.5 rounded-xl shadow-lg transition uppercase text-xs tracking-wider">Create</button>
                     </div>
                 </form>
             </div>
 
-            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-700 shadow-xl">
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
                 <div class="p-4 border-b border-gray-800 bg-gray-900/50">
-                    <h3 class="font-bold text-white uppercase tracking-wider"><i class="fa-solid fa-list text-gray-400 mr-2"></i> Active Matches & Resolution</h3>
+                    <h3 class="font-bold text-white uppercase tracking-wider text-sm"><i class="fa-solid fa-list text-gray-400 mr-2"></i> Active Matches & Settlement</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-black/80 text-gray-500 text-xs uppercase tracking-wider">
-                            <tr><th class="p-4">Match Details</th><th class="p-4">Odds (1 | X | 2)</th><th class="p-4">Status & Action</th><th class="p-4 text-right">Resolve & Payout</th></tr>
+                        <thead class="bg-black/80 text-gray-500 text-xs uppercase">
+                            <tr><th class="p-4">Match</th><th class="p-4">Odds (1 | X | 2)</th><th class="p-4">State</th><th class="p-4 text-right">Settlement</th></tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800">
                             {% for m in matches %}
-                            <tr class="hover:bg-gray-800/20">
+                            <tr class="hover:bg-white/[0.02]">
                                 <td class="p-4">
-                                    <div class="font-bold text-white mb-1">{{ m.team1 }} <span class="text-xs text-gray-500 font-black px-1">vs</span> {{ m.team2 }}</div>
-                                    <div class="text-[10px] font-bold text-gray-500 uppercase">{{ m.sport }} - {{ m.league }}</div>
+                                    <div class="font-bold text-white">{{ m.team1 }} <span class="text-xs text-gray-500 px-1">vs</span> {{ m.team2 }}</div>
+                                    <div class="text-[10px] font-bold text-gray-500 uppercase">{{ m.sport }} • {{ m.league }}</div>
                                 </td>
                                 <td class="p-4 font-mono text-xs">
-                                    <span class="text-brand">{{ "%.2f"|format(m.odds1) }}</span> | 
-                                    <span class="text-gray-400">{{ "%.2f"|format(m.oddsX) }}</span> | 
+                                    <span class="text-brand">{{ "%.2f"|format(m.odds1) }}</span> |
+                                    <span class="text-gray-400">{{ "%.2f"|format(m.oddsX) }}</span> |
                                     <span class="text-blue-400">{{ "%.2f"|format(m.odds2) }}</span>
                                 </td>
                                 <td class="p-4">
                                     <div class="flex items-center gap-2">
                                         {% if m.is_live %}
-                                            <span class="bg-red-500/10 text-red-500 border border-red-500/30 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest"><i class="fa-solid fa-circle text-[6px] mr-1 animate-pulse"></i> Live</span>
+                                            <span class="bg-red-500/15 text-red-400 border border-red-500/30 text-[9px] font-black px-2 py-0.5 rounded uppercase">LIVE</span>
                                         {% else %}
-                                            <span class="bg-gray-800 text-gray-400 border border-gray-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Upcoming</span>
+                                            <span class="bg-gray-800 text-gray-400 text-[9px] font-black px-2 py-0.5 rounded uppercase">UPCOMING</span>
                                         {% endif %}
-                                        
                                         {% if not m.status or 'Winner' not in m.status %}
                                         <form method="POST" class="inline-block">
                                             <input type="hidden" name="action" value="toggle_live">
                                             <input type="hidden" name="match_id" value="{{ m.id }}">
-                                            <button type="submit" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white px-2 py-1 rounded text-[10px] font-bold transition shadow-sm" title="Toggle Live/Upcoming"><i class="fa-solid fa-rotate"></i> Swap</button>
+                                            <button type="submit" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white px-2 py-1 rounded text-[10px] font-bold transition"><i class="fa-solid fa-rotate"></i> Swap</button>
                                         </form>
                                         {% endif %}
                                     </div>
@@ -409,14 +766,20 @@
                                     {% if not m.status or 'Winner' not in m.status %}
                                     <form method="POST" class="flex justify-end gap-2 items-center">
                                         <input type="hidden" name="action" value="resolve_match"><input type="hidden" name="match_id" value="{{ m.id }}">
-                                        <select name="winning_team" class="bg-black border border-gray-700 rounded px-2 py-1.5 text-white text-xs focus:border-brand outline-none" required>
-                                            <option value="">Select Winner...</option><option value="{{ m.team1 }}">{{ m.team1 }}</option><option value="Draw">Draw</option><option value="{{ m.team2 }}">{{ m.team2 }}</option>
+                                        <select name="winning_team" class="bg-black border border-gray-700 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none" required>
+                                            <option value="">Winner...</option>
+                                            <option value="{{ m.team1 }}">{{ m.team1 }}</option>
+                                            <option value="Draw">Draw</option>
+                                            <option value="{{ m.team2 }}">{{ m.team2 }}</option>
                                         </select>
-                                        <button type="submit" class="bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-1.5 rounded text-xs shadow-md transition" onclick="return confirm('WARNING: This will instantly payout all winning bets. Proceed?')">Payout</button>
+                                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition" onclick="return confirm('Payout all winning bets for this match?')">Payout</button>
                                     </form>
-                                    <form method="POST" class="mt-2 text-right"><input type="hidden" name="action" value="delete_match"><input type="hidden" name="match_id" value="{{ m.id }}"><button type="submit" class="text-[10px] text-red-500 hover:underline" onclick="return confirm('Delete match and void all bets?')"><i class="fa-solid fa-trash mr-1"></i> Delete Match</button></form>
+                                    <form method="POST" class="mt-1.5 text-right">
+                                        <input type="hidden" name="action" value="delete_match"><input type="hidden" name="match_id" value="{{ m.id }}">
+                                        <button type="submit" class="text-[10px] text-red-400 hover:underline" onclick="return confirm('Delete match and void open bets?')"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                                    </form>
                                     {% else %}
-                                    <span class="text-xs font-bold text-gray-400 bg-gray-900 px-3 py-1 rounded">{{ m.status }}</span>
+                                    <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-lg">{{ m.status }}</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -427,192 +790,25 @@
             </div>
         </div>
 
-        <!-- GOD MODE / LIVE GAME CONTROL TAB (Includes JetX) -->
-        <div id="tab-games" class="tab-content space-y-6">
-            <h2 class="text-2xl font-black uppercase tracking-wider mb-6 border-l-4 border-purple-500 pl-3">Live Game Control</h2>
-            <p class="text-gray-400 text-xs mb-6 max-w-xl">Use these panels to force exact outcomes in real-time. Once set to <span class="text-red-500 font-bold">RIGGED</span>, the game will ignore its math and trigger your exact input. Set it back to <span class="text-green-500 font-bold">AUTO</span> to resume fair random logic.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <!-- AVIATOR -->
-                <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-24 h-24 bg-red-500/10 blur-2xl rounded-full pointer-events-none"></div>
-                    <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-plane-up text-red-500"></i> Aviator Manipulator</h3>
-                    
-                    <div class="mb-4 text-xs font-bold bg-black/40 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
-                        <div>
-                            Status: 
-                            {% if game_control.aviator is none %}
-                                <span class="text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 ml-2">AUTO</span>
-                            {% else %}
-                                <span class="text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 ml-2 animate-pulse">RIGGED ({{ game_control.aviator }}x)</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 font-mono flex items-center gap-2">
-                            <span id="aviator-match-id">Match: #{{ "%06d"|format(aviator_state.match_number) }}</span>
-                            <button onclick="refreshMatchID('aviator', 'aviator-match-id', event)" class="text-blue-400 hover:text-white transition w-4 h-4 flex items-center justify-center" title="Refresh Match ID"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" class="space-y-3">
-                        <input type="hidden" name="action" value="control_game">
-                        <input type="hidden" name="game" value="aviator">
-                        <div class="flex gap-2">
-                            <input type="number" step="0.01" name="value" placeholder="Crash Point (e.g. 1.50)" class="w-full bg-black border border-gray-700 rounded p-2 text-white font-mono focus:border-red-500 outline-none" required>
-                            <button type="submit" name="mode" value="force" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded shadow-lg uppercase text-[10px] tracking-wider whitespace-nowrap active:scale-95 transition">Force</button>
-                        </div>
-                    </form>
-                    <form method="POST" class="mt-3">
-                        <input type="hidden" name="action" value="control_game">
-                        <input type="hidden" name="game" value="aviator">
-                        <button type="submit" name="mode" value="auto" class="w-full bg-green-500/20 text-green-400 border border-green-500/30 font-bold py-2 rounded shadow-lg hover:bg-green-500 hover:text-black transition uppercase text-xs tracking-wider active:scale-95">Set to Auto (Random)</button>
-                    </form>
-                </div>
-
-                <!-- JETX MANIPULATOR (NEW) -->
-                <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full pointer-events-none"></div>
-                    <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-jet-fighter text-amber-500"></i> JetX Manipulator</h3>
-                    
-                    <div class="mb-4 text-xs font-bold bg-black/40 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
-                        <div>
-                            Status: 
-                            {% if game_control.jetx is none %}
-                                <span class="text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 ml-2">AUTO</span>
-                            {% else %}
-                                <span class="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 ml-2 animate-pulse">RIGGED ({{ game_control.jetx }}x)</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 font-mono flex items-center gap-2">
-                            <span id="jetx-match-id">Match: #{{ "%06d"|format(jetx_state.match_number) }}</span>
-                            <button onclick="refreshMatchID('jetx', 'jetx-match-id', event)" class="text-blue-400 hover:text-white transition w-4 h-4 flex items-center justify-center" title="Refresh Match ID"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" class="space-y-3">
-                        <input type="hidden" name="action" value="control_game">
-                        <input type="hidden" name="game" value="jetx">
-                        <div class="flex gap-2">
-                            <input type="number" step="0.01" name="value" placeholder="Crash Point (e.g. 2.50)" class="w-full bg-black border border-gray-700 rounded p-2 text-white font-mono focus:border-amber-500 outline-none" required>
-                            <button type="submit" name="mode" value="force" class="bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded shadow-lg uppercase text-[10px] tracking-wider whitespace-nowrap active:scale-95 transition">Force</button>
-                        </div>
-                    </form>
-                    <form method="POST" class="mt-3">
-                        <input type="hidden" name="action" value="control_game">
-                        <input type="hidden" name="game" value="jetx">
-                        <button type="submit" name="mode" value="auto" class="w-full bg-green-500/20 text-green-400 border border-green-500/30 font-bold py-2 rounded shadow-lg hover:bg-green-500 hover:text-black transition uppercase text-xs tracking-wider active:scale-95">Set to Auto (Random)</button>
-                    </form>
-                </div>
-
-                <!-- DRAGON TIGER -->
-                <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-24 h-24 bg-yellow-500/10 blur-2xl rounded-full pointer-events-none"></div>
-                    <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-dragon text-yellow-500"></i> Dragon vs Tiger</h3>
-                    
-                    <div class="mb-4 text-xs font-bold bg-black/40 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
-                        <div>
-                            Status: 
-                            {% if game_control.dt is none %}
-                                <span class="text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 ml-2">AUTO</span>
-                            {% else %}
-                                <span class="text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20 ml-2 animate-pulse">RIGGED ({{ game_control.dt }})</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 font-mono flex items-center gap-2">
-                            <span id="dt-match-id">Match: #{{ "%06d"|format(dt_state.match_number) }}</span>
-                            <button onclick="refreshMatchID('dragon_tiger', 'dt-match-id', event)" class="text-blue-400 hover:text-white transition w-4 h-4 flex items-center justify-center" title="Refresh Match ID"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" class="grid grid-cols-3 gap-2 mb-3">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="dt">
-                        <button type="submit" name="mode" value="Dragon" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow-lg uppercase text-[10px] tracking-wider active:scale-95 transition">Dragon</button>
-                        <button type="submit" name="mode" value="Tie" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded shadow-lg uppercase text-[10px] tracking-wider active:scale-95 transition">Tie</button>
-                        <button type="submit" name="mode" value="Tiger" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded shadow-lg uppercase text-[10px] tracking-wider active:scale-95 transition">Tiger</button>
-                    </form>
-                    <form method="POST">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="dt">
-                        <button type="submit" name="mode" value="auto" class="w-full bg-green-500/20 text-green-400 border border-green-500/30 font-bold py-2 rounded shadow-lg hover:bg-green-500 hover:text-black transition uppercase text-xs tracking-wider active:scale-95">Set to Auto (Random)</button>
-                    </form>
-                </div>
-                
-                <!-- HEADS TAILS -->
-                <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl relative overflow-hidden">
-                    <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-coins text-blue-400"></i> Heads & Tails</h3>
-                    
-                    <div class="mb-4 text-xs font-bold bg-black/40 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
-                        <div>
-                            Status: 
-                            {% if game_control.ht is none %}
-                                <span class="text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 ml-2">AUTO</span>
-                            {% else %}
-                                <span class="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 ml-2 animate-pulse">RIGGED ({{ game_control.ht }})</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 font-mono flex items-center gap-2">
-                            <span id="ht-match-id">Match: #{{ "%06d"|format(ht_state.match_number) }}</span>
-                            <button onclick="refreshMatchID('heads_tails', 'ht-match-id', event)" class="text-blue-400 hover:text-white transition w-4 h-4 flex items-center justify-center" title="Refresh Match ID"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" class="grid grid-cols-2 gap-2 mb-3">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="ht">
-                        <button type="submit" name="mode" value="Heads" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded shadow-lg uppercase text-xs tracking-wider border border-gray-600 active:scale-95 transition">Heads</button>
-                        <button type="submit" name="mode" value="Tails" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded shadow-lg uppercase text-xs tracking-wider border border-gray-600 active:scale-95 transition">Tails</button>
-                    </form>
-                    <form method="POST">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="ht">
-                        <button type="submit" name="mode" value="auto" class="w-full bg-green-500/20 text-green-400 border border-green-500/30 font-bold py-2 rounded shadow-lg hover:bg-green-500 hover:text-black transition uppercase text-xs tracking-wider active:scale-95">Set to Auto (Random)</button>
-                    </form>
-                </div>
-                
-                <!-- COLOR PREDICTION -->
-                <div class="glass-panel rounded-2xl p-5 border border-gray-700 shadow-xl relative overflow-hidden">
-                    <h3 class="font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-palette text-pink-500"></i> Color Prediction</h3>
-                    
-                    <div class="mb-4 text-xs font-bold bg-black/40 p-3 rounded-lg border border-gray-800 flex justify-between items-center">
-                        <div>
-                            Status: 
-                            {% if game_control.cp is none %}
-                                <span class="text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 ml-2">AUTO</span>
-                            {% else %}
-                                <span class="text-pink-500 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20 ml-2 animate-pulse">RIGGED (#{{ game_control.cp }})</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 font-mono flex items-center gap-2">
-                            <span id="cp-match-id">Match: #{{ "%06d"|format(cp_state.match_number) }}</span>
-                            <button onclick="refreshMatchID('color_prediction', 'cp-match-id', event)" class="text-blue-400 hover:text-white transition w-4 h-4 flex items-center justify-center" title="Refresh Match ID"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" class="space-y-3">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="cp">
-                        <div class="flex gap-2">
-                            <input type="number" min="0" max="9" name="value" placeholder="Winning Number 0-9" class="w-full bg-black border border-gray-700 rounded p-2 text-white font-mono focus:border-pink-500 outline-none" required>
-                            <button type="submit" name="mode" value="force" class="bg-pink-600 hover:bg-pink-500 text-white font-bold px-4 py-2 rounded shadow-lg uppercase text-[10px] tracking-wider whitespace-nowrap active:scale-95 transition">Force Win</button>
-                        </div>
-                    </form>
-                    <form method="POST" class="mt-3">
-                        <input type="hidden" name="action" value="control_game"><input type="hidden" name="game" value="cp">
-                        <button type="submit" name="mode" value="auto" class="w-full bg-green-500/20 text-green-400 border border-green-500/30 font-bold py-2 rounded shadow-lg hover:bg-green-500 hover:text-black transition uppercase text-xs tracking-wider active:scale-95">Set to Auto (Random)</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
     </main>
 
     <!-- CREATE USER MODAL -->
     <div id="createUserModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
-            <h3 class="text-xl font-black mb-4 text-white"><i class="fa-solid fa-user-plus text-blue-500 mr-2"></i> Create Admin User</h3>
+            <h3 class="text-lg font-black mb-4 text-white"><i class="fa-solid fa-user-plus text-blue-500 mr-2"></i> Create Approved Player</h3>
             <form method="POST" class="space-y-4">
                 <input type="hidden" name="action" value="create_user">
-                <div><label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Username</label><input type="text" name="new_username" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none" required></div>
-                <div><label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Password</label><input type="password" name="new_password" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none" required></div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Username</label>
+                    <input type="text" name="new_username" class="w-full bg-black border border-gray-700 rounded-xl p-3 text-white focus:border-blue-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Password</label>
+                    <input type="password" name="new_password" class="w-full bg-black border border-gray-700 rounded-xl p-3 text-white focus:border-blue-500 outline-none" required>
+                </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-bold py-3 rounded-lg hover:bg-gray-700">Cancel</button>
-                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-500 shadow-lg">Create</button>
+                    <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-bold py-3 rounded-xl hover:bg-gray-700 text-xs uppercase">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-500 shadow-lg text-xs uppercase">Create</button>
                 </div>
             </form>
         </div>
@@ -622,95 +818,100 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
+
             document.getElementById('nav-' + tabId).classList.add('active');
             document.getElementById('tab-' + tabId).classList.add('active');
-            
-            document.getElementById('mobile-menu').classList.add('hidden');
-            document.getElementById('mobile-menu').classList.remove('flex');
+
+            localStorage.setItem('novabetx_admin_tab', tabId);
+
+            const mm = document.getElementById('mobile-menu');
+            mm.classList.add('hidden');
+            mm.classList.remove('flex');
         }
 
         function filterTable(inputId, tableId) {
-            let input = document.getElementById(inputId);
-            let filter = input.value.toUpperCase();
-            let table = document.getElementById(tableId);
-            let tr = table.getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[1]; 
-                if (td) {
-                    let txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } 
-                    else { tr[i].style.display = "none"; }
-                }       
+            const filter = document.getElementById(inputId).value.toUpperCase();
+            const rows = document.getElementById(tableId).getElementsByTagName("tr");
+            for (let i = 1; i < rows.length; i++) {
+                const tdUser = rows[i].getElementsByTagName("td")[1];
+                const tdMob = rows[i].getElementsByTagName("td")[2];
+                const txt = ((tdUser ? tdUser.textContent : '') + ' ' + (tdMob ? tdMob.textContent : '')).toUpperCase();
+                rows[i].style.display = txt.indexOf(filter) > -1 ? "" : "none";
             }
         }
-        
+
+        let selectedGameCategory = 'ALL';
+        function filterGameCards(cat, btn) {
+            selectedGameCategory = cat;
+            document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyGameCardFilter();
+        }
+
+        function applyGameCardFilter() {
+            const q = (document.getElementById('gameControlSearch').value || '').toLowerCase().trim();
+            document.querySelectorAll('.game-control-card').forEach(card => {
+                const cCat = card.getAttribute('data-category') || '';
+                const cTitle = card.getAttribute('data-title') || '';
+                const catMatch = (selectedGameCategory === 'ALL') || cCat.includes(selectedGameCategory) || (selectedGameCategory === 'Arcade' && (cCat === 'Slots' || cCat === 'Bonus'));
+                const txtMatch = !q || cTitle.includes(q);
+                card.style.display = (catMatch && txtMatch) ? '' : 'none';
+            });
+        }
+
         function refreshMatchID(gameEndpoint, elementId, event) {
             const btn = event.currentTarget;
             const icon = btn.querySelector('i');
             icon.classList.add('fa-spin');
-            
             fetch(`/${gameEndpoint}/sync`)
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
-                    document.getElementById(elementId).innerText = `Match: #${data.match_number}`;
-                    setTimeout(() => icon.classList.remove('fa-spin'), 400); 
+                    document.getElementById(elementId).innerText = `#${data.match_number}`;
+                    setTimeout(() => icon.classList.remove('fa-spin'), 400);
                 })
-                .catch(err => {
-                    console.error("Sync Error:", err);
-                    icon.classList.remove('fa-spin');
-                });
+                .catch(() => icon.classList.remove('fa-spin'));
         }
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('adminAnalyticsChart').getContext('2d');
-            
-            const activePlayers = {{ users|length }};
-            const pendingDeposits = {{ deposits|selectattr('status','equalto','Pending')|list|length }};
-            const pendingWithdrawals = {{ withdrawals|selectattr('status','equalto','Pending')|list|length }};
-            const totalMatches = {{ matches|length }};
 
+        document.addEventListener("DOMContentLoaded", function() {
+            const savedTab = localStorage.getItem('novabetx_admin_tab');
+            if (savedTab && document.getElementById('tab-' + savedTab)) {
+                switchTab(savedTab);
+            }
+
+            const ctx = document.getElementById('adminAnalyticsChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Active Players', 'Pending Deposits', 'Pending Withdrawals', 'Active Matches'],
+                    labels: ['Approved Players', 'Pending Deposits', 'Pending Withdrawals', 'Active Matches', 'Rigged Games'],
                     datasets: [{
-                        label: 'Platform Metrics',
-                        data: [activePlayers, pendingDeposits, pendingWithdrawals, totalMatches],
+                        label: 'Count',
+                        data: [
+                            {{ users|length }},
+                            {{ deposits|selectattr('status','equalto','Pending')|list|length }},
+                            {{ withdrawals|selectattr('status','equalto','Pending')|list|length }},
+                            {{ matches|length }},
+                            {{ rigged_count }}
+                        ],
                         backgroundColor: [
-                            'rgba(59, 130, 246, 0.2)', 
-                            'rgba(28, 218, 58, 0.2)', 
-                            'rgba(239, 68, 68, 0.2)', 
-                            'rgba(249, 115, 22, 0.2)'
+                            'rgba(59, 130, 246, 0.25)',
+                            'rgba(28, 218, 58, 0.25)',
+                            'rgba(239, 68, 68, 0.25)',
+                            'rgba(249, 115, 22, 0.25)',
+                            'rgba(168, 85, 247, 0.25)'
                         ],
-                        borderColor: [
-                            '#3b82f6', 
-                            '#1cda3a', 
-                            '#ef4444', 
-                            '#f97316'
-                        ],
-                        borderWidth: 1,
-                        borderRadius: 6
+                        borderColor: ['#3b82f6', '#1cda3a', '#ef4444', '#f97316', '#a855f7'],
+                        borderWidth: 1.5,
+                        borderRadius: 8
                     }]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
-                    scales: { 
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } }
-                        }, 
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10, weight: 'bold' } }
-                        } 
-                    }, 
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { family: 'Inter' }, bodyFont: { family: 'Inter' } }
-                    } 
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { weight: 'bold', size: 11 } } }
+                    },
+                    plugins: { legend: { display: false } }
                 }
             });
         });
