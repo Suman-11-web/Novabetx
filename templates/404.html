@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>404 - Page Not Found | Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06090e',
+                        surface: '#0f141d',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(circle at 50% 25%, rgba(28, 218, 58, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 45%),
+                #06090e;
+        }
+        .glass-card {
+            background: rgba(15, 20, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .anim-float { animation: floatSlow 4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="text-white min-h-[100dvh] flex items-center justify-center p-4 select-none overflow-hidden">
+
+    <div class="glass-card rounded-3xl p-8 md:p-12 max-w-lg w-full text-center relative overflow-hidden">
+        <!-- Ambient Glow -->
+        <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-56 h-56 bg-brand/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Floating Icon -->
+        <div class="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-6 anim-float shadow-[0_0_30px_rgba(239,68,68,0.25)]">
+            <i class="fa-solid fa-satellite-dish text-3xl text-red-400"></i>
+        </div>
+
+        <!-- Glitch 404 Number -->
+        <div class="text-7xl md:text-8xl font-black italic tracking-tighter font-mono text-transparent bg-clip-text bg-gradient-to-r from-brand via-emerald-300 to-cyan-400 drop-shadow-[0_0_25px_rgba(28,218,58,0.35)] leading-none mb-3">
+            404
+        </div>
+
+        <div class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> Route Disconnected
+        </div>
+
+        <h1 class="text-xl md:text-2xl font-black uppercase tracking-wider text-white mb-2">
+            Lost in the Vault
+        </h1>
+        <p class="text-xs md:text-sm text-gray-400 leading-relaxed mb-8">
+            The table or page you are looking for does not exist, has been moved, or is restricted.
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="{{ url_for('home') }}" class="bg-brand hover:bg-green-400 text-black font-black text-xs uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-[0_0_20px_rgba(28,218,58,0.4)] transition active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-house"></i> Return Home
+            </a>
+            <a href="{{ url_for('games') }}" class="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-xs uppercase tracking-wider py-3.5 px-5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-gamepad text-purple-400"></i> Casino Lobby
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

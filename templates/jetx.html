@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JetX Pro Max - Novabetx</title>
+    <title>JetX - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -24,189 +24,319 @@
         }
     </script>
     <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        
-        .glow-amber { filter: drop-shadow(0 0 15px rgba(245,158,11,0.6)); }
-        .glow-green { filter: drop-shadow(0 0 15px rgba(16,185,129,0.7)); }
-        .glow-red { filter: drop-shadow(0 0 15px rgba(239,68,68,0.7)); }
+
+        .glow-amber { filter: drop-shadow(0 0 18px rgba(245,158,11,0.65)); }
+        .glow-green { filter: drop-shadow(0 0 18px rgba(16,185,129,0.75)); }
+        .glow-red { filter: drop-shadow(0 0 20px rgba(239,68,68,0.8)); }
+
+        .glass-panel {
+            background: rgba(13, 17, 26, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .stage-sky {
+            background: radial-gradient(circle at 20% 85%, #1e130a 0%, #090d16 55%, #04060a 100%);
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+        }
 
         @keyframes pulseGlow {
             0%, 100% { opacity: 0.9; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.02); }
+            50% { opacity: 1; transform: scale(1.03); }
         }
-        .anim-pulse-glow { animation: pulseGlow 1.5s infinite ease-in-out; }
+        .anim-pulse-glow { animation: pulseGlow 1.2s infinite ease-in-out; }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, 3px); }
+            40% { transform: translate(5px, -3px); }
+            60% { transform: translate(-4px, -2px); }
+            80% { transform: translate(4px, 2px); }
+        }
+        .shake-crash { animation: screenShake 0.4s ease-in-out; }
+
+        /* Floating Glass Bottom Navigation Bar */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none overflow-x-hidden">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
+
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
 
     <!-- DESKTOP SIDEBAR -->
     <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
         <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
             <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-amber-500">betx</span></div>
-            <span class="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">PRO MAX</span>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">JETX</span>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
             <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
-            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-400 font-bold rounded-xl border border-amber-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-400 font-bold rounded-xl border border-amber-500/20"><i class="fa-solid fa-rocket w-5 text-center"></i> JetX Lobby</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
             <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
         </nav>
         <div class="p-4 border-t border-gray-800/80">
             <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
                 <span>Audio FX</span>
-                <button onclick="toggleAudio()" id="btn-audio" class="text-amber-400 text-sm hover:text-amber-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+                <button onclick="toggleAudio(event)" id="btn-audio" class="text-amber-400 text-sm hover:text-amber-300 transition"><i class="fa-solid fa-volume-high"></i></button>
             </div>
         </div>
     </aside>
 
     <!-- MAIN GAME STAGE -->
-    <main class="flex-1 flex flex-col min-h-screen relative">
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
         
         <!-- HEADER -->
-        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40">
+        <header class="flex justify-between items-center bg-[#090d15]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
             <div class="flex items-center gap-3">
                 <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
                 <div class="flex items-center gap-2">
-                    <span class="text-amber-500 text-xl font-black italic tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-jet-fighter"></i> JET<span class="text-white">X</span></span>
-                    <span class="text-[10px] font-mono font-bold text-gray-400 bg-black/40 px-2 py-0.5 rounded border border-gray-800" id="match-number">#000000</span>
+                    <span class="text-amber-500 text-lg md:text-xl font-black italic tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-jet-fighter"></i> JET<span class="text-white">X</span>
+                    </span>
+                    <span class="text-[10px] font-mono font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30" id="match-number">#000000</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
-                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
-                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
-                    <span id="bal" class="text-sm font-black text-amber-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
-                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-amber-500 hover:bg-amber-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleAudio(event)" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition" id="btn-audio-mobile">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] font-bold text-gray-400 mr-1">₹</span>
+                    <span id="bal" class="text-sm font-black text-amber-400 mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-amber-500 hover:bg-amber-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(245,158,11,0.5)]"><i class="fa-solid fa-plus"></i></a>
                 </div>
             </div>
         </header>
 
         <!-- MULTIPLIER HISTORY RIBBON -->
-        <div class="bg-[#0b0f18] px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shadow-inner" id="history-bar">
-            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest shrink-0 mr-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Past:</span>
-            <!-- Injected dynamically -->
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-blue-900/30 text-blue-400 border border-blue-800/40 shrink-0">1.85x</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-purple-900/30 text-purple-400 border border-purple-800/40 shrink-0">3.40x</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-amber-900/30 text-amber-400 border border-amber-800/40 shrink-0">12.50x</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-blue-900/30 text-blue-400 border border-blue-800/40 shrink-0">1.22x</span>
+        <div class="bg-[#0b0f18] px-3 md:px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shadow-inner shrink-0" id="history-bar">
+            <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest shrink-0 mr-1 flex items-center gap-1">
+                <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> History:
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black bg-blue-950/80 text-blue-400 border border-blue-500/30 shrink-0">1.85x</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black bg-purple-950/80 text-purple-300 border border-purple-500/40 shrink-0">3.40x</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black bg-amber-950/80 text-amber-400 border border-amber-500/50 shrink-0">12.50x</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black bg-blue-950/80 text-blue-400 border border-blue-500/30 shrink-0">1.22x</span>
         </div>
 
-        <!-- FLIGHT VIEWPORT (CANVAS & HUD) -->
-        <div class="flex-1 relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-[350px] md:min-h-[460px]">
-            
-            <!-- Real Canvas Simulation -->
-            <canvas id="jetx-canvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+        <!-- MAIN WORKSPACE -->
+        <div class="flex-1 p-3 md:p-5 max-w-5xl w-full mx-auto flex flex-col gap-4 justify-between">
 
-            <!-- Altitude / Grid HUD Overlays -->
-            <div class="absolute left-4 top-4 z-10 pointer-events-none text-left font-mono">
-                <div class="text-[10px] text-gray-400 tracking-wider font-bold uppercase"><i class="fa-solid fa-gauge-high mr-1 text-amber-500"></i> TELEMETRY</div>
-                <div class="text-xs text-amber-400 font-black" id="hud-altitude">ALT: 0 m</div>
-                <div class="text-[10px] text-gray-400 font-bold" id="hud-speed">SPD: MACH 0.0</div>
-            </div>
-
-            <!-- CENTRAL MULTIPLIER & STATE DISPLAY -->
-            <div class="relative z-20 text-center pointer-events-none px-4">
+            <!-- FLIGHT VIEWPORT (CANVAS & HUD) -->
+            <div id="flight-viewport" class="relative w-full h-[270px] sm:h-[330px] md:h-[420px] stage-sky rounded-3xl border border-gray-800/90 flex flex-col items-center justify-center overflow-hidden shrink-0">
                 
-                <!-- WAITING / COUNTDOWN -->
-                <div id="display-waiting" class="hidden flex-col items-center">
-                    <div class="text-xs font-black uppercase tracking-widest text-amber-400 mb-2 anim-pulse-glow flex items-center gap-2">
-                        <i class="fa-solid fa-rocket"></i> NEXT FLIGHT PREPARING
+                <!-- Real 60FPS Canvas Simulation -->
+                <canvas id="jetx-canvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+
+                <!-- Top-Left Altitude / Speed Telemetry HUD -->
+                <div class="absolute left-3.5 top-3.5 z-20 pointer-events-none text-left font-mono bg-black/45 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
+                    <div class="text-[9px] text-gray-400 tracking-widest font-black uppercase flex items-center gap-1.5">
+                        <span id="hud-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span id="hud-status-text">PRE-FLIGHT</span>
                     </div>
-                    <div class="w-64 md:w-80 h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700 p-[1px] shadow-inner mb-2">
-                        <div id="waiting-progress" class="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 rounded-full transition-all duration-100" style="width: 100%;"></div>
-                    </div>
-                    <span class="text-[11px] font-mono text-gray-400 font-bold tracking-wider">STANDBY FOR LAUNCH</span>
+                    <div class="text-xs text-amber-400 font-black mt-0.5" id="hud-altitude">ALT: 0 m</div>
+                    <div class="text-[10px] text-gray-400 font-bold" id="hud-speed">SPD: MACH 0.0</div>
                 </div>
 
-                <!-- FLYING MULTIPLIER -->
-                <div id="display-flying" class="hidden flex-col items-center">
-                    <div id="multiplier-text" class="text-6xl sm:text-7xl md:text-9xl font-black text-white font-mono tracking-tighter glow-amber transition-transform">
-                        1.00x
-                    </div>
-                    <div class="text-xs font-black uppercase tracking-widest text-amber-400/80 mt-1 flex items-center gap-1.5">
-                        <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-ping"></span> IN SUPERSONIC FLIGHT
-                    </div>
-                </div>
-
-                <!-- CRASHED / EXPLODED -->
-                <div id="display-crashed" class="hidden flex-col items-center">
-                    <div class="text-3xl sm:text-4xl md:text-5xl font-black italic uppercase tracking-widest text-red-500 glow-red animate-bounce mb-1">
-                        CRASHED
-                    </div>
-                    <div id="crashed-mult" class="text-5xl sm:text-6xl md:text-7xl font-black text-white font-mono tracking-tighter drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">
-                        @ 0.00x
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BETTING COCKPIT -->
-        <div class="bg-[#090d15] border-t border-gray-800/80 p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 items-stretch">
-                
-                <!-- STAKE CONTROLS -->
-                <div class="flex-1 bg-[#0d121c] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Bet Amount (₹)</label>
-                        <span class="text-[10px] text-gray-400 font-mono">Min: ₹10</span>
-                    </div>
-
-                    <div class="flex items-center gap-2 mb-3">
-                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-black text-xs px-3 py-2 rounded-xl transition border border-gray-700">½</button>
-                        <div class="relative flex-1">
-                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₹</span>
-                            <input type="number" id="stake-input" value="50" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-2.5 pl-8 pr-3 text-center text-xl font-black text-white focus:border-amber-500 outline-none transition shadow-inner">
+                <!-- CENTRAL MULTIPLIER & STATE OVERLAY -->
+                <div class="relative z-20 text-center pointer-events-none px-4 w-full max-w-md mx-auto">
+                    
+                    <!-- 1. WAITING / LIVE COUNTDOWN BAR -->
+                    <div id="display-waiting" class="flex flex-col items-center bg-black/55 backdrop-blur-md p-5 rounded-3xl border border-amber-500/30 shadow-2xl">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl mb-2.5 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                            <i class="fa-solid fa-jet-fighter-up animate-pulse"></i>
                         </div>
-                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-black text-xs px-3 py-2 rounded-xl transition border border-gray-700">2×</button>
+                        <div class="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-white mb-1">
+                            NEXT LAUNCH IN <span id="waiting-timer-num" class="text-amber-400 font-mono text-base md:text-lg">5.0s</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-gray-400 font-bold tracking-widest uppercase mb-3">Lock in your bets before ignition</span>
+                        <div class="w-full h-2.5 bg-gray-900 rounded-full overflow-hidden border border-gray-700 p-[1px] shadow-inner">
+                            <div id="waiting-progress" class="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.8)]" style="width: 100%;"></div>
+                        </div>
                     </div>
 
-                    <!-- Preset Chips -->
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button onclick="setStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-300 text-[11px] font-bold py-1.5 rounded-lg transition border border-gray-800">+50</button>
-                        <button onclick="setStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-300 text-[11px] font-bold py-1.5 rounded-lg transition border border-gray-800">+100</button>
-                        <button onclick="setStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-300 text-[11px] font-bold py-1.5 rounded-lg transition border border-gray-800">+500</button>
-                        <button onclick="setStake(1000)" class="bg-surfaceLight hover:bg-gray-700 text-gray-300 text-[11px] font-bold py-1.5 rounded-lg transition border border-gray-800">+1K</button>
+                    <!-- 2. FLYING MULTIPLIER -->
+                    <div id="display-flying" class="hidden flex-col items-center">
+                        <div id="multiplier-text" class="text-6xl sm:text-7xl md:text-8xl font-black text-white font-mono tracking-tighter glow-amber anim-pulse-glow">
+                            1.00x
+                        </div>
+                        <div class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-amber-300 mt-1.5 flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-full border border-amber-500/20">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> SUPERSONIC CLIMB
+                        </div>
                     </div>
+
+                    <!-- 3. CRASHED / EXPLODED + NEXT ROUND COOLDOWN -->
+                    <div id="display-crashed" class="hidden flex-col items-center bg-black/65 backdrop-blur-md p-5 rounded-3xl border border-red-500/40 shadow-2xl">
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black italic uppercase tracking-widest text-red-500 glow-red mb-1">
+                            JET EXPLODED!
+                        </div>
+                        <div id="crashed-mult" class="text-4xl sm:text-5xl md:text-6xl font-black text-white font-mono tracking-tighter drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] mb-3">
+                            @ 1.00x
+                        </div>
+                        <div class="w-48 h-1.5 bg-gray-900 rounded-full overflow-hidden border border-red-900/60">
+                            <div id="crashed-cooldown-bar" class="h-full bg-red-500 rounded-full" style="width: 100%;"></div>
+                        </div>
+                        <span id="crashed-sub-timer" class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest mt-1.5">
+                            Rearming runway...
+                        </span>
+                    </div>
+
                 </div>
-
-                <!-- AUTO CASHOUT PANEL -->
-                <div class="w-full md:w-56 bg-[#0d121c] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Auto Cash Out</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="auto-cash-toggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
-                    </div>
-
-                    <div class="relative mb-2">
-                        <input type="number" id="auto-cash-mult" value="2.00" min="1.05" max="100" step="0.1" class="w-full bg-black/60 border border-gray-700 rounded-xl py-2 px-3 text-center text-lg font-black text-amber-400 focus:border-amber-500 outline-none transition shadow-inner">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">X</span>
-                    </div>
-
-                    <div class="text-[10px] text-gray-400 text-center font-bold">
-                        Trigger: <span id="auto-status-desc" class="text-gray-300">Disabled</span>
-                    </div>
-                </div>
-
-                <!-- ACTION BUTTON (BET / CASHOUT) -->
-                <div class="w-full md:w-72 flex flex-col justify-center">
-                    <button id="btn-action" onclick="handleAction()" class="w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] active:scale-95 flex flex-col items-center justify-center">
-                        <span id="action-title">PLACE BET</span>
-                        <span id="action-sub" class="text-[11px] font-bold tracking-widest uppercase opacity-80 mt-0.5">WAITING FOR NEXT ROUND</span>
-                    </button>
-                </div>
-
             </div>
+
+            <!-- BETTING COCKPIT -->
+            <div class="glass-panel rounded-3xl p-4 md:p-5 z-30">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                    
+                    <!-- STAKE CONTROLS (5 Cols) -->
+                    <div class="lg:col-span-5 bg-[#080b12] border border-gray-800/90 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Bet Stake (₹)</label>
+                            <span class="text-[10px] text-gray-500 font-mono">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 mb-2.5">
+                            <button type="button" onclick="adjustStake(0.5)" class="bg-gray-800 hover:bg-gray-700 text-purple-300 font-black text-xs px-3 py-2.5 rounded-xl transition border border-gray-700 active:scale-95">½</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-sm">₹</span>
+                                <input type="number" id="stake-input" value="50" min="10" step="10" class="w-full bg-black/80 border border-gray-700 rounded-xl py-2 pl-7 pr-2 text-center text-lg md:text-xl font-black font-mono text-white focus:border-amber-500 outline-none transition shadow-inner">
+                            </div>
+                            <button type="button" onclick="adjustStake(2)" class="bg-gray-800 hover:bg-gray-700 text-amber-300 font-black text-xs px-3 py-2.5 rounded-xl transition border border-gray-700 active:scale-95">2×</button>
+                        </div>
+
+                        <!-- Preset Chips -->
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" onclick="setStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 text-xs font-extrabold py-1.5 rounded-lg transition border border-gray-700/80 active:scale-95">₹50</button>
+                            <button type="button" onclick="setStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 text-xs font-extrabold py-1.5 rounded-lg transition border border-gray-700/80 active:scale-95">₹100</button>
+                            <button type="button" onclick="setStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 text-xs font-extrabold py-1.5 rounded-lg transition border border-gray-700/80 active:scale-95">₹500</button>
+                            <button type="button" onclick="setStake(1000)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 text-xs font-extrabold py-1.5 rounded-lg transition border border-gray-700/80 active:scale-95">₹1K</button>
+                        </div>
+                    </div>
+
+                    <!-- AUTO PILOT & AUTO CASHOUT PANEL (4 Cols) -->
+                    <div class="lg:col-span-4 bg-[#080b12] border border-gray-800/90 rounded-2xl p-3.5 flex flex-col justify-between shadow-inner">
+                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-800">
+                            <span class="text-[11px] font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-robot text-amber-400"></i> Auto-Bet Next Round
+                            </span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="auto-bet-toggle" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Auto Cash Out</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="auto-cash-toggle" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <input type="number" id="auto-cash-mult" value="2.00" min="1.10" max="100" step="0.10" class="w-full bg-black/80 border border-gray-700 rounded-xl py-1.5 px-3 text-center text-base font-black font-mono text-amber-400 focus:border-amber-500 outline-none transition">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">x</span>
+                            </div>
+                            <span id="auto-status-desc" class="text-[10px] font-mono font-bold text-gray-400 bg-black/50 px-2.5 py-2 rounded-xl border border-gray-800 shrink-0">OFF</span>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTON: BET / CASHOUT (3 Cols) -->
+                    <div class="lg:col-span-3 flex flex-col justify-center">
+                        <button type="button" id="btn-action" onclick="handleAction()" class="w-full h-full min-h-[76px] py-3.5 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] active:scale-95 flex flex-col items-center justify-center">
+                            <span id="action-title">PLACE BET</span>
+                            <span id="action-sub" class="text-[10px] font-extrabold tracking-widest uppercase opacity-80 mt-0.5">READY FOR LAUNCH</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <!-- SOUND & CANVAS ENGINE SCRIPT -->
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-amber-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
+
     <script>
-        // ----------------------------------------------------
-        // 1. WEB AUDIO API SYNTHESIZER (No assets needed)
-        // ----------------------------------------------------
+        // =====================================================
+        // 1. FIXED NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'JetX Desk' : 'Flight Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO API SYNTHESIZER
+        // =====================================================
         let audioCtx = null;
         let isAudioMuted = false;
 
@@ -214,12 +344,12 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        function playTone(freq, type, duration, gainVal = 0.1) {
-            if (isAudioMuted) return;
+        function playTone(freq, type, duration, gainVal = 0.08) {
+            if (isAudioMuted || !audioCtx) return;
             try {
-                initAudio();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = type;
@@ -230,67 +360,88 @@
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
+            } catch (e) {}
         }
 
-        function soundBeep() { playTone(800, 'sine', 0.08, 0.05); }
-        function soundLaunch() { playTone(300, 'sawtooth', 0.6, 0.15); }
+        function soundBeep() { playTone(820, 'sine', 0.06, 0.05); }
+        function soundCountdownTick() { playTone(640, 'square', 0.04, 0.04); }
+        function soundLaunch() {
+            playTone(220, 'sawtooth', 0.45, 0.08);
+            setTimeout(() => playTone(340, 'sine', 0.4, 0.08), 120);
+        }
         function soundCashout() {
-            playTone(523.25, 'triangle', 0.15, 0.2);
-            setTimeout(() => playTone(659.25, 'triangle', 0.2, 0.25), 100);
-            setTimeout(() => playTone(783.99, 'triangle', 0.35, 0.3), 200);
+            playTone(523.25, 'triangle', 0.14, 0.16);
+            setTimeout(() => playTone(659.25, 'triangle', 0.16, 0.18), 100);
+            setTimeout(() => playTone(783.99, 'triangle', 0.35, 0.2), 200);
         }
         function soundExplode() {
-            playTone(80, 'square', 0.7, 0.3);
-            playTone(40, 'sawtooth', 0.9, 0.4);
+            playTone(90, 'square', 0.45, 0.18);
+            setTimeout(() => playTone(55, 'sawtooth', 0.55, 0.2), 100);
         }
 
-        function toggleAudio() {
+        function toggleAudio(e) {
+            if (e) e.stopPropagation();
+            initAudio();
             isAudioMuted = !isAudioMuted;
-            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-amber-400"></i>';
             document.getElementById('btn-audio').innerHTML = icon;
             document.getElementById('btn-audio-mobile').innerHTML = icon;
         }
 
-        // ----------------------------------------------------
-        // 2. STATE MANAGEMENT & SYNCHRONIZATION
-        // ----------------------------------------------------
-        let gameState = "WAITING"; // WAITING, FLYING, CRASHED
+        // =====================================================
+        // 3. STATE & TIMING SYNCHRONIZATION ENGINE
+        // =====================================================
+        const WAITING_DURATION = 5.0; // Matches 5.0s in app.py
+        const CRASHED_DURATION = 3.0; // Matches 3.0s in app.py
+
+        let gameState = "WAITING";
+        let lastState = null;
+        let stateEnteredAt = performance.now();
         let currentMultiplier = 1.00;
-        let crashPoint = 0.00;
+        let displayMultiplier = 1.00;
+        let crashPoint = 1.00;
         let hasBet = false;
         let hasCashedOut = false;
-        let localBalance = parseFloat(document.getElementById('bal').innerText);
+        let betInProgress = false;
+        let cashoutInProgress = false;
+        let lastTickSecond = -1;
 
-        // Auto Cashout Listeners
         const autoCashToggle = document.getElementById('auto-cash-toggle');
         const autoCashMultInput = document.getElementById('auto-cash-mult');
         const autoStatusDesc = document.getElementById('auto-status-desc');
 
-        autoCashToggle.addEventListener('change', () => {
-            autoStatusDesc.innerText = autoCashToggle.checked ? `@ ${parseFloat(autoCashMultInput.value).toFixed(2)}x` : 'Disabled';
-        });
-        autoCashMultInput.addEventListener('input', () => {
+        function updateAutoBadge() {
             if (autoCashToggle.checked) {
-                autoStatusDesc.innerText = `@ ${parseFloat(autoCashMultInput.value || 2).toFixed(2)}x`;
+                const v = Math.max(1.10, parseFloat(autoCashMultInput.value) || 2.00);
+                autoStatusDesc.innerText = `@ ${v.toFixed(2)}x`;
+                autoStatusDesc.className = "text-[10px] font-mono font-black text-amber-400 bg-amber-500/15 px-2.5 py-2 rounded-xl border border-amber-500/30 shrink-0";
+            } else {
+                autoStatusDesc.innerText = "OFF";
+                autoStatusDesc.className = "text-[10px] font-mono font-bold text-gray-400 bg-black/50 px-2.5 py-2 rounded-xl border border-gray-800 shrink-0";
             }
-        });
+        }
+        autoCashToggle.addEventListener('change', updateAutoBadge);
+        autoCashMultInput.addEventListener('input', updateAutoBadge);
 
         function adjustStake(factor) {
+            initAudio();
+            soundBeep();
+            if (hasBet && gameState === "WAITING") return;
             const input = document.getElementById('stake-input');
             let val = parseFloat(input.value) || 50;
             input.value = Math.max(10, Math.round(val * factor));
         }
 
         function setStake(amount) {
-            const input = document.getElementById('stake-input');
-            let val = parseFloat(input.value) || 0;
-            input.value = val + amount;
+            initAudio();
+            soundBeep();
+            if (hasBet && gameState === "WAITING") return;
+            document.getElementById('stake-input').value = amount;
         }
 
-        // ----------------------------------------------------
-        // 3. FLIGHT CANVAS ANIMATION ENGINE
-        // ----------------------------------------------------
+        // =====================================================
+        // 4. 60FPS CANVAS & TIMER ANIMATION ENGINE
+        // =====================================================
         const canvas = document.getElementById('jetx-canvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = canvas.parentElement.clientWidth;
@@ -301,71 +452,66 @@
             height = canvas.height = canvas.parentElement.clientHeight;
         });
 
-        // Stars Background
-        const stars = [];
-        for (let i = 0; i < 80; i++) {
-            stars.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                speed: 0.5 + Math.random() * 2,
-                size: 0.8 + Math.random() * 1.8
-            });
-        }
+        const stars = Array.from({ length: 70 }, () => ({
+            x: Math.random() * 1200,
+            y: Math.random() * 600,
+            speed: 0.6 + Math.random() * 2.2,
+            size: 0.8 + Math.random() * 1.8
+        }));
 
-        // Smoke / Exhaust Particles
         const particles = [];
         const explosionParticles = [];
+        let jetPos = { x: 70, y: 200, angle: -0.2 };
 
-        let jetPos = { x: 80, y: height - 100, angle: -0.3 };
-        let flightProgress = 0; // 0 to 1
-
-        function drawJet(x, y, angle) {
+        function drawJet(x, y, angle, isFlying) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
 
-            // Exhaust Flames
-            if (gameState === "FLYING") {
-                const flameLen = 25 + Math.random() * 20;
+            // Supersonic Afterburner Plume
+            if (isFlying) {
+                const flameLen = 28 + Math.random() * 22;
+                const grad = ctx.createLinearGradient(-28, 0, -28 - flameLen, 0);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.4, '#f59e0b');
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.moveTo(-30, -3);
-                ctx.lineTo(-30 - flameLen, 0);
-                ctx.lineTo(-30, 3);
-                ctx.fillStyle = Math.random() > 0.5 ? '#f59e0b' : '#38bdf8';
-                ctx.shadowColor = '#f59e0b';
-                ctx.shadowBlur = 15;
+                ctx.moveTo(-26, -4);
+                ctx.lineTo(-26 - flameLen, 0);
+                ctx.lineTo(-26, 4);
+                ctx.closePath();
                 ctx.fill();
             }
 
-            // Supersonic Fighter Jet Body (Vector Path)
-            ctx.shadowBlur = 10;
+            // Fighter Jet Fuselage
+            ctx.shadowBlur = 14;
             ctx.shadowColor = '#f59e0b';
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#f8fafc';
 
-            // Main Fuselage
             ctx.beginPath();
-            ctx.moveTo(32, 0);       // Nose
-            ctx.lineTo(-20, -10);   // Top wing joint
-            ctx.lineTo(-12, -22);   // Top wing tip
-            ctx.lineTo(-18, -4);    // Wing back
-            ctx.lineTo(-28, -8);    // Top tail
-            ctx.lineTo(-24, 0);     // Engine center
-            ctx.lineTo(-28, 8);     // Bottom tail
-            ctx.lineTo(-18, 4);     // Wing back
-            ctx.lineTo(-12, 22);    // Bottom wing tip
-            ctx.lineTo(-20, 10);    // Bottom wing joint
+            ctx.moveTo(32, 0);
+            ctx.lineTo(-18, -9);
+            ctx.lineTo(-10, -21);
+            ctx.lineTo(-18, -4);
+            ctx.lineTo(-28, -8);
+            ctx.lineTo(-24, 0);
+            ctx.lineTo(-28, 8);
+            ctx.lineTo(-18, 4);
+            ctx.lineTo(-10, 21);
+            ctx.lineTo(-18, 9);
             ctx.closePath();
             ctx.fill();
 
-            // Cockpit Glass
+            // Golden Cockpit Canopy
+            ctx.fillStyle = '#f59e0b';
             ctx.beginPath();
-            ctx.moveTo(15, -3);
+            ctx.moveTo(16, -3);
             ctx.lineTo(0, -4);
             ctx.lineTo(-4, 0);
             ctx.lineTo(0, 4);
-            ctx.lineTo(15, 3);
+            ctx.lineTo(16, 3);
             ctx.closePath();
-            ctx.fillStyle = '#f59e0b';
             ctx.fill();
 
             ctx.restore();
@@ -373,9 +519,9 @@
 
         function createExplosion(x, y) {
             explosionParticles.length = 0;
-            for (let i = 0; i < 60; i++) {
+            for (let i = 0; i < 55; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 2 + Math.random() * 8;
+                const speed = 2 + Math.random() * 7;
                 explosionParticles.push({
                     x: x,
                     y: y,
@@ -389,99 +535,141 @@
             }
         }
 
-        function renderCanvas() {
+        function renderCanvas(now) {
             ctx.clearRect(0, 0, width, height);
+            const stateElapsed = Math.max(0, (now - stateEnteredAt) / 1000);
 
-            // 1. Draw Space Stars with parallax
+            // 1. Subtle Radar Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let gx = 40; gx < width; gx += 60) {
+                ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, height); ctx.stroke();
+            }
+            for (let gy = height - 40; gy > 0; gy -= 60) {
+                ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(width, gy); ctx.stroke();
+            }
+
+            // 2. Parallax Starfield
             ctx.fillStyle = '#ffffff';
             stars.forEach(s => {
-                ctx.globalAlpha = 0.3 + (s.speed / 2.5) * 0.7;
+                ctx.globalAlpha = 0.25 + (s.speed / 3) * 0.65;
                 ctx.beginPath();
-                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.arc(s.x % width, s.y % height, s.size, 0, Math.PI * 2);
                 ctx.fill();
 
                 if (gameState === "FLYING") {
-                    s.x -= s.speed * 2.5;
-                    s.y += s.speed * 1.5;
+                    s.x -= s.speed * 2.8;
+                    s.y += s.speed * 1.4;
                     if (s.x < 0) s.x = width;
                     if (s.y > height) s.y = 0;
                 }
             });
             ctx.globalAlpha = 1.0;
 
-            // 2. Flight Trajectory Curve
-            if (gameState === "FLYING") {
-                ctx.beginPath();
-                ctx.moveTo(50, height - 60);
-                ctx.quadraticCurveTo(width * 0.35, height - 60, jetPos.x - 10, jetPos.y + 5);
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([6, 6]);
-                ctx.stroke();
-                ctx.setLineDash([]);
+            // 3. State-Specific Rendering & Live Timers
+            if (gameState === "WAITING") {
+                // Smooth 5.0s Countdown Bar & Digital Timer
+                const remaining = Math.max(0, WAITING_DURATION - stateElapsed);
+                const pct = Math.max(0, Math.min(100, ((WAITING_DURATION - remaining) / WAITING_DURATION) * 100));
+                document.getElementById('waiting-progress').style.width = `${pct}%`;
+                document.getElementById('waiting-timer-num').innerText = `${remaining.toFixed(1)}s`;
 
-                // Spawn Smoke Particles
-                if (Math.random() > 0.3) {
+                const ceilSec = Math.ceil(remaining);
+                if (ceilSec <= 3 && ceilSec > 0 && ceilSec !== lastTickSecond) {
+                    lastTickSecond = ceilSec;
+                    soundCountdownTick();
+                }
+
+                // Draw Runway & Idle Jet
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(20, height - 36);
+                ctx.lineTo(width * 0.45, height - 36);
+                ctx.stroke();
+
+                jetPos = { x: 65, y: height - 52, angle: -0.12 };
+                drawJet(jetPos.x, jetPos.y, jetPos.angle, false);
+
+            } else if (gameState === "FLYING") {
+                // Smoothly interpolate multiplier between 120ms server polls
+                displayMultiplier += (currentMultiplier - displayMultiplier) * 0.25;
+                document.getElementById('multiplier-text').innerText = displayMultiplier.toFixed(2) + "x";
+
+                const startX = 45;
+                const startY = height - 45;
+                const targetX = Math.min(width * 0.80, startX + (displayMultiplier - 1) * (width * 0.085));
+                const targetY = Math.max(height * 0.20, startY - (displayMultiplier - 1) * (height * 0.065));
+
+                jetPos.x += (targetX - jetPos.x) * 0.12;
+                jetPos.y += (targetY - jetPos.y) * 0.12;
+                jetPos.angle = -0.32 + Math.sin(now * 0.005) * 0.03;
+
+                // Glowing Shaded Area Under Trajectory
+                const areaGrad = ctx.createLinearGradient(0, jetPos.y, 0, startY);
+                areaGrad.addColorStop(0, 'rgba(245, 158, 11, 0.32)');
+                areaGrad.addColorStop(1, 'rgba(245, 158, 11, 0.01)');
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(startX + (jetPos.x - startX) * 0.55, startY, jetPos.x, jetPos.y);
+                ctx.lineTo(jetPos.x, startY);
+                ctx.closePath();
+                ctx.fillStyle = areaGrad;
+                ctx.fill();
+
+                // Trajectory Curve Line
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(startX + (jetPos.x - startX) * 0.55, startY, jetPos.x, jetPos.y);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Spawn Contrail Particles
+                if (Math.random() > 0.35) {
                     particles.push({
-                        x: jetPos.x - 20,
+                        x: jetPos.x - 22,
                         y: jetPos.y + (Math.random() * 6 - 3),
-                        vx: -1.5 - Math.random() * 2,
-                        vy: 0.5 + Math.random() * 1.5,
-                        radius: 3 + Math.random() * 4,
-                        life: 0.8
+                        vx: -1.8 - Math.random() * 2,
+                        vy: 0.4 + Math.random() * 1.2,
+                        radius: 2.5 + Math.random() * 3.5,
+                        life: 0.85
                     });
                 }
-            }
 
-            // 3. Smoke Particles Render
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.025;
-                p.radius += 0.3;
-
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(245, 158, 11, ${p.life * 0.25})`;
-                    ctx.fill();
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.025;
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(245, 158, 11, ${p.life * 0.3})`;
+                        ctx.fill();
+                    }
                 }
-            }
 
-            // 4. Render Jet or Explosion
-            if (gameState === "FLYING") {
-                // Target flight position calculates based on current multiplier
-                const targetX = Math.min(width * 0.78, 80 + (currentMultiplier - 1) * (width * 0.08));
-                const targetY = Math.max(height * 0.22, (height - 90) - (currentMultiplier - 1) * (height * 0.06));
+                drawJet(jetPos.x, jetPos.y, jetPos.angle, true);
 
-                jetPos.x += (targetX - jetPos.x) * 0.08;
-                jetPos.y += (targetY - jetPos.y) * 0.08;
-                jetPos.angle = -0.32 + Math.sin(Date.now() * 0.004) * 0.03; // Gentle wobble
+                document.getElementById('hud-altitude').innerText = `ALT: ${Math.round((displayMultiplier - 1) * 1250)} m`;
+                document.getElementById('hud-speed').innerText = `SPD: MACH ${(displayMultiplier * 1.4).toFixed(1)}`;
 
-                drawJet(jetPos.x, jetPos.y, jetPos.angle);
-
-                // Update Telemetry
-                document.getElementById('hud-altitude').innerText = `ALT: ${Math.round((currentMultiplier - 1) * 1250)} m`;
-                document.getElementById('hud-speed').innerText = `SPD: MACH ${(currentMultiplier * 1.4).toFixed(1)}`;
-            } else if (gameState === "WAITING") {
-                // Reset Jet on Runway
-                jetPos = { x: 70, y: height - 80, angle: -0.15 };
-                drawJet(jetPos.x, jetPos.y, jetPos.angle);
-
-                // Telemetry Reset
-                document.getElementById('hud-altitude').innerText = `ALT: 0 m`;
-                document.getElementById('hud-speed').innerText = `SPD: MACH 0.0`;
             } else if (gameState === "CRASHED") {
-                // Render explosion particles
+                // Smooth 3.0s Cooldown Bar until WAITING state begins
+                const remCrash = Math.max(0, CRASHED_DURATION - stateElapsed);
+                const crashPct = Math.max(0, Math.min(100, (remCrash / CRASHED_DURATION) * 100));
+                document.getElementById('crashed-cooldown-bar').style.width = `${crashPct}%`;
+                document.getElementById('crashed-sub-timer').innerText = `NEXT FLIGHT PREP IN ${remCrash.toFixed(1)}s`;
+
                 for (let i = explosionParticles.length - 1; i >= 0; i--) {
                     const ep = explosionParticles[i];
                     ep.x += ep.vx;
                     ep.y += ep.vy;
                     ep.life -= ep.decay;
-
                     if (ep.life <= 0) {
                         explosionParticles.splice(i, 1);
                     } else {
@@ -499,139 +687,166 @@
         }
         requestAnimationFrame(renderCanvas);
 
-        // ----------------------------------------------------
-        // 4. BACKEND POLLING & LIVE UI DISPATCHER
-        // ----------------------------------------------------
-        let lastState = null;
+        // =====================================================
+        // 5. BACKEND SYNC LOOP & STATE DISPATCHER
+        // =====================================================
+        function setOverlayVisibility(activeId) {
+            ['display-waiting', 'display-flying', 'display-crashed'].forEach(id => {
+                const el = document.getElementById(id);
+                if (id === activeId) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+        }
 
-        setInterval(async () => {
+        async function syncJetX() {
             try {
                 const res = await fetch('/jetx/sync');
                 const data = await res.json();
 
                 gameState = data.state;
-                currentMultiplier = data.multiplier || 1.00;
+                currentMultiplier = parseFloat(data.multiplier) || 1.00;
                 document.getElementById('match-number').innerText = `#${data.match_number}`;
 
-                // UI Display Blocks
-                const dWaiting = document.getElementById('display-waiting');
-                const dFlying = document.getElementById('display-flying');
-                const dCrashed = document.getElementById('display-crashed');
-                const multText = document.getElementById('multiplier-text');
                 const btnAction = document.getElementById('btn-action');
                 const actionTitle = document.getElementById('action-title');
                 const actionSub = document.getElementById('action-sub');
+                const hudDot = document.getElementById('hud-dot');
+                const hudStatus = document.getElementById('hud-status-text');
 
-                // State Transitions
-                if (gameState === "WAITING") {
-                    dWaiting.classList.remove('hidden');
-                    dFlying.classList.add('hidden');
-                    dCrashed.classList.add('hidden');
+                // Detect State Transitions
+                if (gameState !== lastState) {
+                    stateEnteredAt = performance.now();
+                    lastTickSecond = -1;
 
-                    if (lastState !== "WAITING") {
-                        soundBeep();
+                    if (gameState === "WAITING") {
+                        setOverlayVisibility('display-waiting');
+                        displayMultiplier = 1.00;
+                        hasCashedOut = false;
+                        particles.length = 0;
+                        hudDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                        hudStatus.innerText = "PRE-FLIGHT";
+                        document.getElementById('hud-altitude').innerText = "ALT: 0 m";
+                        document.getElementById('hud-speed').innerText = "SPD: MACH 0.0";
+
+                        // Trigger Auto-Bet if enabled
+                        if (document.getElementById('auto-bet-toggle').checked && !hasBet) {
+                            setTimeout(() => {
+                                if (gameState === "WAITING" && !hasBet) handleAction();
+                            }, 350);
+                        }
+                    } else if (gameState === "FLYING") {
+                        setOverlayVisibility('display-flying');
+                        displayMultiplier = currentMultiplier;
+                        soundLaunch();
+                        hudDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
+                        hudStatus.innerText = "IN FLIGHT";
+                    } else if (gameState === "CRASHED") {
+                        setOverlayVisibility('display-crashed');
+                        crashPoint = parseFloat(data.crash_point) || currentMultiplier;
+                        document.getElementById('crashed-mult').innerText = `@ ${crashPoint.toFixed(2)}x`;
+                        hudDot.className = "w-2 h-2 rounded-full bg-red-500";
+                        hudStatus.innerText = "SIGNAL LOST";
+
+                        if (lastState === "FLYING") {
+                            soundExplode();
+                            createExplosion(jetPos.x, jetPos.y);
+                            appendHistory(crashPoint);
+                            const vp = document.getElementById('flight-viewport');
+                            vp.classList.remove('shake-crash');
+                            void vp.offsetWidth;
+                            vp.classList.add('shake-crash');
+                        }
+                        hasBet = false;
                         hasCashedOut = false;
                     }
+                    lastState = gameState;
+                }
 
+                // Update Action Button & Auto-Cashout per Poll
+                if (gameState === "WAITING") {
                     if (!hasBet) {
-                        btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] active:scale-95 flex flex-col items-center justify-center";
+                        btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(245,158,11,0.4)] active:scale-95 flex flex-col items-center justify-center";
                         actionTitle.innerText = "PLACE BET";
-                        actionSub.innerText = "STANDBY FOR LAUNCH";
+                        actionSub.innerText = "READY FOR LAUNCH";
                     } else {
-                        btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-red-600/30 text-red-400 border border-red-500/40 font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider transition-all flex flex-col items-center justify-center";
-                        actionTitle.innerText = "BET QUEUED";
-                        actionSub.innerText = "WAITING FOR TAKEOFF...";
+                        const s = parseFloat(document.getElementById('stake-input').value) || 0;
+                        btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 font-black text-lg md:text-xl rounded-2xl uppercase tracking-wider flex flex-col items-center justify-center cursor-default";
+                        actionTitle.innerText = "BET LOCKED";
+                        actionSub.innerText = `₹${s.toFixed(2)} QUEUED FOR LAUNCH`;
                     }
-
                 } else if (gameState === "FLYING") {
-                    dWaiting.classList.add('hidden');
-                    dFlying.classList.remove('hidden');
-                    dCrashed.classList.add('hidden');
-
-                    multText.innerText = currentMultiplier.toFixed(2) + "x";
-
-                    if (lastState === "WAITING") {
-                        soundLaunch();
-                    }
-
-                    // Auto Cashout Check
-                    if (hasBet && !hasCashedOut && autoCashToggle.checked) {
+                    if (hasBet && !hasCashedOut && autoCashToggle.checked && !cashoutInProgress) {
                         const target = parseFloat(autoCashMultInput.value) || 2.0;
                         if (currentMultiplier >= target) {
-                            handleAction(); // Trigger instant cashout
+                            handleAction();
                         }
                     }
 
                     if (hasBet && !hasCashedOut) {
                         const stake = parseFloat(document.getElementById('stake-input').value) || 0;
                         const potentialWin = (stake * currentMultiplier).toFixed(2);
-                        
-                        btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gradient-to-r from-green-500 to-emerald-400 text-black font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_30px_rgba(16,185,129,0.6)] active:scale-95 flex flex-col items-center justify-center animate-pulse";
-                        actionTitle.innerText = `CASH OUT`;
+                        btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-green-400 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_30px_rgba(16,185,129,0.6)] active:scale-95 flex flex-col items-center justify-center";
+                        actionTitle.innerText = "CASH OUT";
                         actionSub.innerText = `TAKE ₹${potentialWin}`;
                     } else if (hasCashedOut) {
-                        btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gray-800 text-gray-400 font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider cursor-not-allowed flex flex-col items-center justify-center";
+                        btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-black text-lg md:text-xl rounded-2xl uppercase tracking-wider cursor-default flex flex-col items-center justify-center";
                         actionTitle.innerText = "CASHED OUT";
                         actionSub.innerText = "WAITING FOR NEXT FLIGHT";
                     } else {
-                        btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gray-800 text-gray-500 font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider cursor-not-allowed flex flex-col items-center justify-center";
-                        actionTitle.innerText = "FLYING";
-                        actionSub.innerText = "BET CLOSED FOR THIS ROUND";
+                        btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-gray-800/80 text-gray-500 border border-gray-700/80 font-black text-lg md:text-xl rounded-2xl uppercase tracking-wider cursor-not-allowed flex flex-col items-center justify-center";
+                        actionTitle.innerText = "IN FLIGHT";
+                        actionSub.innerText = "WAIT FOR NEXT ROUND";
                     }
-
                 } else if (gameState === "CRASHED") {
-                    dWaiting.classList.add('hidden');
-                    dFlying.classList.add('hidden');
-                    dCrashed.classList.remove('hidden');
-
-                    crashPoint = data.crash_point || currentMultiplier;
-                    document.getElementById('crashed-mult').innerText = `@ ${crashPoint.toFixed(2)}x`;
-
-                    if (lastState === "FLYING") {
-                        soundExplode();
-                        createExplosion(jetPos.x, jetPos.y);
-                        appendHistory(crashPoint);
-                    }
-
-                    hasBet = false;
-                    hasCashedOut = false;
-
-                    btnAction.className = "w-full h-full min-h-[70px] md:min-h-[90px] py-4 bg-gray-900 text-red-500 border border-red-900/50 font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-wider cursor-not-allowed flex flex-col items-center justify-center";
-                    actionTitle.innerText = "FLEW AWAY";
-                    actionSub.innerText = "NEXT ROUND IN 3s...";
+                    btnAction.className = "w-full h-full min-h-[76px] py-3.5 px-4 bg-[#1a1114] text-red-400 border border-red-900/50 font-black text-lg md:text-xl rounded-2xl uppercase tracking-wider cursor-not-allowed flex flex-col items-center justify-center";
+                    actionTitle.innerText = "JET CRASHED";
+                    actionSub.innerText = "REARMING NEXT FLIGHT...";
                 }
+            } catch (e) {}
+        }
 
-                lastState = gameState;
-            } catch(e) {}
-        }, 120);
+        setInterval(syncJetX, 150);
+        syncJetX();
 
-        // ----------------------------------------------------
-        // 5. USER ACTIONS (BET & CASHOUT)
-        // ----------------------------------------------------
+        // =====================================================
+        // 6. USER BET & CASHOUT ACTIONS
+        // =====================================================
         async function handleAction() {
-            if (gameState === "WAITING" && !hasBet) {
-                // Place Bet
+            initAudio();
+            if (gameState === "WAITING" && !hasBet && !betInProgress) {
                 const stake = parseFloat(document.getElementById('stake-input').value);
-                if (isNaN(stake) || stake < 10) { alert('Minimum bet is ₹10'); return; }
-                
+                if (isNaN(stake) || stake < 10) {
+                    showToast('Minimum bet is ₹10', 'error');
+                    return;
+                }
+                betInProgress = true;
                 try {
                     const res = await fetch('/jetx/bet', {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({stake})
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stake })
                     });
                     const d = await res.json();
                     if (d.success) {
                         hasBet = true;
                         document.getElementById('bal').innerText = d.new_total.toFixed(2);
                         soundBeep();
+                        showToast(`₹${stake.toFixed(2)} locked for takeoff!`, 'success');
                     } else {
-                        alert(d.error);
+                        showToast(d.error || 'Insufficient balance or round closed', 'error');
                     }
-                } catch(e) { alert("Network Error"); }
-
-            } else if (gameState === "FLYING" && hasBet && !hasCashedOut) {
-                // Cash Out
+                } catch (e) {
+                    showToast('Network Error', 'error');
+                } finally {
+                    betInProgress = false;
+                }
+            } else if (gameState === "FLYING" && hasBet && !hasCashedOut && !cashoutInProgress) {
+                cashoutInProgress = true;
                 try {
                     const res = await fetch('/jetx/cashout', { method: 'POST' });
                     const d = await res.json();
@@ -639,34 +854,55 @@
                         hasCashedOut = true;
                         document.getElementById('bal').innerText = d.new_total.toFixed(2);
                         soundCashout();
-                        showFloatingWin(d.winnings);
+                        spawnConfetti();
+                        showToast(`Cashed out! Won ₹${d.winnings.toFixed(2)}`, 'success');
+                    } else {
+                        showToast('Too late! Jet already exploded.', 'error');
                     }
-                } catch(e) {}
+                } catch (e) {
+                    showToast('Network Error', 'error');
+                } finally {
+                    cashoutInProgress = false;
+                }
             }
         }
 
         function appendHistory(multiplier) {
             const bar = document.getElementById('history-bar');
             const pill = document.createElement('span');
-            let color = "bg-blue-900/30 text-blue-400 border-blue-800/40";
-            if (multiplier >= 10.0) color = "bg-amber-900/40 text-amber-400 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.4)]";
-            else if (multiplier >= 2.0) color = "bg-purple-900/40 text-purple-400 border-purple-800/40";
+            let color = "bg-blue-950/80 text-blue-400 border-blue-500/30";
+            if (multiplier >= 10.0) color = "bg-amber-950/90 text-amber-400 border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.4)]";
+            else if (multiplier >= 2.0) color = "bg-purple-950/80 text-purple-300 border-purple-500/40";
 
-            pill.className = `px-2 py-0.5 rounded text-[11px] font-mono font-black border ${color} shrink-0 anim-pulse-glow`;
+            pill.className = `px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black border ${color} shrink-0`;
             pill.innerText = multiplier.toFixed(2) + "x";
 
             bar.insertBefore(pill, bar.children[1]);
-            if (bar.children.length > 20) {
+            while (bar.children.length > 18) {
                 bar.removeChild(bar.lastChild);
             }
         }
 
-        function showFloatingWin(amount) {
-            const notif = document.createElement('div');
-            notif.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-green-500 text-black px-6 py-2.5 rounded-2xl font-black text-xl z-50 shadow-[0_0_30px_rgba(16,185,129,0.8)] border border-white/20 animate-bounce";
-            notif.innerHTML = `<i class="fa-solid fa-trophy mr-1.5"></i> WON ₹${amount.toFixed(2)}`;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 2500);
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#f59e0b', '#10b981', '#fbbf24', '#38bdf8', '#a855f7'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '40%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
         }
     </script>
 </body>
