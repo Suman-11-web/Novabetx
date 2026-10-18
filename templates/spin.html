@@ -6,29 +6,55 @@
     <title>Daily Spin - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',brand:'#1CDA3A'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06090e',
+                        surface: '#0f141d',
+                        surfaceLight: '#171f2e',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
+        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
         .radial-bg { background: radial-gradient(circle at 50% 40%, #1e1b4b 0%, #06090e 100%); }
         .wheel-container { width: 300px; height: 300px; margin: 0 auto; border-radius: 50%; position: relative; border: 12px solid #1a222d; box-shadow: 0 0 40px rgba(28,218,58,0.2), inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
-        @media (min-width: 1024px) { .wheel-container { width: 500px; height: 500px; border-width: 20px; } }
-        .wheel { width: 100%; height: 100%; border-radius: 50%; position: relative; transition: transform 5s cubic-bezier(0.2, 0.8, 0.1, 1); background: conic-gradient( #ef4444 0deg 60deg, #22c55e 60deg 120deg, #3b82f6 120deg 180deg, #a855f7 180deg 240deg, #f97316 240deg 300deg, #eab308 300deg 360deg ); }
+        @media (min-width: 1024px) { .wheel-container { width: 460px; height: 460px; border-width: 18px; } }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; position: relative; transition: transform 5s cubic-bezier(0.15, 0.85, 0.1, 1); background: conic-gradient( #ef4444 0deg 60deg, #22c55e 60deg 120deg, #3b82f6 120deg 180deg, #a855f7 180deg 240deg, #f97316 240deg 300deg, #eab308 300deg 360deg ); }
         .segment { position: absolute; top: 0; left: 50%; width: 100px; height: 50%; margin-left: -50px; transform-origin: bottom center; display: flex; justify-content: center; padding-top: 15px; font-weight: 900; font-size: 1.5rem; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
-        @media (min-width: 1024px) { .segment { font-size: 2.5rem; padding-top: 35px; width: 160px; margin-left: -80px; } }
+        @media (min-width: 1024px) { .segment { font-size: 2.2rem; padding-top: 30px; width: 140px; margin-left: -70px; } }
         .seg-1 { transform: rotate(30deg); } .seg-2 { transform: rotate(90deg); } .seg-3 { transform: rotate(150deg); } .seg-4 { transform: rotate(210deg); } .seg-5 { transform: rotate(270deg); } .seg-6 { transform: rotate(330deg); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #fff; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); z-index: 10; }
-        @media (min-width: 1024px) { .pointer { border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 60px solid #fff; top: -25px; } }
+        @media (min-width: 1024px) { .pointer { border-left: 26px solid transparent; border-right: 26px solid transparent; border-top: 52px solid #fff; top: -22px; } }
         .center-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 5; }
-        @media (min-width: 1024px) { .center-dot { width: 70px; height: 70px; } }
-        .glass-panel { background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        @media (min-width: 1024px) { .center-dot { width: 60px; height: 60px; } }
+        .glass-panel { background: rgba(15, 20, 30, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 35px rgba(0,0,0,0.6); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        /* 🌟 FLOATING GLASS BOTTOM NAVIGATION BAR */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-16 md:pb-0" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-28 md:pb-0" onclick="initAudio()">
 
-    <div id="toast-container"></div>
+    <!-- FIXED NON-SHIFTING TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI OVERLAY -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[110] overflow-hidden"></div>
 
     <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0 z-50">
         <div class="p-6 border-b border-gray-800">
@@ -79,10 +105,20 @@
                 
                 <div class="relative shrink-0">
                     <div class="pointer"></div>
-                    <div class="wheel-container"><div class="center-dot"></div><div id="the-wheel" class="wheel"><div class="segment seg-1">₹0</div><div class="segment seg-2">₹5</div><div class="segment seg-3">₹10</div><div class="segment seg-4">₹50</div><div class="segment seg-5">₹0</div><div class="segment seg-6">₹500</div></div></div>
+                    <div class="wheel-container">
+                        <div class="center-dot"></div>
+                        <div id="the-wheel" class="wheel">
+                            <div class="segment seg-1">₹0</div>
+                            <div class="segment seg-2">₹5</div>
+                            <div class="segment seg-3">₹10</div>
+                            <div class="segment seg-4">₹50</div>
+                            <div class="segment seg-5">₹0</div>
+                            <div class="segment seg-6">₹500</div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="w-full lg:w-[450px] glass-panel p-6 lg:p-10 rounded-3xl text-center shadow-2xl shrink-0">
+                <div class="w-full lg:w-[450px] glass-panel p-6 lg:p-10 rounded-3xl text-center shadow-2xl shrink-0" id="spin-control-box">
                     {% if can_spin %}
                         <p class="text-gray-400 text-sm lg:text-lg font-bold mb-6 lg:mb-10">You have <span class="text-brand">1 Free Spin</span> available today!</p>
                         <button id="spin-btn" onclick="startSpin()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-2xl lg:text-4xl py-5 lg:py-6 rounded-2xl shadow-[0_0_20px_rgba(28,218,58,0.5)] active:scale-95 transition-transform uppercase tracking-wider hover:from-green-400 hover:to-green-500">
@@ -100,42 +136,96 @@
 
     </main>
 
-    <nav class="md:hidden fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] pb-safe">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    <!-- 🌟 UPGRADED FLOATING GLASS BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Casino</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
     </nav>
 
     <script>
+        // ==========================================
+        // 1. NON-SHIFTING TOAST SYSTEM
+        // ==========================================
         function showToast(message, type = 'success') {
             let container = document.getElementById('toast-container');
-            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
-            const toast = document.createElement('div'); const isSuccess = type === 'success';
-            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Bonus Unlocked' : 'Notice'}</h4>
+                    <p class="text-gray-200 text-xs truncate mt-0.5">${message}</p>
+                </div>
+            `;
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
+        // ==========================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // ==========================================
         let audioCtx;
-        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
         const Sound = {
-            play: (f, t, dur, v=0.1) => {
+            play: (f, t, dur, v=0.08) => {
                 if(!audioCtx) return;
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+                try {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+                } catch(e) {}
             },
-            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
-            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); }
+            tick: () => Sound.play(850, 'sine', 0.04, 0.04),
+            win: () => {
+                setTimeout(()=>Sound.play(523.25,'triangle',0.12,0.15),0);
+                setTimeout(()=>Sound.play(659.25,'triangle',0.12,0.15),110);
+                setTimeout(()=>Sound.play(783.99,'triangle',0.15,0.15),220);
+                setTimeout(()=>Sound.play(1046.50,'triangle',0.45,0.2),340);
+            },
+            lose: () => {
+                setTimeout(()=>Sound.play(220,'sawtooth',0.25,0.08),0);
+                setTimeout(()=>Sound.play(160,'sawtooth',0.4,0.1),240);
+            }
         };
 
+        // ==========================================
+        // 3. WIN CELEBRATION & CONFETTI
+        // ==========================================
         function triggerWinAnimation(winnings, newTotal) {
             Sound.win();
+            spawnConfetti();
             const balWrappers = document.querySelectorAll('.balance-wrapper'); 
             const balEls = document.querySelectorAll('.display-balance');
             if(!balEls.length || !balWrappers.length) return;
@@ -143,25 +233,50 @@
             balWrappers.forEach(wrapper => {
                 if(window.getComputedStyle(wrapper).display === 'none') return;
                 const floater = document.createElement('div');
-                floater.className = 'fixed z-[10000] font-black text-brand text-2xl md:text-4xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+                floater.className = 'fixed z-[10000] font-black text-brand text-2xl md:text-3xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
                 floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
                 const rect = wrapper.getBoundingClientRect();
-                floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+                floater.style.left = (rect.left - 30) + 'px'; floater.style.top = rect.top + 'px';
                 floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
                 document.body.appendChild(floater);
                 void floater.offsetWidth; 
-                floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-                wrapper.style.transform = 'scale(1.15)'; wrapper.style.color = '#1CDA3A';
+                floater.style.transform = 'translateY(-45px) scale(1.25)'; floater.style.opacity = '1';
+                wrapper.style.transform = 'scale(1.18)';
                 
                 setTimeout(() => { floater.style.opacity = '0'; }, 1000);
                 setTimeout(() => { 
                     floater.remove(); 
                     balEls.forEach(el => el.innerText = parseFloat(newTotal).toFixed(2)); 
-                    wrapper.style.transform = 'scale(1)'; wrapper.style.color = ''; 
+                    wrapper.style.transform = 'scale(1)'; 
                 }, 1500);
             });
         }
 
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#1CDA3A', '#fbbf24', '#38bdf8', '#a855f7', '#ef4444'];
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 70 + Math.random() * 220;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 600, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1700);
+            }
+        }
+
+        // ==========================================
+        // 4. SPIN LOGIC
+        // ==========================================
         let isSpinning = false;
         
         async function startSpin() {
@@ -186,10 +301,10 @@
                     else if(data.prize === 5) targetDeg = 90;     
                     else { targetDeg = Math.random() > 0.5 ? 30 : 270; }
                     
-                    const finalRotation = (360 - targetDeg) + (360 * 5);
+                    const finalRotation = (360 - targetDeg) + (360 * 6);
                     
-                    let tickInterval = setInterval(() => Sound.tick(), 300);
-                    setTimeout(() => clearInterval(tickInterval), 4000);
+                    let tickInterval = setInterval(() => Sound.tick(), 250);
+                    setTimeout(() => clearInterval(tickInterval), 4800);
                     
                     wheel.style.transform = `rotate(${finalRotation}deg)`;
                     
@@ -201,17 +316,27 @@
                             Sound.lose();
                             showToast('Better luck next time!', 'error');
                         }
-                        setTimeout(() => location.reload(), 3000); 
+                        
+                        // Smoothly transition panel to countdown instead of abrupt reload
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2200);
                     }, 5200);
 
                 } else {
-                    showToast(data.error, 'error');
+                    showToast(data.error || 'Already claimed today!', 'error');
                     btn.innerText = 'SPIN NOW';
                     btn.classList.remove('bg-gray-700', 'text-gray-400');
                     btn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-brand');
                     isSpinning = false;
                 }
-            } catch(e) { showToast('Network Error', 'error'); isSpinning = false; }
+            } catch(e) {
+                showToast('Network Error', 'error');
+                isSpinning = false;
+                btn.innerText = 'SPIN NOW';
+                btn.classList.remove('bg-gray-700', 'text-gray-400');
+                btn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-brand');
+            }
         }
 
         {% if not can_spin %}

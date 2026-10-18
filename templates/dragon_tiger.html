@@ -3,351 +3,670 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dragon Tiger Pro - Novabetx</title>
+    <title>Dragon Tiger Pro Max - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { bgDark: '#0a0505', panelBg: 'rgba(20, 10, 10, 0.7)', dRed: '#e11d48', tBlue: '#3b82f6', brand: '#1CDA3A' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        dRed: '#e11d48',
+                        tBlue: '#3b82f6',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
-        .table-bg { background-color: #120808; background-image: radial-gradient(circle at 50% 0%, #301010 0%, #0a0505 80%); }
-        .card-container { perspective: 1000px; width: 80px; height: 120px; margin: 0 auto; }
-        @media (min-width: 768px) { .card-container { width: 120px; height: 180px; } }
-        .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Arena Table Felt */
+        .table-bg {
+            background: radial-gradient(ellipse at center, #26090f 0%, #0c0507 60%, #05070c 100%);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+        }
+
+        /* 3D Playing Cards */
+        .card-container { perspective: 1000px; width: 90px; height: 130px; margin: 0 auto; }
+        @media (min-width: 768px) { .card-container { width: 125px; height: 180px; } }
+
+        .card {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
         .card.flipped { transform: rotateY(180deg); }
-        .card-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-        .card-back { background: linear-gradient(135deg, #1f2937, #111827); border: 2px solid #374151; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px); }
-        .card-front { background: white; transform: rotateY(180deg); border: 2px solid #fff; flex-direction: column; font-weight: black; }
-        @keyframes glowRed { 0%, 100% { box-shadow: 0 0 10px #e11d48; } 50% { box-shadow: 0 0 30px #e11d48; } }
-        @keyframes glowBlue { 0%, 100% { box-shadow: 0 0 10px #3b82f6; } 50% { box-shadow: 0 0 30px #3b82f6; } }
-        .win-dragon { animation: glowRed 1s infinite; border-color: #e11d48 !important; }
-        .win-tiger { animation: glowBlue 1s infinite; border-color: #3b82f6 !important; }
-        .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3); }
-        .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 8px 0; font-size: 14px; font-weight: bold; transition: all 0.2s; }
-        .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        .card-face {
+            width: 100%; height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 8px; font-weight: 900; font-size: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        @media (min-width: 768px) { .card-face { font-size: 2.25rem; padding: 12px; } }
+
+        .card-back {
+            background: repeating-linear-gradient(45deg, #111827, #111827 10px, #1f2937 10px, #1f2937 20px);
+            border: 2px solid #374151;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+        }
+        .card-red { color: #ef4444; }
+        .card-black { color: #111827; }
+        .card-suit-large { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; opacity: 0.15; }
+
+        @keyframes glowRed { 0%, 100% { box-shadow: 0 0 15px #e11d48, inset 0 0 15px #e11d48; } 50% { box-shadow: 0 0 40px #e11d48, inset 0 0 25px #e11d48; } }
+        @keyframes glowBlue { 0%, 100% { box-shadow: 0 0 15px #3b82f6, inset 0 0 15px #3b82f6; } 50% { box-shadow: 0 0 40px #3b82f6, inset 0 0 25px #3b82f6; } }
+        
+        .win-dragon { animation: glowRed 1s infinite ease-in-out; border-color: #e11d48 !important; }
+        .win-tiger { animation: glowBlue 1s infinite ease-in-out; border-color: #3b82f6 !important; }
+
+        /* Bead Road Circle Badges */
+        .bead-item {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 900; font-family: monospace;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            shrink: 0;
+        }
+        .bead-D { background: #e11d48; color: #fff; border: 1px solid #fda4af; }
+        .bead-T { background: #3b82f6; color: #fff; border: 1px solid #93c5fd; }
+        .bead-Tie { background: #10b981; color: #000; border: 1px solid #6ee7b7; }
+
+        .chip-btn {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            border-radius: 10px;
+            padding: 7px 0;
+            font-size: 12px;
+            font-weight: 800;
+            transition: all 0.15s ease;
+        }
+        .chip-btn:hover { border-color: #e11d48; color: #fff; background: rgba(225, 29, 72, 0.15); }
+        .chip-btn:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-20 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <div id="toast-container"></div>
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <div class="flex justify-between items-start bg-[#0a0505] px-4 py-3 border-b border-gray-800 shadow-md z-40 relative">
-        <div class="flex flex-col gap-1.5 justify-center">
-            <div class="bg-yellow-500/20 text-yellow-500 px-3 py-0.5 rounded text-[10px] font-black tracking-widest border border-yellow-500/30 flex items-center gap-1.5 w-max">
-                <i class="fa-solid fa-dragon"></i> LIVE
+    <!-- CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-dRed">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-rose-500/15 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30">VIP PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-rose-500/10 text-rose-400 font-bold rounded-xl border border-rose-500/20"><i class="fa-solid fa-dragon w-5 text-center"></i> Dragon Tiger</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Sound Effects</span>
+                <button onclick="toggleAudio()" id="sidebar-mute-btn" class="text-rose-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
             </div>
-            <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Current ID:</span>
-                <div class="text-xs font-mono font-black text-brand bg-brand/10 border border-brand/50 px-2 py-0.5 rounded shadow-[0_0_15px_rgba(28,218,58,0.2)] animate-pulse" id="live-match-number">
-                    #000000
-                </div>
-            </div>
         </div>
-        <div class="flex items-center gap-4 h-full pt-1">
-            <div class="text-right">
-                <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-            </div>
-        </div>
-    </div>
+    </aside>
 
-    <div class="relative w-full h-[280px] md:h-[400px] table-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)] shrink-0">
-        <div id="game-status" class="absolute top-6 z-20 bg-black/60 px-6 py-2 rounded-full border border-gray-700 backdrop-blur-md text-center shadow-lg">
-            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div>
-            <div id="timer-text" class="text-2xl font-black text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:15</div>
-        </div>
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative">
 
-        <div id="result-overlay" class="hidden absolute inset-0 z-30 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-            <div id="result-text" class="text-5xl md:text-7xl font-black italic tracking-widest uppercase drop-shadow-[0_0_20px_rgba(0,0,0,1)]">DRAGON WINS</div>
-        </div>
-
-        <div class="flex w-full max-w-md justify-between items-center px-6 mt-8 z-10">
-            <div class="flex flex-col items-center gap-3">
-                <div class="text-dRed font-black tracking-widest text-lg md:text-2xl drop-shadow-[0_0_10px_rgba(225,29,72,0.8)]">DRAGON</div>
-                <div class="card-container">
-                    <div id="card-dragon" class="card">
-                        <div class="card-face card-back flex items-center justify-center"><i class="fa-solid fa-dragon text-3xl text-gray-600"></i></div>
-                        <div class="card-face card-front text-black text-4xl" id="d-val">A♠</div>
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(225,29,72,0.5)]">
+                        <i class="fa-solid fa-dragon"></i> DRAGON TIGER
+                    </div>
+                    <div class="flex items-center gap-1 bg-black/50 border border-gray-800 px-2.5 py-0.5 rounded-lg hidden sm:flex">
+                        <span class="text-[9px] text-gray-400 font-bold uppercase">ID:</span>
+                        <span class="text-xs font-mono font-black text-brand" id="live-match-number">#000000</span>
                     </div>
                 </div>
             </div>
-            <div class="w-12 h-12 md:w-16 md:h-16 bg-black rounded-full border-2 border-yellow-500 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.5)]"><span class="text-yellow-500 font-black italic md:text-xl">VS</span></div>
-            <div class="flex flex-col items-center gap-3">
-                <div class="text-tBlue font-black tracking-widest text-lg md:text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">TIGER</div>
-                <div class="card-container">
-                    <div id="card-tiger" class="card">
-                        <div class="card-face card-back flex items-center justify-center"><i class="fa-solid fa-paw text-3xl text-gray-600"></i></div>
-                        <div class="card-face card-front text-black text-4xl" id="t-val">K♥</div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-2.5 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1.5">BAL</span>
+                    <div class="font-black text-brand text-sm transition-transform duration-300" id="balance-wrapper">
+                        ₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="flex-1 bg-bgDark p-3 overflow-y-auto flex flex-col custom-scrollbar">
-        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full relative shrink-0">
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <button id="btn-dragon" onclick="placeBet('Dragon')" class="bg-gradient-to-b from-red-600 to-red-900 border-2 border-red-500 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(225,29,72,0.3)] hover:shadow-[0_0_25px_rgba(225,29,72,0.6)] hover:border-red-400 transition-all active:scale-95">
-                    <span class="font-black text-lg tracking-wider drop-shadow-md">DRAGON</span>
-                    <span class="text-[10px] text-red-200 mt-1 font-bold">PAYS 2x</span>
-                </button>
-                <button id="btn-tie" onclick="placeBet('Tie')" class="bg-gradient-to-b from-green-600 to-green-900 border-2 border-green-500 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] hover:border-green-400 transition-all active:scale-95">
-                    <span class="font-black text-lg tracking-wider drop-shadow-md">TIE</span>
-                    <span class="text-[10px] text-green-200 mt-1 font-bold">PAYS 8x</span>
-                </button>
-                <button id="btn-tiger" onclick="placeBet('Tiger')" class="bg-gradient-to-b from-blue-600 to-blue-900 border-2 border-blue-500 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:border-blue-400 transition-all active:scale-95">
-                    <span class="font-black text-lg tracking-wider drop-shadow-md">TIGER</span>
-                    <span class="text-[10px] text-blue-200 mt-1 font-bold">PAYS 2x</span>
-                </button>
-            </div>
-
-            <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-2 py-2 mb-4 shadow-inner">
-                <button onclick="adjustStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">-</button>
-                <input type="number" id="stake-amount" value="50" class="w-full bg-transparent text-center text-white font-black text-2xl focus:outline-none">
-                <button onclick="adjustStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">+</button>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="setStake(50)" class="bet-amount-btn">50</button>
-                <button onclick="setStake(100)" class="bet-amount-btn">100</button>
-                <button onclick="setStake(500)" class="bet-amount-btn">500</button>
-                <button onclick="setStake(1000)" class="bet-amount-btn">1000</button>
-                <button onclick="setStake(2500)" class="bet-amount-btn">2500</button>
-                <button onclick="setStake(5000)" class="bet-amount-btn">5000</button>
-            </div>
-
-            <div id="my-bet-info" class="hidden mt-5 text-center text-sm font-bold text-gray-300 bg-black/50 py-3 rounded-xl border border-gray-700 shadow-inner">
-                Bet Placed: ₹<span id="my-bet-amt" class="text-white text-lg ml-1">0</span> on <span id="my-bet-target" class="text-brand uppercase tracking-wider ml-1">Target</span>
+        <!-- LIVE BEAD ROAD HISTORY TRACKER RIBBON -->
+        <div class="bg-[#0b0f19] px-4 py-2 border-b border-gray-800/80 flex items-center gap-3 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0 flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-line text-rose-500"></i> Bead Road:
+            </span>
+            <div id="bead-road-strip" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-0.5">
+                <!-- Populated dynamically -->
+                <span class="text-[10px] font-mono text-gray-600 italic">Waiting for rounds...</span>
             </div>
         </div>
 
-        <div class="w-full max-w-md mx-auto shrink-0 mt-4">
-            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 pl-1">
-                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Round History
-            </div>
-            <div id="history-strip" class="bg-black/30 border border-gray-800 rounded-xl flex flex-col p-2 gap-2 overflow-y-auto max-h-[250px] custom-scrollbar w-full shadow-inner"></div>
-        </div>
-    </div>
-
-    <div id="depositModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <h3 class="text-xl font-black mb-2 text-white flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down text-brand"></i> Deposit Funds</h3>
-            <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">Transfer to admin, then submit proof.</p>
+        <!-- STAGE ARENA -->
+        <div class="relative w-full h-[290px] sm:h-[340px] md:h-[420px] table-bg border-b border-gray-800 overflow-hidden flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)] shrink-0">
             
-            <div class="bg-black/50 p-3 rounded-xl border border-gray-700 mb-5 text-xs font-mono text-gray-300 space-y-2">
-                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
-                    <div><span class="text-brand font-bold uppercase">UPI ID:</span> {{ site_settings.upi_id }}</div>
-                    <button type="button" onclick="copyText('{{ site_settings.upi_id }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
-                </div>
-                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
-                    <div><span class="text-brand font-bold uppercase">Bank A/c:</span> {{ site_settings.bank_account }}</div>
-                    <button type="button" onclick="copyText('{{ site_settings.bank_account }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
-                </div>
-                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
-                    <div><span class="text-brand font-bold uppercase">IFSC:</span> {{ site_settings.ifsc_code }}</div>
-                    <button type="button" onclick="copyText('{{ site_settings.ifsc_code }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
-                </div>
-                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
-                    <div><span class="text-brand font-bold uppercase">QR Code:</span> Scan to Pay</div>
-                    <button type="button" onclick="document.getElementById('profileQRDT').classList.toggle('hidden')" class="bg-brand text-black px-3 py-1 rounded font-black uppercase text-[9px] tracking-wider shadow-[0_0_10px_rgba(28,218,58,0.3)] hover:bg-green-500 transition">Show QR</button>
-                </div>
-                <div id="profileQRDT" class="hidden mt-2 flex justify-center">
-                    <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                        <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black font-bold>qr.png missing in static folder</p>')" alt="QR Code" class="w-32 h-32 object-contain">
-                    </div>
-                </div>
+            <!-- Round Status Badge & Countdown Timer -->
+            <div id="game-status" class="absolute top-4 z-20 bg-black/60 px-6 py-2 rounded-full border border-gray-700/80 backdrop-blur-md text-center shadow-lg">
+                <div class="text-[9px] text-gray-400 font-bold uppercase tracking-widest" id="status-label">Place Your Bets</div>
+                <div id="timer-text" class="text-2xl font-black font-mono text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:15</div>
             </div>
 
-            <form method="POST" action="{{ url_for('deposit') }}" enctype="multipart/form-data" class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Method</label>
-                        <select name="method" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-brand font-bold shadow-inner" required>
-                            <option value="UPI">UPI (GPay/PhonePe)</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="QR Code Scan">QR Code Scan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-brand mb-1 uppercase tracking-widest">Amount (₹)</label>
-                        <input type="number" step="0.01" name="amount" placeholder="0.00" min="10" class="w-full bg-black/50 border border-brand/50 rounded-lg p-3 text-white font-black focus:outline-none focus:border-brand transition shadow-inner" required>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Transaction UTR Number</label>
-                    <input type="text" name="utr" placeholder="Enter 12-digit UTR" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white font-mono text-sm focus:outline-none focus:border-brand transition shadow-inner" required>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Payment Screenshot Proof</label>
-                    <input type="file" name="screenshot" accept="image/*" class="w-full bg-black/50 border border-gray-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-brand transition shadow-inner file:bg-gray-800 file:border-0 file:text-white file:px-3 file:py-1 file:rounded file:font-bold file:text-xs file:mr-3 cursor-pointer" required>
-                </div>
-                <div class="flex gap-3 mt-6 pt-4 border-t border-gray-800">
-                    <button type="button" onclick="document.getElementById('depositModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-black text-sm py-3.5 rounded-xl hover:bg-gray-700 transition uppercase tracking-wider">Cancel</button>
-                    <button type="submit" class="flex-1 bg-brand text-black font-black text-sm py-3.5 rounded-xl hover:bg-green-500 transition shadow-[0_0_15px_rgba(28,218,58,0.3)] active:scale-95 uppercase tracking-wider">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            <!-- Result Overlay Banner -->
+            <div id="result-overlay" class="hidden absolute inset-0 z-30 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center text-center">
+                <div id="result-text" class="text-5xl md:text-7xl font-black italic tracking-widest uppercase drop-shadow-[0_0_30px_rgba(0,0,0,1)]">DRAGON WINS</div>
+            </div>
 
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-[100] py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1 relative"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-brand transition-transform hover:-translate-y-1"><i class="fa-solid fa-user text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Profile</span></a>
+            <!-- DRAGON vs TIGER 3D CARDS TABLE -->
+            <div class="flex w-full max-w-xl justify-between items-center px-6 md:px-12 mt-6 z-10">
+                
+                <!-- Dragon Side -->
+                <div class="flex flex-col items-center gap-3">
+                    <div class="text-dRed font-black tracking-widest text-base md:text-xl drop-shadow-[0_0_12px_rgba(225,29,72,0.8)] flex items-center gap-1.5">
+                        <i class="fa-solid fa-dragon"></i> DRAGON
+                    </div>
+                    <div class="card-container">
+                        <div id="card-dragon" class="card">
+                            <div class="card-face card-back"><i class="fa-solid fa-dragon text-3xl text-gray-500 opacity-60"></i></div>
+                            <div class="card-face card-front" id="d-val">
+                                <span class="card-red">A</span>
+                                <div class="card-suit-large card-red">♥</div>
+                                <span class="text-right card-red">♥</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VS Badge -->
+                <div class="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-black border-2 border-yellow-500/60 flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.4)] shrink-0">
+                    <span class="text-yellow-400 font-black italic text-base md:text-xl">VS</span>
+                </div>
+
+                <!-- Tiger Side -->
+                <div class="flex flex-col items-center gap-3">
+                    <div class="text-tBlue font-black tracking-widest text-base md:text-xl drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] flex items-center gap-1.5">
+                        TIGER <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <div class="card-container">
+                        <div id="card-tiger" class="card">
+                            <div class="card-face card-back"><i class="fa-solid fa-paw text-3xl text-gray-500 opacity-60"></i></div>
+                            <div class="card-face card-front" id="t-val">
+                                <span class="card-black">K</span>
+                                <div class="card-suit-large card-black">♠</div>
+                                <span class="text-right card-black">♠</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- WORKSPACE: BETTING COCKPIT -->
+        <div class="flex-1 bg-bgDark p-4 md:p-6 max-w-4xl w-full mx-auto flex flex-col gap-4">
+            
+            <div class="glass-panel rounded-3xl p-5 md:p-6 relative shrink-0">
+                
+                <!-- Betting Options (Dragon / Tie / Tiger) -->
+                <div class="grid grid-cols-3 gap-3 md:gap-4 mb-6">
+                    <button type="button" id="btn-dragon" onclick="placeBet('Dragon')" class="group relative overflow-hidden bg-gradient-to-br from-red-600 to-rose-900 border-b-4 border-red-950 rounded-2xl py-4 px-2 flex flex-col items-center justify-center shadow-[0_8px_25px_rgba(225,29,72,0.35)] hover:brightness-110 transition-all active:translate-y-0.5 active:border-b-0">
+                        <span class="font-black text-sm md:text-lg tracking-wider text-white drop-shadow">DRAGON</span>
+                        <span class="text-[10px] font-mono font-black bg-black/40 px-2.5 py-0.5 rounded-full text-red-200 mt-1">2.0x</span>
+                    </button>
+
+                    <button type="button" id="btn-tie" onclick="placeBet('Tie')" class="group relative overflow-hidden bg-gradient-to-br from-emerald-600 to-green-900 border-b-4 border-green-950 rounded-2xl py-4 px-2 flex flex-col items-center justify-center shadow-[0_8px_25px_rgba(16,185,129,0.35)] hover:brightness-110 transition-all active:translate-y-0.5 active:border-b-0">
+                        <span class="font-black text-sm md:text-lg tracking-wider text-white drop-shadow">TIE</span>
+                        <span class="text-[10px] font-mono font-black bg-black/40 px-2.5 py-0.5 rounded-full text-emerald-200 mt-1">8.0x</span>
+                    </button>
+
+                    <button type="button" id="btn-tiger" onclick="placeBet('Tiger')" class="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-900 border-b-4 border-blue-950 rounded-2xl py-4 px-2 flex flex-col items-center justify-center shadow-[0_8px_25px_rgba(59,130,246,0.35)] hover:brightness-110 transition-all active:translate-y-0.5 active:border-b-0">
+                        <span class="font-black text-sm md:text-lg tracking-wider text-white drop-shadow">TIGER</span>
+                        <span class="text-[10px] font-mono font-black bg-black/40 px-2.5 py-0.5 rounded-full text-blue-200 mt-1">2.0x</span>
+                    </button>
+                </div>
+
+                <!-- Stake Control Console -->
+                <div class="bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 shadow-inner">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Bet Stake Amount (₹)</span>
+                        <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-3">
+                        <button type="button" onclick="adjustStake(-50)" class="w-11 h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg border border-gray-700 transition active:scale-95">-</button>
+                        <div class="relative flex-1">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand font-black text-base">₹</span>
+                            <input type="number" id="stake-amount" value="50" min="10" class="w-full bg-black/80 border border-gray-700 rounded-xl py-3 pl-8 pr-3 text-center text-white font-black font-mono text-xl focus:outline-none focus:border-brand transition">
+                        </div>
+                        <button type="button" onclick="adjustStake(50)" class="w-11 h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg border border-gray-700 transition active:scale-95">+</button>
+                    </div>
+
+                    <!-- Quick Chips -->
+                    <div class="grid grid-cols-6 gap-1.5">
+                        <button type="button" onclick="setStake(50)" class="chip-btn">50</button>
+                        <button type="button" onclick="setStake(100)" class="chip-btn">100</button>
+                        <button type="button" onclick="setStake(500)" class="chip-btn">500</button>
+                        <button type="button" onclick="setStake(1000)" class="chip-btn">1K</button>
+                        <button type="button" onclick="multiplyStake(0.5)" class="chip-btn text-purple-400">½</button>
+                        <button type="button" onclick="multiplyStake(2)" class="chip-btn text-amber-400">2×</button>
+                    </div>
+                </div>
+
+                <!-- Active Bet Receipt -->
+                <div id="my-bet-info" class="hidden mt-4 bg-gradient-to-r from-rose-500/15 via-black to-black p-3.5 rounded-2xl border border-rose-500/30 flex items-center justify-between shadow-inner">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-black uppercase tracking-widest text-rose-400">BET PLACED</div>
+                            <div class="text-xs font-bold text-gray-200">
+                                ₹<span id="my-bet-amt" class="font-black text-white">0</span> on <span id="my-bet-target" class="font-black text-amber-400">Target</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right text-[10px] text-gray-400 font-bold uppercase">
+                        Awaiting Deal
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 w-full bg-[#090c14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-rose-400 transition"><i class="fa-solid fa-dragon text-xl mb-1 drop-shadow-[0_0_8px_rgba(225,29,72,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
     </nav>
 
     <script>
-        function showToast(message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
-            const toast = document.createElement('div'); const isSuccess = type === 'success';
-            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        // =====================================================
+        // 1. WEB AUDIO SYNTHESIZER
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        let audioCtx;
-        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
-        const Sound = {
-            play: (f, t, dur, v=0.1) => {
-                if(!audioCtx) return;
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
-            },
-            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
-            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); }
-        };
-
-        function triggerWinAnimation(winnings, newTotal) {
-            Sound.win(); 
-            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
-            if(!balEl || !balWrapper) return;
-            const floater = document.createElement('div');
-            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
-            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
-            const rect = balWrapper.getBoundingClientRect();
-            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
-            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
-            document.body.appendChild(floater);
-            void floater.offsetWidth; 
-            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
-            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
-            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
-        }
-
-        let localState = "WAITING"; let hasBet = false;
-        const cDragon = document.getElementById('card-dragon'); const cTiger = document.getElementById('card-tiger');
-
-        function setStake(val) { initAudio(); Sound.tick(); if(!hasBet && localState === "WAITING") document.getElementById('stake-amount').value = val; }
-        function adjustStake(amt) { initAudio(); Sound.tick(); if(hasBet || localState !== "WAITING") return; let val = parseInt(document.getElementById('stake-amount').value) || 0; document.getElementById('stake-amount').value = Math.max(10, val + amt); }
-        function getCardFace(val) { if(val == 11) return 'J'; if(val == 12) return 'Q'; if(val == 13) return 'K'; if(val == 14) return 'A'; return val; }
-        function getSuit() { const suits = ['♠','♥','♣','♦']; return suits[Math.floor(Math.random()*suits.length)]; }
-
-        function copyText(text, btn) {
-            navigator.clipboard.writeText(text);
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check text-brand scale-125 transition-transform"></i>';
-            showToast('Copied successfully!', 'success');
-            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
-        }
-
-        function renderHistory(hist) {
-            const strip = document.getElementById('history-strip'); strip.innerHTML = '';
-            hist.forEach(r => {
-                let borderClass = "border-green-500/30"; let textClass = "text-green-500"; let bgClass = "bg-green-900/20";
-                if(r.val === "Dragon") { borderClass = "border-red-500/30"; textClass = "text-red-500"; bgClass = "bg-red-900/20"; }
-                else if(r.val === "Tiger") { borderClass = "border-blue-500/30"; textClass = "text-blue-500"; bgClass = "bg-blue-900/20"; }
-                
-                strip.innerHTML += `
-                <div class="w-full ${bgClass} border ${borderClass} rounded-lg px-4 py-2.5 flex justify-between items-center transition-all hover:bg-white/5">
-                    <span class="text-xs font-mono font-bold text-gray-400">#${r.id}</span>
-                    <span class="text-base font-black ${textClass}">${r.val.toUpperCase()}</span>
-                </div>`;
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-rose-500"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
             });
         }
 
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch(e) {}
+            },
+            tick: () => Sound.play(850, 'sine', 0.04, 0.04),
+            deal: () => Sound.play(320, 'square', 0.08, 0.05),
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.15), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.15), 110);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.15), 220);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.2), 340);
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(220, 'sawtooth', 0.25, 0.08), 0);
+                setTimeout(() => Sound.play(160, 'sawtooth', 0.4, 0.1), 240);
+            }
+        };
+
+        // =====================================================
+        // 2. NON-SHIFTING TOAST SYSTEM
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Dragon Tiger Desk' : 'Notice'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 3. STAKE & BETTING CONTROLS
+        // =====================================================
+        function setStake(val) {
+            initAudio();
+            Sound.tick();
+            if (!hasBet && localState === "WAITING") document.getElementById('stake-amount').value = val;
+        }
+
+        function adjustStake(amt) {
+            initAudio();
+            Sound.tick();
+            if (hasBet || localState !== "WAITING") return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 0;
+            document.getElementById('stake-amount').value = Math.max(10, val + amt);
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (hasBet || localState !== "WAITING") return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 50;
+            document.getElementById('stake-amount').value = Math.max(10, Math.round(val * factor));
+        }
+
+        // =====================================================
+        // 4. BEAD ROAD HISTORY TRACKER
+        // =====================================================
+        function renderBeadRoad(historyArray) {
+            if (!Array.isArray(historyArray)) return;
+            const strip = document.getElementById('bead-road-strip');
+            strip.innerHTML = '';
+            if (historyArray.length === 0) {
+                strip.innerHTML = '<span class="text-[10px] font-mono text-gray-600 italic">Waiting for rounds...</span>';
+                return;
+            }
+
+            historyArray.forEach(item => {
+                const res = item.val; // "Dragon", "Tiger", or "Tie"
+                let bClass = "bead-D";
+                let label = "D";
+                if (res === "Tiger") { bClass = "bead-T"; label = "T"; }
+                else if (res === "Tie") { bClass = "bead-Tie"; label = "Tie"; }
+
+                strip.innerHTML += `
+                    <div class="bead-item ${bClass}" title="Round #${item.id}: ${res}">
+                        ${label}
+                    </div>
+                `;
+            });
+        }
+
+        // =====================================================
+        // 5. GAME ANIMATION ENGINE & BACKEND SYNC
+        // =====================================================
+        let localState = "WAITING";
+        let hasBet = false;
+        const cDragon = document.getElementById('card-dragon');
+        const cTiger = document.getElementById('card-tiger');
+
+        function getCardFace(val) {
+            if (val == 11) return 'J';
+            if (val == 12) return 'Q';
+            if (val == 13) return 'K';
+            if (val == 14) return 'A';
+            return val;
+        }
+
         function disableButtons(disable) {
-            ['btn-dragon', 'btn-tie', 'btn-tiger'].forEach(id => { document.getElementById(id).style.opacity = disable ? '0.5' : '1'; document.getElementById(id).style.transform = disable ? 'scale(0.98)' : 'scale(1)'; document.getElementById(id).disabled = disable; });
+            ['btn-dragon', 'btn-tie', 'btn-tiger'].forEach(id => {
+                const b = document.getElementById(id);
+                b.style.opacity = disable ? '0.45' : '1';
+                b.disabled = disable;
+            });
         }
 
         async function placeBet(target) {
             initAudio();
-            if(localState !== "WAITING" || hasBet) return;
+            if (localState !== "WAITING" || hasBet) return;
             let stake = parseFloat(document.getElementById('stake-amount').value);
+            if (isNaN(stake) || stake < 10) { showToast('Minimum bet is ₹10', 'error'); return; }
+
             disableButtons(true);
             try {
-                let res = await fetch("/dragon_tiger/bet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stake: stake, target: target }) }); let data = await res.json();
-                if(data.success) { document.getElementById('display-balance').innerText = data.new_total.toFixed(2); hasBet = true; document.getElementById('my-bet-info').classList.remove('hidden'); document.getElementById('my-bet-amt').innerText = stake; document.getElementById('my-bet-target').innerText = target; showToast(`Bet accepted on ${target}`, "success"); } 
-                else { showToast(data.error, "error"); disableButtons(false); }
-            } catch(e) { showToast("Network Error", "error"); disableButtons(false); }
+                let res = await fetch("/dragon_tiger/bet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ stake: stake, target: target })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    Sound.tick();
+                    document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                    hasBet = true;
+                    document.getElementById('my-bet-info').classList.remove('hidden');
+                    document.getElementById('my-bet-amt').innerText = stake.toFixed(2);
+                    document.getElementById('my-bet-target').innerText = target;
+                    showToast(`₹${stake} placed on ${target}!`, "success");
+                } else {
+                    showToast(data.error || "Bet rejected", "error");
+                    disableButtons(false);
+                }
+            } catch(e) {
+                showToast("Network Error", "error");
+                disableButtons(false);
+            }
         }
 
         async function syncLoop() {
             try {
-                let res = await fetch('/dragon_tiger/sync'); let data = await res.json(); 
-                
+                let res = await fetch('/dragon_tiger/sync');
+                let data = await res.json();
+
                 document.getElementById('live-match-number').innerText = "#" + data.match_number;
-                renderHistory(data.history);
+                renderBeadRoad(data.history);
 
                 if (data.state !== localState) {
                     localState = data.state;
-                    
+
                     if (localState === "WAITING") {
-                        hasBet = false; 
-                        cDragon.classList.remove('flipped', 'win-dragon'); 
+                        hasBet = false;
+                        cDragon.classList.remove('flipped', 'win-dragon');
                         cTiger.classList.remove('flipped', 'win-tiger');
-                        document.getElementById('result-overlay').classList.add('hidden'); 
-                        document.getElementById('my-bet-info').classList.add('hidden'); 
+                        document.getElementById('result-overlay').classList.add('hidden');
+                        document.getElementById('my-bet-info').classList.add('hidden');
                         disableButtons(false);
-                    } 
+                    }
                     else if (localState === "REVEAL") {
                         disableButtons(true);
-                        document.getElementById('game-status').innerHTML = `<div class="text-brand font-black uppercase text-xl drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">REVEALING</div>`;
-                        let dSuit = getSuit(); let tSuit = getSuit();
-                        document.getElementById('d-val').innerHTML = `<span class="${dSuit=='♥'||dSuit=='♦'?'text-red-600':''}">${getCardFace(data.d_card)}${dSuit}</span>`;
-                        document.getElementById('t-val').innerHTML = `<span class="${tSuit=='♥'||tSuit=='♦'?'text-red-600':''}">${getCardFace(data.t_card)}${tSuit}</span>`;
+                        document.getElementById('game-status').innerHTML = `<div class="text-[9px] text-gray-400 font-bold uppercase">Status</div><div class="text-xl font-black text-rose-500 uppercase tracking-widest animate-pulse">REVEALING</div>`;
                         
-                        cDragon.classList.add('flipped'); 
-                        setTimeout(() => cTiger.classList.add('flipped'), 500); 
-                        
+                        // Render front face of cards
+                        const dSuit = ['♠', '♥', '♣', '♦'][Math.floor(Math.random() * 4)];
+                        const tSuit = ['♠', '♥', '♣', '♦'][Math.floor(Math.random() * 4)];
+                        const isRedD = dSuit === '♥' || dSuit === '♦';
+                        const isRedT = tSuit === '♥' || tSuit === '♦';
+
+                        document.getElementById('d-val').innerHTML = `
+                            <span class="${isRedD ? 'card-red' : 'card-black'}">${getCardFace(data.d_card)}</span>
+                            <div class="card-suit-large ${isRedD ? 'card-red' : 'card-black'}">${dSuit}</div>
+                            <span class="text-right ${isRedD ? 'card-red' : 'card-black'}">${dSuit}</span>
+                        `;
+                        document.getElementById('t-val').innerHTML = `
+                            <span class="${isRedT ? 'card-red' : 'card-black'}">${getCardFace(data.t_card)}</span>
+                            <div class="card-suit-large ${isRedT ? 'card-red' : 'card-black'}">${tSuit}</div>
+                            <span class="text-right ${isRedT ? 'card-red' : 'card-black'}">${tSuit}</span>
+                        `;
+
+                        Sound.deal();
+                        cDragon.classList.add('flipped');
                         setTimeout(() => {
-                            const ro = document.getElementById('result-overlay'); 
-                            const rt = document.getElementById('result-text'); 
+                            Sound.deal();
+                            cTiger.classList.add('flipped');
+                        }, 400);
+
+                        setTimeout(() => {
+                            const ro = document.getElementById('result-overlay');
+                            const rt = document.getElementById('result-text');
                             ro.classList.remove('hidden');
-                            
-                            if(data.result === "Dragon") { rt.innerText = "DRAGON WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-red-500 drop-shadow-[0_0_20px_rgba(225,29,72,0.8)]"; cDragon.classList.add('win-dragon'); } 
-                            else if(data.result === "Tiger") { rt.innerText = "TIGER WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)]"; cTiger.classList.add('win-tiger'); } 
-                            else { rt.innerText = "TIE"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]"; }
-                            
-                            if(hasBet) { 
+
+                            if (data.result === "Dragon") {
+                                rt.innerText = "DRAGON WINS";
+                                rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-rose-500 drop-shadow-[0_0_30px_rgba(225,29,72,0.9)]";
+                                cDragon.classList.add('win-dragon');
+                            } else if (data.result === "Tiger") {
+                                rt.innerText = "TIGER WINS";
+                                rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-blue-500 drop-shadow-[0_0_30px_rgba(59,130,246,0.9)]";
+                                cTiger.classList.add('win-tiger');
+                            } else {
+                                rt.innerText = "TIE (8X)";
+                                rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-emerald-400 drop-shadow-[0_0_30px_rgba(16,185,129,0.9)]";
+                            }
+
+                            if (hasBet) {
                                 fetch('/dragon_tiger').then(r => r.text()).then(html => {
                                     const match = html.match(/id="display-balance">([\d.]+)/);
-                                    if(match && match[1]) {
-                                        let newBal = parseFloat(match[1]); 
+                                    if (match && match[1]) {
+                                        let newBal = parseFloat(match[1]);
                                         let oldBal = parseFloat(document.getElementById('display-balance').innerText);
-                                        if (newBal > oldBal) { triggerWinAnimation(newBal - oldBal, newBal); } 
-                                        else { Sound.lose(); document.getElementById('display-balance').innerText = newBal.toFixed(2); }
+                                        if (newBal > oldBal) {
+                                            triggerWinAnimation(newBal - oldBal, newBal);
+                                            showToast(`WON ₹${(newBal - oldBal).toFixed(2)}!`, 'success');
+                                        } else {
+                                            Sound.lose();
+                                            document.getElementById('display-balance').innerText = newBal.toFixed(2);
+                                        }
                                     }
                                 });
                             }
-                        }, 1500);
+                        }, 1200);
                     }
                 }
+
                 if (localState === "WAITING") {
-                    let rem = Math.max(0, 15.0 - data.elapsed); let displayRem = Math.ceil(rem); let pad = displayRem < 10 ? '0' : '';
-                    document.getElementById('game-status').innerHTML = `<div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div><div class="text-2xl font-black ${rem < 5 ? 'text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]'}">00:${pad}${displayRem}</div>`;
+                    let rem = Math.max(0, 15.0 - data.elapsed);
+                    let displayRem = Math.ceil(rem);
+                    let pad = displayRem < 10 ? '0' : '';
+                    document.getElementById('game-status').innerHTML = `
+                        <div class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div>
+                        <div class="text-2xl font-black font-mono ${rem < 5 ? 'text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]'}">00:${pad}${displayRem}</div>
+                    `;
                 }
             } catch(e) {}
-        } setInterval(syncLoop, 1000); syncLoop();
+        }
+        setInterval(syncLoop, 1000);
+        syncLoop();
+
+        // =====================================================
+        // 6. WIN FLOAT & CONFETTI CELEBRATION
+        // =====================================================
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            spawnConfetti();
+            const balWrapper = document.getElementById('balance-wrapper');
+            const balEl = document.getElementById('display-balance');
+            if (!balEl || !balWrapper) return;
+
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1400ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 30) + 'px';
+            floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)';
+            floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-45px) scale(1.25)';
+            floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.18)';
+
+            setTimeout(() => { floater.style.opacity = '0'; }, 950);
+            setTimeout(() => {
+                floater.remove();
+                balEl.innerText = parseFloat(newTotal).toFixed(2);
+                balWrapper.style.transform = 'scale(1)';
+            }, 1400);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#e11d48', '#3b82f6', '#fbbf24', '#10b981', '#a855f7'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
     </script>
 </body>
 </html>
