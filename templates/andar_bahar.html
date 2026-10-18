@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Andar Bahar Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonTeal: '#0d9488',
+                        neonBlue: '#3b82f6',
+                        neonRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 4px; }
+        
+        /* VIP Casino Felt */
+        .felt-bg { 
+            background: radial-gradient(ellipse at top, #0f766e 0%, #042f2e 60%, #05070c 100%); 
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+        }
+        
+        .glow-teal { filter: drop-shadow(0 0 20px rgba(13,148,136,0.6)); }
+        .glow-blue { filter: drop-shadow(0 0 20px rgba(59,130,246,0.6)); }
+        .glow-red { filter: drop-shadow(0 0 20px rgba(239,68,68,0.6)); }
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+
+        /* Betting Zones */
+        .side-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .side-btn.active-andar { border-color: #3b82f6; background: rgba(59,130,246,0.15); box-shadow: inset 0 0 20px rgba(59,130,246,0.3), 0 0 20px rgba(59,130,246,0.4); transform: translateY(-5px); }
+        .side-btn.active-bahar { border-color: #ef4444; background: rgba(239,68,68,0.15); box-shadow: inset 0 0 20px rgba(239,68,68,0.3), 0 0 20px rgba(239,68,68,0.4); transform: translateY(-5px); }
+
+        /* 3D Card Setup */
+        .card-slot { perspective: 1000px; display: inline-block; margin-left: -40px; }
+        .card-slot:first-child { margin-left: 0; }
+        @media (min-width: 768px) { .card-slot { margin-left: -50px; } }
+        
+        .playing-card { 
+            width: 70px; 
+            height: 100px; 
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.6);
+            border-radius: 8px;
+        }
+        @media (min-width: 768px) {
+            .playing-card { width: 90px; height: 130px; border-radius: 12px; }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: inherit;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 6px; font-weight: 900; font-size: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        @media (min-width: 768px) { .card-face { font-size: 2rem; padding: 8px; } }
+
+        .card-front { background: white; transform: rotateY(180deg); }
+        .card-back { 
+            background: repeating-linear-gradient(45deg, #0f766e, #0f766e 10px, #042f2e 10px, #042f2e 20px); 
+            border: 2px solid #5eead4; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .card-red { color: #ef4444; } 
+        .card-black { color: #111827; }
+        .card-suit-large { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; opacity: 0.15; }
+
+        /* Animations */
+        .flipped { transform: rotateY(180deg); }
+        
+        @keyframes dealIn { 
+            0% { transform: translateY(-200px) translateX(100px) rotateZ(30deg) scale(0.5); opacity: 0; } 
+            100% { transform: translateY(0) translateX(0) rotateZ(0deg) scale(1); opacity: 1; } 
+        }
+        .anim-deal { animation: dealIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        .joker-slot { z-index: 20; }
+        .joker-slot .playing-card { box-shadow: 0 0 30px rgba(13,148,136,0.6); border: 2px solid #2dd4bf; transform: scale(1.1); }
+        .joker-slot .flipped { transform: scale(1.1) rotateY(180deg); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-neonTeal">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded border border-teal-500/20">PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-teal-500/10 text-teal-400 font-bold rounded-xl border border-teal-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-teal-400 text-sm hover:text-teal-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-neonTeal text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-layer-group"></i> ANDAR BAHAR</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-teal-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-teal-600 hover:bg-teal-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- GAME ARENA -->
+        <div class="flex-1 felt-bg relative flex flex-col items-center justify-between p-4 md:p-8 overflow-hidden">
+            
+            <!-- Result Overlay -->
+            <div id="result-overlay" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 text-center w-full hidden pointer-events-none transition-all">
+                <div id="result-msg" class="text-5xl md:text-7xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-xl md:text-2xl font-bold mt-2 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- THE JOKER (HOUSE CARD) -->
+            <div class="text-center w-full max-w-2xl relative z-10 mt-2 md:mt-4">
+                <div class="text-teal-200 font-bold uppercase tracking-widest text-xs mb-3 bg-black/40 px-6 py-1.5 rounded-full inline-block border border-teal-900/50 shadow-lg">Joker (House Card)</div>
+                <div class="flex justify-center items-center min-h-[120px] md:min-h-[160px]">
+                    <div class="card-slot joker-slot">
+                        <div id="joker-card" class="playing-card opacity-0 border-2 border-dashed border-teal-600/50">
+                            <div class="card-face card-back"></div>
+                            <div class="card-face card-front" id="joker-front"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANDAR / BAHAR SELECTION & DEAL ZONES -->
+            <div class="w-full max-w-3xl grid grid-cols-2 gap-4 md:gap-8 mt-auto mb-4 relative z-10">
+                
+                <!-- ANDAR ZONE -->
+                <div onclick="selectSide('Andar')" id="btn-Andar" class="side-btn active-andar bg-[#0a0d15]/80 border-2 border-gray-800 rounded-2xl p-3 md:p-5 flex flex-col items-center shadow-xl backdrop-blur-sm relative overflow-hidden">
+                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-blue-500/10 blur-2xl rounded-full"></div>
+                    <div class="text-2xl md:text-3xl font-black uppercase text-blue-400 drop-shadow-md z-10">ANDAR</div>
+                    <div class="text-[10px] md:text-xs text-blue-200/60 mt-1 uppercase tracking-widest font-bold z-10">Pays 1.95x</div>
+                    
+                    <!-- Dealt Cards Area -->
+                    <div class="w-full min-h-[110px] md:min-h-[140px] mt-4 flex items-center justify-center flex-wrap z-10" id="andar-cards">
+                        <!-- Cards injected here -->
+                    </div>
+                </div>
+
+                <!-- BAHAR ZONE -->
+                <div onclick="selectSide('Bahar')" id="btn-Bahar" class="side-btn bg-[#0a0d15]/80 border-2 border-gray-800 rounded-2xl p-3 md:p-5 flex flex-col items-center shadow-xl backdrop-blur-sm relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 blur-2xl rounded-full"></div>
+                    <div class="text-2xl md:text-3xl font-black uppercase text-red-500 drop-shadow-md z-10">BAHAR</div>
+                    <div class="text-[10px] md:text-xs text-red-200/60 mt-1 uppercase tracking-widest font-bold z-10">Pays 1.95x</div>
+                    
+                    <!-- Dealt Cards Area -->
+                    <div class="w-full min-h-[110px] md:min-h-[140px] mt-4 flex items-center justify-center flex-wrap z-10" id="bahar-cards">
+                        <!-- Cards injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] border-t border-gray-800/80">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-5 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Bet Amount (₹)</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Min: ₹10</span>
+                    </div>
+
+                    <div class="relative flex mb-3">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-teal-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-3.5 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-teal-500 outline-none transition shadow-inner font-mono">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(500)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">+500</button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTON -->
+                <div class="w-full md:w-1/2 flex flex-col justify-center">
+                    <button id="deal-btn" onclick="playGame()" class="w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-teal-500 to-teal-700 hover:from-teal-400 hover:to-teal-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(13,148,136,0.4)] border-b-4 border-teal-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        PLACE BET
+                        <span id="btn-sub" class="text-[10px] text-teal-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Deal Joker</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Celebration Particle Canvas -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. WEB AUDIO API SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundSelect() { playTone(800, 'square', 0.05, 0.05); }
+        function soundDeal() { playTone(300, 'square', 0.1, 0.05); setTimeout(()=>playTone(200, 'square', 0.08, 0.02), 50); }
+        function soundWin() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
+        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING & SELECTION
+        // ----------------------------------------------------
+        let currentSide = 'Andar';
+        let isPlaying = false;
+
+        function selectSide(side) {
+            if (isPlaying) return;
+            soundSelect();
+            document.getElementById('btn-Andar').classList.remove('active-andar', 'border-blue-500');
+            document.getElementById('btn-Bahar').classList.remove('active-bahar', 'border-red-500');
+            
+            const btn = document.getElementById('btn-' + side);
+            if (side === 'Andar') btn.classList.add('active-andar', 'border-blue-500');
+            else btn.classList.add('active-bahar', 'border-red-500');
+            
+            currentSide = side;
+        }
+
+        function adjustStake(factor) {
+            if (isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+
+        function setStake(amount) {
+            if (isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        // ----------------------------------------------------
+        // 3. GAME ANIMATION ENGINE (Simulated Dealing)
+        // ----------------------------------------------------
+        function renderCardFront(cardData) {
+            const isRed = cardData.suit === '♥' || cardData.suit === '♦';
+            const colorClass = isRed ? 'card-red' : 'card-black';
+            return `
+                <span class="${colorClass}">${cardData.rank}</span>
+                <div class="card-suit-large ${colorClass}">${cardData.suit}</div>
+                <span class="text-right ${colorClass}">${cardData.suit}</span>
+            `;
+        }
+
+        // Helper to generate a random card that DOES NOT match the joker
+        function getFakeCard(excludeRank) {
+            const suits = ['♥', '♦', '♣', '♠'];
+            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            let r = ranks[Math.floor(Math.random() * ranks.length)];
+            while(r === excludeRank) r = ranks[Math.floor(Math.random() * ranks.length)];
+            let s = suits[Math.floor(Math.random() * suits.length)];
+            return { rank: r, suit: s };
+        }
+
+        function createDOMCard(cardData, delayMs) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "card-slot";
+            wrapper.innerHTML = `
+                <div class="playing-card opacity-0">
+                    <div class="card-face card-back"></div>
+                    <div class="card-face card-front">${renderCardFront(cardData)}</div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const card = wrapper.querySelector('.playing-card');
+                card.classList.add('anim-deal');
+                setTimeout(() => { 
+                    card.classList.add('flipped'); 
+                    soundDeal(); 
+                }, 200);
+            }, delayMs);
+
+            return wrapper;
+        }
+
+        function resetTable() {
+            document.getElementById('result-overlay').classList.add('hidden');
+            
+            // Reset Joker
+            const jokerCard = document.getElementById('joker-card');
+            jokerCard.className = "playing-card opacity-0 border-2 border-dashed border-teal-600/50";
+            jokerCard.style.transform = '';
+            document.getElementById('joker-front').innerHTML = '';
+            
+            // Clear Dealt Cards
+            document.getElementById('andar-cards').innerHTML = '';
+            document.getElementById('bahar-cards').innerHTML = '';
+        }
+
+        async function playGame() {
+            if (isPlaying) return;
+            const btn = document.getElementById('deal-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) { alert('Minimum bet is ₹10'); return; }
+
+            isPlaying = true;
+            btn.classList.add('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'DEALING... <span class="text-[10px] text-teal-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-spinner fa-spin"></i> Please Wait</span>';
+            
+            resetTable();
+
+            try {
+                const res = await fetch('/andar_bahar/deal', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake, side: currentSide}) 
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    
+                    const jokerRank = d.joker.rank;
+                    const winningSide = d.winner; // "Andar" or "Bahar"
+                    
+                    // 1. Reveal Joker
+                    const jokerCard = document.getElementById('joker-card');
+                    document.getElementById('joker-front').innerHTML = renderCardFront(d.joker);
+                    jokerCard.classList.remove('border-dashed', 'border-teal-600/50');
+                    jokerCard.classList.add('anim-deal');
+                    setTimeout(() => { jokerCard.classList.add('flipped'); soundDeal(); }, 200);
+
+                    // 2. Build Dealing Sequence
+                    // Real game starts dealing to Andar first.
+                    // We'll simulate 3 cards to keep it fast but suspenseful.
+                    const sequence = [];
+                    const aContainer = document.getElementById('andar-cards');
+                    const bContainer = document.getElementById('bahar-cards');
+                    
+                    if (winningSide === 'Andar') {
+                        // Deal to Andar(fake), Bahar(fake), Andar(win)
+                        sequence.push({ target: aContainer, card: getFakeCard(jokerRank) });
+                        sequence.push({ target: bContainer, card: getFakeCard(jokerRank) });
+                        sequence.push({ target: aContainer, card: { rank: jokerRank, suit: ['♥', '♦', '♣', '♠'][Math.floor(Math.random()*4)] } });
+                    } else {
+                        // Deal to Andar(fake), Bahar(fake), Andar(fake), Bahar(win)
+                        sequence.push({ target: aContainer, card: getFakeCard(jokerRank) });
+                        sequence.push({ target: bContainer, card: getFakeCard(jokerRank) });
+                        sequence.push({ target: aContainer, card: getFakeCard(jokerRank) });
+                        sequence.push({ target: bContainer, card: { rank: jokerRank, suit: ['♥', '♦', '♣', '♠'][Math.floor(Math.random()*4)] } });
+                    }
+
+                    // 3. Execute Sequence
+                    let delay = 1000; // Start dealing 1s after Joker
+                    sequence.forEach((step, idx) => {
+                        setTimeout(() => {
+                            const domCard = createDOMCard(step.card, 0);
+                            step.target.appendChild(domCard);
+                        }, delay);
+                        delay += 600; // Time between cards
+                    });
+
+                    // 4. Resolve Game
+                    setTimeout(() => {
+                        const msg = document.getElementById('result-msg');
+                        const sub = document.getElementById('result-sub');
+                        document.getElementById('result-overlay').classList.remove('hidden');
+
+                        if(d.win) {
+                            soundWin();
+                            spawnParticles();
+                            msg.innerText = `${d.winner} WINS!`;
+                            msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-emerald-400 glow-win drop-shadow-[0_0_20px_rgba(0,0,0,1)]";
+                            sub.innerText = `YOU WIN +₹${d.winnings.toFixed(2)}`;
+                            sub.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-emerald-300 drop-shadow-md";
+                            
+                            if (d.winner === 'Andar') document.getElementById('btn-Bahar').classList.add('opacity-30', 'grayscale');
+                            else document.getElementById('btn-Andar').classList.add('opacity-30', 'grayscale');
+                            
+                        } else {
+                            soundLose();
+                            msg.innerText = `${d.winner} WINS`;
+                            msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-red-500 glow-lose drop-shadow-[0_0_20px_rgba(0,0,0,1)]";
+                            sub.innerText = "BET LOST";
+                            sub.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-red-400 drop-shadow-md";
+                            
+                            if (d.winner === 'Andar') document.getElementById('btn-Bahar').classList.add('opacity-30', 'grayscale');
+                            else document.getElementById('btn-Andar').classList.add('opacity-30', 'grayscale');
+                        }
+
+                        // Reset Button
+                        setTimeout(() => {
+                            isPlaying = false;
+                            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+                            btn.innerHTML = 'PLACE BET <span id="btn-sub" class="text-[10px] text-teal-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Deal Joker</span>';
+                            
+                            document.getElementById('btn-Andar').classList.remove('opacity-30', 'grayscale');
+                            document.getElementById('btn-Bahar').classList.remove('opacity-30', 'grayscale');
+                        }, 2000);
+
+                    }, delay + 200); // Trigger shortly after last card deals
+
+                } else { 
+                    alert(d.error); resetBtn(); 
+                }
+            } catch(e) { 
+                alert("Network Error"); resetBtn(); 
+            }
+        }
+
+        function resetBtn() {
+            isPlaying = false;
+            const btn = document.getElementById('deal-btn');
+            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'PLACE BET <span id="btn-sub" class="text-[10px] text-teal-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Deal Joker</span>';
+        }
+
+        // ----------------------------------------------------
+        // 4. CELEBRATION EFFECTS
+        // ----------------------------------------------------
+        function spawnParticles() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#0d9488', '#3b82f6', '#fbbf24', '#10b981'];
+            
+            for(let i=0; i<45; i++) {
+                const p = document.createElement('div');
+                p.innerHTML = '<i class="fa-solid fa-gem"></i>';
+                p.className = "absolute text-3xl drop-shadow-lg";
+                p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '50%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 25;
+                const tx = Math.cos(angle) * velocity * 15;
+                const ty = Math.sin(angle) * velocity * 15 - 150; // Bias upward
+                
+                container.appendChild(p);
+                
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(0.5) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 1000 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
+                
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+    </script>
+</body>
+</html>

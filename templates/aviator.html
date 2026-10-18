@@ -7,254 +7,1051 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { bgDark: '#080b12', panelBg: 'rgba(25, 30, 45, 0.6)', avRed: '#ff2a40', avGreen: '#1CDA3A', avYellow: '#ffc107', brand: '#1CDA3A' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06080e',
+                        surface: '#0d111a',
+                        surfaceLight: '#161d2b',
+                        avRed: '#ff2a40',
+                        avGreen: '#1CDA3A',
+                        avOrange: '#f97316',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
-        .sky-bg { background-color: #0b0f19; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; animation: scrollBackground 20s linear infinite; }
-        @keyframes scrollBackground { 0% { background-position: 0px 0px; } 100% { background-position: -400px 0px; } }
-        .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
-        .bet-input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
-        .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: bold; text-align: center; transition: all 0.2s; }
-        .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .spin-slow { animation: spin 4s linear infinite; }
-        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .animate-heartbeat { animation: heartbeat 0.5s ease-in-out infinite; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(16, 22, 34, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .stage-container {
+            background: radial-gradient(circle at 15% 85%, #1f0910 0%, #090d16 55%, #05070c 100%);
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+        }
+
+        .bet-chip-btn {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            border-radius: 10px;
+            padding: 7px 0;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+        .bet-chip-btn:hover:not(:disabled) {
+            border-color: rgba(255, 42, 64, 0.6);
+            color: #fff;
+            background: rgba(255, 42, 64, 0.12);
+        }
+        .bet-chip-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        @keyframes spinSlow { 100% { transform: rotate(360deg); } }
+        .spin-slow { animation: spinSlow 3.5s linear infinite; }
+
+        @keyframes pulseMult {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-mult { animation: pulseMult 0.8s ease-in-out infinite; }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, 3px); }
+            40% { transform: translate(5px, -3px); }
+            60% { transform: translate(-4px, -2px); }
+            80% { transform: translate(4px, 2px); }
+        }
+        .shake-crash { animation: screenShake 0.4s ease-in-out; }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-16 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <div id="toast-container"></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER (Never shifts page layout) -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <div class="flex justify-between items-center bg-[#0a0d14] px-4 py-3 border-b border-gray-800 shadow-md">
-        <div class="flex gap-3">
-            <div class="bg-avRed/20 text-avRed px-3 py-1 rounded-full text-xs font-black tracking-widest border border-avRed/30 flex items-center gap-2">
-                <i class="fa-solid fa-plane-up"></i> PRO
+    <!-- WIN CONFETTI OVERLAY -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-avRed">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-avRed/15 text-avRed px-2 py-0.5 rounded border border-avRed/30">PRO MAX</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-avRed/10 text-avRed font-bold rounded-xl border border-avRed/20"><i class="fa-solid fa-plane-up w-5 text-center"></i> Aviator Pro</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Sound Effects</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-avGreen text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="text-right">
-                <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-            </div>
-        </div>
-    </div>
+    </aside>
 
-    <div id="history-strip" class="bg-[#0f131a] flex items-center px-3 py-2.5 gap-2 overflow-x-auto whitespace-nowrap text-xs font-black border-b border-gray-800 scroll-smooth shadow-inner"></div>
+    <!-- MAIN GAME AREA -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative">
 
-    <div class="relative w-full h-[300px] md:h-[450px] sky-bg border-b border-gray-800 overflow-hidden flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.8)]">
-        <div class="absolute top-3 left-3 text-gray-600 text-lg z-30 hover:text-white transition cursor-pointer"><i class="fa-solid fa-volume-xmark"></i></div>
-        <div id="multiplier-text" class="hidden absolute z-10 text-6xl md:text-8xl font-black text-white tracking-tighter drop-shadow-[0_0_20px_rgba(255,42,64,0.6)] animate-heartbeat">1.00x</div>
-        <div id="flew-away-msg" class="hidden absolute z-20 flex flex-col items-center justify-center text-avRed font-black">
-            <div class="text-2xl md:text-3xl tracking-widest uppercase mb-1 drop-shadow-[0_0_15px_rgba(255,42,64,0.8)]">Flew Away!</div>
-            <div id="flew-away-mult" class="text-5xl md:text-7xl drop-shadow-[0_0_15px_rgba(255,42,64,0.8)]">1.00x</div>
-        </div>
-        <div id="waiting-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-            <i class="fa-solid fa-dharmachakra text-avRed text-6xl opacity-30 spin-slow absolute mb-12"></i>
-            <div class="text-white text-xl md:text-2xl font-black tracking-widest mb-5 z-10 drop-shadow-md">PREPARING FLIGHT</div>
-            <div class="w-56 h-2 bg-gray-900 rounded-full overflow-hidden z-10 border border-gray-700 shadow-inner">
-                <div id="loading-bar-fill" class="h-full bg-gradient-to-r from-orange-500 to-avRed w-0 transition-all duration-75 shadow-[0_0_10px_rgba(255,42,64,0.8)]"></div>
-            </div>
-        </div>
-        <canvas id="graphCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
-    </div>
-
-    <div class="flex-1 bg-bgDark p-3 flex flex-col gap-3 overflow-y-auto">
-        <div class="flex gap-3 w-full h-full max-h-[260px] max-w-4xl mx-auto">
-            <div class="flex-1 glass-panel rounded-xl p-3 flex flex-col justify-between relative">
-                <div class="flex items-center bg-black/50 border border-gray-700 rounded-xl px-2 py-1.5 mb-3 shadow-inner">
-                    <button onclick="adjustStake(-10)" class="text-gray-400 hover:text-white font-black px-3 text-lg">-</button>
-                    <input type="number" id="stake-amount" value="10" min="10" class="w-full bg-transparent text-center text-white font-black text-lg focus:outline-none">
-                    <button onclick="adjustStake(10)" class="text-gray-400 hover:text-white font-black px-3 text-lg">+</button>
+        <!-- TOP BAR -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-avRed text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,42,64,0.5)]">
+                        <i class="fa-solid fa-plane-up"></i> AVIATOR
+                    </div>
+                    <div class="flex items-center gap-1 bg-black/50 border border-gray-800 px-2.5 py-0.5 rounded-lg">
+                        <span class="text-[9px] text-gray-400 font-bold uppercase">ID:</span>
+                        <span class="text-xs font-mono font-black text-brand" id="live-match-number">#000000</span>
+                    </div>
                 </div>
-                <div class="bet-input-grid">
-                    <button onclick="setStake(10)" class="bet-amount-btn">10</button>
-                    <button onclick="setStake(50)" class="bet-amount-btn">50</button>
-                    <button onclick="setStake(100)" class="bet-amount-btn">100</button>
-                    <button onclick="setStake(500)" class="bet-amount-btn">500</button>
-                    <button onclick="setStake(1000)" class="bet-amount-btn">1000</button>
-                    <button onclick="setStake(5000)" class="bet-amount-btn">5000</button>
-                </div>
-                <button id="action-btn" onclick="handleAction()" class="w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl uppercase shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:shadow-[0_0_25px_rgba(28,218,58,0.6)] hover:bg-[#20e841] transition-all active:scale-[0.98]">
-                    BET
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
                 </button>
-            </div>
-            <div class="flex-1 glass-panel rounded-xl p-3 flex flex-col justify-between opacity-40 pointer-events-none grayscale">
-                <div class="flex items-center bg-black/50 border border-gray-700 rounded-xl px-2 py-1.5 mb-3">
-                    <div class="text-gray-400 font-black px-3 text-lg">-</div>
-                    <div class="w-full text-center text-white font-black text-lg">10</div>
-                    <div class="text-gray-400 font-black px-3 text-lg">+</div>
+                <div class="flex items-center bg-black/70 pl-3 pr-2.5 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1.5">BAL</span>
+                    <div class="font-black text-brand text-sm transition-transform duration-300" id="balance-wrapper">
+                        ₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    </div>
                 </div>
-                <div class="bet-input-grid"><div class="bet-amount-btn">10</div><div class="bet-amount-btn">50</div><div class="bet-amount-btn">100</div><div class="bet-amount-btn">500</div><div class="bet-amount-btn">1000</div><div class="bet-amount-btn">5000</div></div>
-                <div class="w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl text-center uppercase">BET</div>
+            </div>
+        </header>
+
+        <!-- RECENT MULTIPLIERS RIBBON -->
+        <div class="bg-[#0b0f19] px-3 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-clock-rotate-left text-avRed"></i> Recent:
+            </span>
+            <div id="top-history-pills" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <!-- Populated dynamically -->
             </div>
         </div>
-    </div>
 
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform hover:-translate-y-1"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1 relative"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+        <!-- MAIN WORKSPACE -->
+        <div class="flex-1 p-3 md:p-5 max-w-6xl w-full mx-auto flex flex-col lg:flex-row gap-4">
+
+            <!-- LEFT / MAIN COLUMN: FLIGHT STAGE + BETTING CONSOLES -->
+            <div class="flex-1 flex flex-col gap-4">
+
+                <!-- AVIATOR FLIGHT STAGE -->
+                <div id="flight-stage" class="relative w-full h-[290px] sm:h-[340px] md:h-[420px] stage-container rounded-3xl border border-gray-800/90 overflow-hidden flex flex-col items-center justify-center shrink-0">
+                    
+                    <!-- Top-Left Live Telemetry Badge -->
+                    <div class="absolute top-3 left-3.5 z-30 flex items-center gap-2 pointer-events-none">
+                        <span class="w-2 h-2 rounded-full bg-avGreen animate-ping" id="telemetry-dot"></span>
+                        <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest" id="telemetry-status">RADAR LOCKED</span>
+                    </div>
+
+                    <!-- Top-Right Canvas Sound Toggle -->
+                    <button onclick="toggleMute(event)" id="canvas-mute-btn" class="absolute top-3 right-3.5 text-gray-400 hover:text-white text-sm z-30 bg-black/50 border border-gray-700/80 w-8 h-8 rounded-full flex items-center justify-center transition">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+
+                    <!-- LIVE MULTIPLIER COUNTER -->
+                    <div id="multiplier-text" class="hidden absolute z-20 text-6xl sm:text-7xl md:text-8xl font-black text-white font-mono tracking-tighter drop-shadow-[0_0_30px_rgba(255,42,64,0.75)] animate-mult pointer-events-none">
+                        1.00x
+                    </div>
+
+                    <!-- CRASHED / FLEW AWAY MESSAGE -->
+                    <div id="flew-away-msg" class="hidden absolute z-20 flex flex-col items-center justify-center text-center pointer-events-none">
+                        <div class="text-lg sm:text-xl md:text-2xl font-black tracking-[0.25em] uppercase text-white mb-1 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                            FLEW AWAY!
+                        </div>
+                        <div id="flew-away-mult" class="text-5xl sm:text-6xl md:text-7xl font-black font-mono text-avRed drop-shadow-[0_0_25px_rgba(255,42,64,0.9)]">
+                            1.00x
+                        </div>
+                    </div>
+
+                    <!-- WAITING FOR NEXT FLIGHT OVERLAY -->
+                    <div id="waiting-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/65 backdrop-blur-sm">
+                        <div class="relative flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-fan text-avRed text-5xl md:text-6xl spin-slow drop-shadow-[0_0_20px_rgba(255,42,64,0.8)]"></i>
+                        </div>
+                        <div class="text-white text-base md:text-xl font-black tracking-[0.2em] uppercase mb-3 drop-shadow">
+                            WAITING FOR NEXT FLIGHT
+                        </div>
+                        <div class="w-56 md:w-64 h-2.5 bg-gray-900 rounded-full overflow-hidden border border-gray-700 p-[1px] shadow-inner">
+                            <div id="loading-bar-fill" class="h-full bg-gradient-to-r from-orange-500 via-avRed to-pink-500 rounded-full w-0 transition-all duration-75 shadow-[0_0_12px_rgba(255,42,64,0.9)]"></div>
+                        </div>
+                    </div>
+
+                    <!-- 60FPS HTML5 FLIGHT CANVAS -->
+                    <canvas id="graphCanvas" class="absolute inset-0 w-full h-full z-10"></canvas>
+                </div>
+
+                <!-- DUAL COCKPIT CONSOLES -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+
+                    <!-- PANEL 1: PRIMARY BET & AUTO-CASHOUT COCKPIT -->
+                    <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative border-t-2 border-t-avRed/60">
+                        
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-sliders text-avRed"></i> Flight Cockpit 1
+                            </span>
+                            <!-- Auto Bet Toggle -->
+                            <label class="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold text-gray-400">
+                                <span>Auto Bet</span>
+                                <input type="checkbox" id="auto-bet-toggle" class="sr-only peer">
+                                <div class="w-7 h-4 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all relative peer-checked:bg-avGreen"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 items-stretch">
+                            <!-- Left Stake Controls -->
+                            <div class="flex-1 flex flex-col justify-between">
+                                <!-- Stake Input Row -->
+                                <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-1.5 py-1 mb-2 shadow-inner">
+                                    <button type="button" onclick="adjustStake(-10)" class="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-base transition">-</button>
+                                    <input type="number" id="stake-amount" value="10" min="10" class="w-full bg-transparent text-center text-white font-black font-mono text-lg focus:outline-none">
+                                    <button type="button" onclick="adjustStake(10)" class="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-base transition">+</button>
+                                </div>
+
+                                <!-- Quick Chips Grid -->
+                                <div class="grid grid-cols-4 gap-1.5 mb-2">
+                                    <button type="button" onclick="setStake(10)" class="bet-chip-btn">10</button>
+                                    <button type="button" onclick="setStake(50)" class="bet-chip-btn">50</button>
+                                    <button type="button" onclick="setStake(100)" class="bet-chip-btn">100</button>
+                                    <button type="button" onclick="setStake(500)" class="bet-chip-btn">500</button>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <button type="button" onclick="setStake(1000)" class="bet-chip-btn">1K</button>
+                                    <button type="button" onclick="setStake(5000)" class="bet-chip-btn">5K</button>
+                                    <button type="button" onclick="multiplyStake(0.5)" class="bet-chip-btn text-purple-400">½</button>
+                                    <button type="button" onclick="multiplyStake(2)" class="bet-chip-btn text-amber-400">2×</button>
+                                </div>
+                            </div>
+
+                            <!-- Right Big Action Button -->
+                            <div class="sm:w-44 flex flex-col">
+                                <button type="button" id="action-btn" onclick="handleAction()" class="w-full h-full min-h-[96px] bg-gradient-to-b from-avGreen to-emerald-600 text-black font-black text-2xl py-3 px-4 rounded-2xl uppercase shadow-[0_0_20px_rgba(28,218,58,0.4)] hover:brightness-110 transition-all active:scale-[0.98] flex flex-col items-center justify-center">
+                                    <span>BET</span>
+                                    <span class="text-[11px] font-bold opacity-80 mt-0.5">NEXT FLIGHT</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Auto Cashout Bar -->
+                        <div class="mt-3 pt-2.5 border-t border-gray-800/80 flex items-center justify-between text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer font-bold text-gray-400">
+                                <input type="checkbox" id="auto-cashout-toggle" class="accent-avRed w-4 h-4 rounded cursor-pointer">
+                                <span>Auto Cash Out</span>
+                            </label>
+                            <div class="flex items-center bg-black/60 border border-gray-700 rounded-lg px-2.5 py-1">
+                                <input type="number" id="auto-cashout-val" value="2.00" step="0.10" min="1.10" class="w-16 bg-transparent text-right font-mono font-black text-amber-400 focus:outline-none text-xs">
+                                <span class="text-gray-500 font-bold ml-1 text-xs">x</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: SMART STRATEGY PRESETS & LIVE TELEMETRY -->
+                    <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between border-t-2 border-t-purple-500/60">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-purple-400"></i> One-Tap Strategy Presets
+                            </span>
+                            <span class="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">INSTANT CONFIG</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 my-auto">
+                            <button type="button" onclick="applyPreset(50, 1.50)" class="bg-black/50 hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/50 rounded-xl p-2.5 text-center transition active:scale-95">
+                                <div class="text-[10px] font-bold text-emerald-400 uppercase">Safe Scalp</div>
+                                <div class="text-sm font-black text-white font-mono mt-0.5">1.50x</div>
+                                <div class="text-[10px] text-gray-500">₹50 Stake</div>
+                            </button>
+                            <button type="button" onclick="applyPreset(100, 2.00)" class="bg-black/50 hover:bg-amber-950/40 border border-gray-800 hover:border-amber-500/50 rounded-xl p-2.5 text-center transition active:scale-95">
+                                <div class="text-[10px] font-bold text-amber-400 uppercase">Double Up</div>
+                                <div class="text-sm font-black text-white font-mono mt-0.5">2.00x</div>
+                                <div class="text-[10px] text-gray-500">₹100 Stake</div>
+                            </button>
+                            <button type="button" onclick="applyPreset(250, 5.00)" class="bg-black/50 hover:bg-pink-950/40 border border-gray-800 hover:border-pink-500/50 rounded-xl p-2.5 text-center transition active:scale-95">
+                                <div class="text-[10px] font-bold text-pink-400 uppercase">Moon Shot</div>
+                                <div class="text-sm font-black text-white font-mono mt-0.5">5.00x</div>
+                                <div class="text-[10px] text-gray-500">₹250 Stake</div>
+                            </button>
+                        </div>
+
+                        <!-- Live Target Profit Preview -->
+                        <div class="mt-3 pt-2.5 border-t border-gray-800/80 flex items-center justify-between text-xs">
+                            <span class="text-gray-400 font-bold">Target Auto-Payout:</span>
+                            <span id="preset-profit-preview" class="font-mono font-black text-avGreen text-sm">₹20.00</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: ROUND HISTORY TABLE -->
+            <div class="w-full lg:w-72 glass-panel rounded-2xl p-4 flex flex-col shrink-0">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
+                    <span class="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-ol text-avRed"></i> Flight Log
+                    </span>
+                    <span class="text-[10px] font-mono text-gray-500">Last 15 Rounds</span>
+                </div>
+
+                <div id="history-strip" class="flex flex-col gap-2 overflow-y-auto max-h-[320px] lg:max-h-[540px] pr-1 custom-scrollbar">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 w-full bg-[#090c14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
     </nav>
 
     <script>
+        // =====================================================
+        // 1. ANTI-INSPECT & DEVTOOLS PROTECTION SHIELD
+        // =====================================================
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                showToast("Security Shield: Inspection is restricted.", "error");
+                return false;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) {
+                e.preventDefault();
+                showToast("Security Shield: Developer tools are disabled.", "error");
+                return false;
+            }
+            if ((e.ctrlKey || e.metaKey) && ['U', 'u', 'S', 's'].includes(e.key)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // =====================================================
+        // 2. FIXED NON-DISRUPTIVE TOAST NOTIFICATIONS
+        // =====================================================
         function showToast(message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
-            const toast = document.createElement('div'); const isSuccess = type === 'success';
-            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            while (container.children.length >= 2) {
+                container.firstChild.remove();
+            }
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.75)] transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Flight Desk' : 'Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
 
-        // ==========================================
-        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
-        // ==========================================
+        // =====================================================
+        // 3. WEB AUDIO SYNTHESIZER & MUTE CONTROL
+        // =====================================================
         let audioCtx;
-        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
-        const Sound = {
-            play: (f, t, dur, v=0.1) => {
-                if(!audioCtx) return;
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
-            },
-            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            
-            // Bright, triumphant 4-note ascending chime (Jackpot feel)
-            win: () => { 
-                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
-                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
-                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
-                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
-            },
-            
-            // Deep, sad, descending 3-note buzzer (Womp.. womp.. womp..)
-            lose: () => { 
-                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
-                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
-                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
-            },
-            
-            // Specific sounds for Cyber Mines
-            gem: () => { setTimeout(()=>Sound.play(800,'sine',0.1,0.05),0); setTimeout(()=>Sound.play(1200,'sine',0.2,0.05),50); },
-            boom: () => { Sound.play(100,'square',0.5,0.2); Sound.play(50,'sawtooth',0.8,0.2); }
-        };
+        let isMuted = false;
 
-
-        function triggerWinAnimation(winnings, newTotal) {
-            Sound.win();
-            const balWrapper = document.getElementById('balance-wrapper');
-            const balEl = document.getElementById('display-balance');
-            if(!balEl || !balWrapper) return;
-            const floater = document.createElement('div');
-            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
-            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
-            const rect = balWrapper.getBoundingClientRect();
-            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
-            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
-            document.body.appendChild(floater);
-            void floater.offsetWidth; 
-            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
-            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
-            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        const canvas = document.getElementById('graphCanvas'); const ctx = canvas.getContext('2d');
-        let localState = "WAITING"; let serverElapsed = 0; let syncTime = performance.now();
-        let hasBet = false; let isCashedOut = false; let stake = 10; let liveMultiplier = 1.00;
-
-        function setStake(amount) { initAudio(); Sound.tick(); if (localState === "WAITING" && !hasBet) document.getElementById('stake-amount').value = amount; }
-        function adjustStake(amount) { initAudio(); Sound.tick(); if (localState !== "WAITING" || hasBet) return; let val = parseInt(document.getElementById('stake-amount').value) || 0; document.getElementById('stake-amount').value = Math.max(10, val + amount); }
-        function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; } window.addEventListener('resize', resizeCanvas); resizeCanvas();
-
-        function renderHistory(historyArray) {
-            const strip = document.getElementById('history-strip'); strip.innerHTML = '';
-            historyArray.forEach(mult => {
-                let colorClass = "text-blue-400 border-blue-900 bg-blue-900/20";
-                if(mult >= 2.00 && mult < 5.00) colorClass = "text-purple-400 border-purple-900 bg-purple-900/20";
-                else if(mult >= 5.00) colorClass = "text-pink-500 border-pink-900 bg-pink-900/20 drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]";
-                strip.innerHTML += `<span class="${colorClass} px-3 py-1 rounded-full border">${mult.toFixed(2)}x</span>`;
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const iconClass = isMuted ? 'fa-solid fa-volume-xmark text-avRed' : 'fa-solid fa-volume-high text-avGreen';
+            ['header-mute-btn', 'canvas-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<i class="${iconClass}"></i>`;
             });
         }
 
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            tick: () => Sound.play(850, 'sine', 0.04, 0.04),
+            takeoff: () => {
+                Sound.play(180, 'sawtooth', 0.35, 0.06);
+                setTimeout(() => Sound.play(280, 'sine', 0.4, 0.06), 120);
+            },
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 300);
+            },
+            crash: () => {
+                Sound.play(110, 'sawtooth', 0.45, 0.14);
+                setTimeout(() => Sound.play(65, 'square', 0.55, 0.14), 120);
+            }
+        };
+
+        // =====================================================
+        // 4. WIN FLOAT & CONFETTI CELEBRATION
+        // =====================================================
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            spawnConfetti();
+            const balWrapper = document.getElementById('balance-wrapper');
+            const balEl = document.getElementById('display-balance');
+            if (!balEl || !balWrapper) return;
+
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1400ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 30) + 'px';
+            floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)';
+            floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-45px) scale(1.25)';
+            floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.18)';
+
+            setTimeout(() => { floater.style.opacity = '0'; }, 950);
+            setTimeout(() => {
+                floater.remove();
+                balEl.innerText = parseFloat(newTotal).toFixed(2);
+                balWrapper.style.transform = 'scale(1)';
+            }, 1400);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#1CDA3A', '#ff2a40', '#fbbf24', '#38bdf8', '#a855f7'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '40%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        // =====================================================
+        // 5. BETTING, AUTO-CASHOUT & PRESETS
+        // =====================================================
+        let localState = "";
+        let serverElapsed = 0;
+        let syncTime = performance.now();
+        let hasBet = false;
+        let isCashedOut = false;
+        let cashoutInProgress = false;
+        let stake = 10;
+        let liveMultiplier = 1.00;
+
+        let flyAwayOffset = { x: 0, y: 0 };
+        let lastPlanePos = { x: 40, y: 200 };
+        let trailParticles = [];
+
+        function updateProfitPreview() {
+            const s = parseFloat(document.getElementById('stake-amount').value) || 10;
+            const m = parseFloat(document.getElementById('auto-cashout-val').value) || 2.0;
+            const preview = document.getElementById('preset-profit-preview');
+            if (preview) preview.innerText = '₹' + (s * m).toFixed(2);
+        }
+
+        document.getElementById('stake-amount').addEventListener('input', updateProfitPreview);
+        document.getElementById('auto-cashout-val').addEventListener('input', updateProfitPreview);
+
+        function setStake(amount) {
+            initAudio();
+            Sound.tick();
+            if (localState === "WAITING" && !hasBet) {
+                document.getElementById('stake-amount').value = amount;
+                updateProfitPreview();
+            }
+        }
+
+        function adjustStake(amount) {
+            initAudio();
+            Sound.tick();
+            if (localState !== "WAITING" || hasBet) return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 0;
+            document.getElementById('stake-amount').value = Math.max(10, val + amount);
+            updateProfitPreview();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (localState !== "WAITING" || hasBet) return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 10;
+            document.getElementById('stake-amount').value = Math.max(10, Math.round(val * factor));
+            updateProfitPreview();
+        }
+
+        function applyPreset(presetStake, presetMult) {
+            initAudio();
+            Sound.tick();
+            if (!hasBet) {
+                document.getElementById('stake-amount').value = presetStake;
+            }
+            document.getElementById('auto-cashout-val').value = presetMult.toFixed(2);
+            document.getElementById('auto-cashout-toggle').checked = true;
+            updateProfitPreview();
+            showToast(`Preset active: ₹${presetStake} @ ${presetMult.toFixed(2)}x Auto Cashout`, 'success');
+        }
+
+        // =====================================================
+        // 6. HISTORY RENDERING (TOP RIBBON + SIDE LOG)
+        // =====================================================
+        function renderHistory(historyArray) {
+            if (!Array.isArray(historyArray)) return;
+            const strip = document.getElementById('history-strip');
+            const topPills = document.getElementById('top-history-pills');
+            strip.innerHTML = '';
+            topPills.innerHTML = '';
+
+            historyArray.forEach(item => {
+                const mult = parseFloat(item.mult);
+                const matchId = item.id;
+
+                let borderClass = "border-blue-500/30";
+                let textClass = "text-blue-400";
+                let bgClass = "bg-blue-500/10";
+                let pillClass = "bg-blue-950/80 text-blue-400 border-blue-500/40";
+
+                if (mult >= 2.00 && mult < 10.00) {
+                    borderClass = "border-purple-500/40";
+                    textClass = "text-purple-400";
+                    bgClass = "bg-purple-500/10";
+                    pillClass = "bg-purple-950/80 text-purple-300 border-purple-500/50";
+                } else if (mult >= 10.00) {
+                    borderClass = "border-pink-500/60";
+                    textClass = "text-pink-400";
+                    bgClass = "bg-pink-500/15 shadow-[0_0_12px_rgba(236,72,153,0.25)]";
+                    pillClass = "bg-pink-950/90 text-pink-300 border-pink-500/60 shadow-[0_0_10px_rgba(236,72,153,0.4)]";
+                }
+
+                topPills.innerHTML += `
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black border ${pillClass} shrink-0">
+                        ${mult.toFixed(2)}x
+                    </span>
+                `;
+
+                strip.innerHTML += `
+                    <div class="w-full ${bgClass} border ${borderClass} rounded-xl px-3.5 py-2 flex justify-between items-center transition hover:bg-white/5">
+                        <span class="text-xs font-mono font-bold text-gray-400">#${matchId}</span>
+                        <span class="text-sm font-mono font-black ${textClass}">${mult.toFixed(2)}x</span>
+                    </div>
+                `;
+            });
+        }
+
+        // =====================================================
+        // 7. UI STATE & SERVER COMMUNICATION
+        // =====================================================
         function updateUIState() {
             const btn = document.getElementById('action-btn');
+            const dot = document.getElementById('telemetry-dot');
+            const status = document.getElementById('telemetry-status');
+
             if (localState === "WAITING") {
-                document.getElementById('waiting-overlay').classList.remove('hidden'); document.getElementById('multiplier-text').classList.add('hidden'); document.getElementById('flew-away-msg').classList.add('hidden');
-                if (hasBet) { btn.className = "w-full bg-red-700 text-white font-black text-xl py-3 rounded-xl pointer-events-none shadow-[inset_0_4px_15px_rgba(0,0,0,0.4)]"; btn.innerText = "WAITING FOR FLIGHT"; } 
-                else { btn.className = "w-full bg-avGreen text-black font-black text-2xl py-3 rounded-xl uppercase shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:shadow-[0_0_25px_rgba(28,218,58,0.6)] hover:bg-[#20e841] transition-all active:scale-[0.98]"; btn.innerText = "BET"; btn.disabled = false; }
+                document.getElementById('waiting-overlay').classList.remove('hidden');
+                document.getElementById('multiplier-text').classList.add('hidden');
+                document.getElementById('flew-away-msg').classList.add('hidden');
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                status.innerText = "PRE-FLIGHT CHECK";
+
+                if (hasBet) {
+                    btn.className = "w-full h-full min-h-[96px] bg-red-800/90 text-white font-black text-lg py-3 px-4 rounded-2xl pointer-events-none border border-red-500/40 flex flex-col items-center justify-center shadow-inner";
+                    btn.innerHTML = `<span>WAITING FOR FLIGHT</span><span class="text-[11px] font-mono text-red-200 mt-0.5">₹${stake.toFixed(2)} LOCKED</span>`;
+                } else {
+                    btn.className = "w-full h-full min-h-[96px] bg-gradient-to-b from-avGreen to-emerald-600 text-black font-black text-2xl py-3 px-4 rounded-2xl uppercase shadow-[0_0_20px_rgba(28,218,58,0.4)] hover:brightness-110 transition-all active:scale-[0.98] flex flex-col items-center justify-center";
+                    btn.innerHTML = `<span>BET</span><span class="text-[11px] font-bold opacity-80 mt-0.5">NEXT FLIGHT</span>`;
+                    btn.disabled = false;
+                }
             } else if (localState === "FLYING") {
-                document.getElementById('waiting-overlay').classList.add('hidden'); document.getElementById('multiplier-text').classList.remove('hidden'); document.getElementById('flew-away-msg').classList.add('hidden');
-                if (hasBet && !isCashedOut) { btn.className = "w-full bg-orange-500 text-white font-black text-2xl py-2 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.6)] hover:bg-orange-400 active:scale-[0.98] transition-all"; btn.disabled = false; } 
-                else if (isCashedOut) { } else { btn.className = "w-full bg-gray-800 text-gray-600 font-black text-xl py-3 rounded-xl pointer-events-none uppercase shadow-inner border border-gray-700"; btn.innerText = "WAIT FOR NEXT ROUND"; }
+                document.getElementById('waiting-overlay').classList.add('hidden');
+                document.getElementById('multiplier-text').classList.remove('hidden');
+                document.getElementById('flew-away-msg').classList.add('hidden');
+                dot.className = "w-2 h-2 rounded-full bg-avGreen animate-ping";
+                status.innerText = "IN FLIGHT TELEMETRY";
+
+                if (hasBet && !isCashedOut) {
+                    btn.className = "w-full h-full min-h-[96px] bg-gradient-to-b from-amber-400 to-orange-500 text-black font-black text-xl py-2 px-4 rounded-2xl shadow-[0_0_25px_rgba(249,115,22,0.7)] hover:brightness-110 active:scale-[0.98] transition-all flex flex-col items-center justify-center";
+                    btn.disabled = false;
+                } else if (!hasBet) {
+                    btn.className = "w-full h-full min-h-[96px] bg-gray-800/80 text-gray-500 font-black text-base py-3 px-4 rounded-2xl pointer-events-none uppercase border border-gray-700/80 flex flex-col items-center justify-center";
+                    btn.innerHTML = `<span>WAIT FOR NEXT ROUND</span><span class="text-[10px] font-bold mt-0.5">FLIGHT IN PROGRESS</span>`;
+                }
+            } else if (localState === "CRASHED") {
+                dot.className = "w-2 h-2 rounded-full bg-avRed";
+                status.innerText = "SIGNAL LOST";
             }
         }
 
         async function handleAction() {
             initAudio();
-            const btn = document.getElementById('action-btn'); stake = parseFloat(document.getElementById('stake-amount').value);
+            const btn = document.getElementById('action-btn');
+            stake = parseFloat(document.getElementById('stake-amount').value);
+
             if (localState === "WAITING" && !hasBet) {
+                if (isNaN(stake) || stake < 10) {
+                    showToast("Minimum bet is ₹10", "error");
+                    return;
+                }
                 btn.disabled = true;
                 try {
-                    let res = await fetch("/aviator/bet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stake: stake }) }); let data = await res.json();
-                    if (data.success) { document.getElementById('display-balance').innerText = data.new_total.toFixed(2); hasBet = true; updateUIState(); showToast("Bet accepted for upcoming round.", "success"); } else { showToast(data.error, "error"); btn.disabled = false; }
-                } catch(e) { showToast("Network Error", "error"); btn.disabled = false; }
-            } else if (localState === "FLYING" && hasBet && !isCashedOut) {
+                    let res = await fetch("/aviator/bet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ stake: stake })
+                    });
+                    let data = await res.json();
+                    if (data.success) {
+                        Sound.tick();
+                        document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                        hasBet = true;
+                        updateUIState();
+                        showToast("Bet accepted for upcoming round.", "success");
+                    } else {
+                        showToast(data.error || "Insufficient balance or round closed.", "error");
+                        btn.disabled = false;
+                    }
+                } catch (e) {
+                    showToast("Network Error", "error");
+                    btn.disabled = false;
+                }
+            } else if (localState === "FLYING" && hasBet && !isCashedOut && !cashoutInProgress) {
+                cashoutInProgress = true;
                 btn.disabled = true;
                 try {
-                    let res = await fetch("/aviator/cashout", { method: "POST", headers: { "Content-Type": "application/json" } }); let data = await res.json();
+                    let res = await fetch("/aviator/cashout", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    let data = await res.json();
                     if (data.success) {
                         isCashedOut = true;
-                        btn.className = "w-full bg-avGreen text-black font-black py-1.5 rounded-xl flex flex-col items-center pointer-events-none shadow-[0_0_15px_rgba(28,218,58,0.5)]";
-                        btn.innerHTML = `<span class="text-xs uppercase tracking-widest">Cashed Out</span><span class="text-2xl">₹${data.winnings.toFixed(2)}</span>`;
+                        btn.className = "w-full h-full min-h-[96px] bg-avGreen text-black font-black py-2 px-4 rounded-2xl flex flex-col items-center justify-center pointer-events-none shadow-[0_0_20px_rgba(28,218,58,0.5)]";
+                        btn.innerHTML = `<span class="text-xs uppercase tracking-widest">Cashed Out</span><span class="text-2xl font-mono">₹${data.winnings.toFixed(2)}</span>`;
                         showToast(`Cashed out! Won ₹${data.winnings.toFixed(2)}`, "success");
                         triggerWinAnimation(data.winnings, data.new_total);
-                    } else { showToast(data.error, "error"); btn.disabled = false; }
-                } catch(e) { showToast("Network Error", "error"); btn.disabled = false; }
+                    } else {
+                        showToast(data.error || "Flight already crashed!", "error");
+                    }
+                } catch (e) {
+                    showToast("Network Error", "error");
+                } finally {
+                    cashoutInProgress = false;
+                }
             }
         }
 
         async function syncServer() {
             try {
-                let res = await fetch('/aviator/sync'); let data = await res.json(); serverElapsed = data.elapsed; syncTime = performance.now(); renderHistory(data.history);
+                let res = await fetch('/aviator/sync');
+                let data = await res.json();
+                serverElapsed = data.elapsed;
+                syncTime = performance.now();
+
+                document.getElementById('live-match-number').innerText = "#" + data.match_number;
+                renderHistory(data.history);
+
                 if (data.state !== localState) {
                     localState = data.state;
-                    if (localState === 'WAITING') { hasBet = false; isCashedOut = false; } 
-                    else if (localState === 'CRASHED') {
-                        document.getElementById('multiplier-text').classList.add('hidden'); document.getElementById('flew-away-msg').classList.remove('hidden'); document.getElementById('flew-away-mult').innerText = data.crash_point.toFixed(2) + "x";
-                        const btn = document.getElementById('action-btn'); btn.className = "w-full bg-[#1a1515] text-gray-600 font-black text-xl py-3 rounded-xl pointer-events-none uppercase border border-red-900/30"; btn.innerText = "FLEW AWAY";
-                        if (hasBet && !isCashedOut) { Sound.lose(); }
-                    } updateUIState();
-                }
-            } catch(e) {}
-        } setInterval(syncServer, 1000); syncServer();
 
-        function drawPremiumGrid(totalElapsed) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#ff2a40'; let xOffset = (totalElapsed * 40) % 40;
-            for(let i = canvas.width - xOffset; i > 0; i -= 40) { ctx.beginPath(); ctx.arc(i, canvas.height - 10, 3, 0, Math.PI*2); ctx.fill(); }
-            let yOffset = (totalElapsed * 40) % 40; for(let i = yOffset; i < canvas.height; i += 40) { ctx.beginPath(); ctx.arc(10, i, 3, 0, Math.PI*2); ctx.fill(); }
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
-            for(let i=0; i<canvas.height; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+                    if (localState === 'WAITING') {
+                        hasBet = false;
+                        isCashedOut = false;
+                        cashoutInProgress = false;
+                        flyAwayOffset = { x: 0, y: 0 };
+                        trailParticles = [];
+                        updateUIState();
+
+                        if (document.getElementById('auto-bet-toggle').checked) {
+                            setTimeout(() => {
+                                if (localState === 'WAITING' && !hasBet) handleAction();
+                            }, 400);
+                        }
+                    } else if (localState === 'FLYING') {
+                        flyAwayOffset = { x: 0, y: 0 };
+                        Sound.takeoff();
+                        updateUIState();
+                    } else if (localState === 'CRASHED') {
+                        if (hasBet && !isCashedOut) {
+                            Sound.crash();
+                        }
+                        const stage = document.getElementById('flight-stage');
+                        stage.classList.remove('shake-crash');
+                        void stage.offsetWidth;
+                        stage.classList.add('shake-crash');
+
+                        document.getElementById('waiting-overlay').classList.add('hidden');
+                        document.getElementById('multiplier-text').classList.add('hidden');
+                        document.getElementById('flew-away-msg').classList.remove('hidden');
+                        if (data.crash_point !== null && data.crash_point !== undefined) {
+                            document.getElementById('flew-away-mult').innerText = parseFloat(data.crash_point).toFixed(2) + "x";
+                        }
+
+                        const btn = document.getElementById('action-btn');
+                        btn.className = "w-full h-full min-h-[96px] bg-[#1a1114] text-avRed font-black text-xl py-3 px-4 rounded-2xl pointer-events-none uppercase border border-avRed/30 flex flex-col items-center justify-center";
+                        btn.innerHTML = `<span>FLEW AWAY</span><span class="text-[10px] text-gray-500 mt-0.5">ROUND ENDED</span>`;
+                        updateUIState();
+                    }
+                }
+            } catch (e) {}
         }
-        function renderLoop() {
-            requestAnimationFrame(renderLoop); let localElapsed = (performance.now() - syncTime) / 1000; let totalElapsed = serverElapsed + localElapsed; drawPremiumGrid(totalElapsed);
-            if (localState === 'WAITING') { document.getElementById('loading-bar-fill').style.width = Math.min(100, (totalElapsed / 5.0) * 100) + '%'; } 
-            else if (localState === 'FLYING') {
-                liveMultiplier = 1.00 + Math.pow(totalElapsed, 1.4) * 0.08; document.getElementById('multiplier-text').innerText = liveMultiplier.toFixed(2) + "x";
-                if (hasBet && !isCashedOut) { let potential = (stake * liveMultiplier).toFixed(2); document.getElementById('action-btn').innerHTML = `CASH OUT<br><span class="text-sm tracking-widest font-bold">₹${potential}</span>`; }
-                ctx.strokeStyle = '#ff2a40'; ctx.lineWidth = 6; ctx.shadowBlur = 15; ctx.shadowColor = '#ff2a40'; ctx.beginPath(); ctx.moveTo(10, canvas.height - 10);
-                let progressX = Math.min(canvas.width * 0.85, 10 + (totalElapsed * 50)); let progressY = canvas.height - 10 - Math.min(canvas.height * 0.75, (Math.pow(totalElapsed, 1.4) * 15));
-                ctx.quadraticCurveTo(progressX * 0.6, canvas.height - 10, progressX, progressY); ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20; ctx.beginPath();
-                ctx.moveTo(progressX, progressY); ctx.lineTo(progressX - 45, progressY + 12); ctx.lineTo(progressX - 45, progressY - 12); ctx.lineTo(progressX - 15, progressY); ctx.fill(); ctx.shadowBlur = 0; 
+        setInterval(syncServer, 800);
+        syncServer();
+
+        // =====================================================
+        // 8. 60FPS SPRIBE-STYLE CANVAS GRAPHICS ENGINE
+        // =====================================================
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let stars = Array.from({ length: 45 }, () => ({
+            x: Math.random() * 1000,
+            y: Math.random() * 500,
+            size: Math.random() * 1.8 + 0.5,
+            speed: Math.random() * 0.6 + 0.2
+        }));
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawAviatorPlane(x, y, angle, totalElapsed) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            // Engine Thrust Flame
+            const flameLen = 14 + Math.sin(totalElapsed * 45) * 6;
+            const flameGrad = ctx.createLinearGradient(-28, 0, -28 - flameLen, 0);
+            flameGrad.addColorStop(0, '#fbbf24');
+            flameGrad.addColorStop(0.5, '#ff2a40');
+            flameGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = flameGrad;
+            ctx.beginPath();
+            ctx.moveTo(-24, -3);
+            ctx.lineTo(-24 - flameLen, 0);
+            ctx.lineTo(-24, 3);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = '#ff2a40';
+
+            // Main Fuselage Body
+            ctx.fillStyle = '#ff2a40';
+            ctx.beginPath();
+            ctx.moveTo(22, 0);
+            ctx.quadraticCurveTo(12, -8, -22, -6);
+            ctx.lineTo(-26, 0);
+            ctx.lineTo(-22, 5);
+            ctx.quadraticCurveTo(10, 7, 22, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cockpit Canopy
+            ctx.fillStyle = '#e0f2fe';
+            ctx.beginPath();
+            ctx.ellipse(2, -4, 7, 3, 0, Math.PI, 0);
+            ctx.fill();
+
+            // Tail Fin
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.moveTo(-16, -5);
+            ctx.lineTo(-26, -16);
+            ctx.lineTo(-28, -14);
+            ctx.lineTo(-22, -5);
+            ctx.closePath();
+            ctx.fill();
+
+            // Swept Wing
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(6, -1);
+            ctx.lineTo(-8, -15);
+            ctx.lineTo(-14, -14);
+            ctx.lineTo(-4, 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Spinning Propeller Blade
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.lineWidth = 2.5;
+            const propH = Math.sin(totalElapsed * 60) * 14;
+            ctx.beginPath();
+            ctx.moveTo(23, -propH);
+            ctx.lineTo(23, propH);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawBackgroundAndAxes(totalElapsed) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Rotating Sunburst Rays from Bottom-Left Origin
+            ctx.save();
+            ctx.translate(24, canvas.height - 24);
+            ctx.rotate(totalElapsed * 0.12);
+            const rayCount = 16;
+            for (let i = 0; i < rayCount; i++) {
+                ctx.rotate((Math.PI * 2) / rayCount);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(canvas.width * 1.5, -35);
+                ctx.lineTo(canvas.width * 1.5, 35);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 42, 64, 0.025)';
+                ctx.fill();
             }
-        } requestAnimationFrame(renderLoop);
+            ctx.restore();
+
+            // 2. Parallax Starfield
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            stars.forEach(s => {
+                if (localState === 'FLYING') {
+                    s.x -= s.speed * 2.5;
+                    s.y += s.speed * 0.8;
+                    if (s.x < 0) s.x = canvas.width;
+                    if (s.y > canvas.height) s.y = 0;
+                }
+                ctx.beginPath();
+                ctx.arc(s.x % canvas.width, s.y % canvas.height, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 3. Subtle Grid Lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            for (let x = 24; x < canvas.width; x += 55) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height - 24);
+                ctx.stroke();
+            }
+            for (let y = canvas.height - 24; y > 0; y -= 55) {
+                ctx.beginPath();
+                ctx.moveTo(24, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // 4. X & Y Axis Borders + Moving Telemetry Dots
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath();
+            ctx.moveTo(24, 10);
+            ctx.lineTo(24, canvas.height - 24);
+            ctx.lineTo(canvas.width - 10, canvas.height - 24);
+            ctx.stroke();
+
+            const speedOffset = localState === 'FLYING' ? (totalElapsed * 45) % 36 : 0;
+            ctx.fillStyle = '#38bdf8';
+            for (let x = canvas.width - speedOffset; x > 28; x -= 36) {
+                ctx.beginPath();
+                ctx.arc(x, canvas.height - 12, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.fillStyle = '#ff2a40';
+            for (let y = speedOffset; y < canvas.height - 28; y += 36) {
+                ctx.beginPath();
+                ctx.arc(12, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            const localElapsed = (performance.now() - syncTime) / 1000;
+            const totalElapsed = Math.max(0, serverElapsed + localElapsed);
+
+            drawBackgroundAndAxes(totalElapsed);
+
+            if (localState === 'WAITING') {
+                const pct = Math.min(100, (totalElapsed / 5.0) * 100);
+                document.getElementById('loading-bar-fill').style.width = pct + '%';
+            } else if (localState === 'FLYING') {
+                liveMultiplier = 1.00 + Math.pow(totalElapsed, 1.4) * 0.08;
+                const multEl = document.getElementById('multiplier-text');
+                multEl.innerText = liveMultiplier.toFixed(2) + "x";
+
+                if (liveMultiplier >= 10.0) {
+                    multEl.style.textShadow = '0 0 35px rgba(236, 72, 153, 0.9)';
+                } else if (liveMultiplier >= 2.0) {
+                    multEl.style.textShadow = '0 0 35px rgba(168, 85, 247, 0.9)';
+                } else {
+                    multEl.style.textShadow = '0 0 30px rgba(255, 42, 64, 0.75)';
+                }
+
+                if (hasBet && !isCashedOut && !cashoutInProgress) {
+                    const potential = (stake * liveMultiplier).toFixed(2);
+                    document.getElementById('action-btn').innerHTML = `<span>CASH OUT</span><span class="text-base font-mono font-black mt-0.5">₹${potential}</span>`;
+
+                    const autoEnabled = document.getElementById('auto-cashout-toggle').checked;
+                    const autoTarget = parseFloat(document.getElementById('auto-cashout-val').value) || 2.00;
+                    if (autoEnabled && liveMultiplier >= autoTarget) {
+                        handleAction();
+                    }
+                }
+
+                const originX = 24;
+                const originY = canvas.height - 24;
+                const maxW = canvas.width * 0.80;
+                const maxH = canvas.height * 0.74;
+
+                const hoverWave = Math.sin(totalElapsed * 3.5) * 6;
+                const progressX = originX + Math.min(maxW, totalElapsed * 55);
+                const progressY = originY - Math.min(maxH, Math.pow(totalElapsed, 1.35) * 18) + hoverWave;
+
+                lastPlanePos = { x: progressX, y: progressY };
+
+                // Shaded Area Under Trajectory Curve
+                const areaGrad = ctx.createLinearGradient(0, progressY, 0, originY);
+                areaGrad.addColorStop(0, 'rgba(255, 42, 64, 0.42)');
+                areaGrad.addColorStop(1, 'rgba(255, 42, 64, 0.02)');
+
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.quadraticCurveTo(originX + (progressX - originX) * 0.55, originY, progressX, progressY);
+                ctx.lineTo(progressX, originY);
+                ctx.closePath();
+                ctx.fillStyle = areaGrad;
+                ctx.fill();
+
+                // Glowing Trajectory Curve Line
+                ctx.save();
+                ctx.strokeStyle = '#ff2a40';
+                ctx.lineWidth = 4.5;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff2a40';
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.quadraticCurveTo(originX + (progressX - originX) * 0.55, originY, progressX, progressY);
+                ctx.stroke();
+                ctx.restore();
+
+                // Emit Contrail Particles
+                if (Math.random() < 0.6) {
+                    trailParticles.push({
+                        x: progressX - 20,
+                        y: progressY + 2,
+                        vx: -1.5 - Math.random() * 1.5,
+                        vy: (Math.random() - 0.5) * 1.2,
+                        alpha: 0.8,
+                        r: Math.random() * 2.5 + 1
+                    });
+                }
+
+                for (let i = trailParticles.length - 1; i >= 0; i--) {
+                    const p = trailParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.025;
+                    if (p.alpha <= 0) {
+                        trailParticles.splice(i, 1);
+                        continue;
+                    }
+                    ctx.fillStyle = `rgba(255, 180, 120, ${p.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                drawAviatorPlane(progressX, progressY, -0.22, totalElapsed);
+
+            } else if (localState === 'CRASHED') {
+                flyAwayOffset.x += 16;
+                flyAwayOffset.y -= 10;
+                const crashX = lastPlanePos.x + flyAwayOffset.x;
+                const crashY = lastPlanePos.y + flyAwayOffset.y;
+                if (crashX < canvas.width + 120 && crashY > -120) {
+                    drawAviatorPlane(crashX, crashY, -0.45, totalElapsed);
+                }
+            }
+        }
+
+        requestAnimationFrame(renderLoop);
     </script>
 </body>
 </html>

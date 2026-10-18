@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plinko Ultra Pro Max - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#ec4899',
+                        neonPink: '#ec4899',
+                        neonPurple: '#a855f7',
+                        neonCyan: '#06b6d4',
+                        neonGreen: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ec4899; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Pyramid Arena Board */
+        .game-board {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1.05;
+            background:
+                radial-gradient(circle at 50% 8%, rgba(236, 72, 153, 0.18) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 95%, rgba(168, 85, 247, 0.15) 0%, transparent 55%),
+                linear-gradient(180deg, #0b0f19 0%, #060810 100%);
+            border-radius: 1.75rem;
+            overflow: hidden;
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9), 0 15px 45px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Subtle cyber grid inside board */
+        .game-board::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+        }
+
+        /* Peg Styling & Collision Shockwave */
+        .peg {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background: #fdf2f8;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 6px rgba(236, 72, 153, 0.8), 0 0 12px rgba(168, 85, 247, 0.5);
+            z-index: 15;
+            transition: transform 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .peg.peg-hit {
+            background: #22d3ee;
+            transform: translate(-50%, -50%) scale(1.9);
+            box-shadow: 0 0 14px #22d3ee, 0 0 28px #ec4899;
+        }
+
+        .peg-ring {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #ec4899;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: none;
+            z-index: 14;
+            animation: pegRipple 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pegRipple {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.95; border-color: #38bdf8; }
+            100% { transform: translate(-50%, -50%) scale(4.2); opacity: 0; border-color: #ec4899; }
+        }
+
+        /* 3D Glowing Plasma Ball */
+        .plinko-ball {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f472b6 45%, #db2777 100%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            box-shadow: 0 0 12px #ec4899, 0 0 24px #be185d, inset 0 0 4px #ffffff;
+            pointer-events: none;
+            will-change: left, top;
+        }
+
+        .ball-trail {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background: rgba(236, 72, 153, 0.6);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 20;
+            animation: fadeTrail 0.28s linear forwards;
+        }
+
+        @keyframes fadeTrail {
+            0% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+        }
+
+        /* Multiplier Buckets */
+        .slot-bucket {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease, box-shadow 0.15s ease;
+            z-index: 20;
+            position: relative;
+            border-bottom: 3px solid rgba(0, 0, 0, 0.45);
+        }
+
+        .slot-bucket:hover {
+            transform: translateY(-3px) scale(1.06);
+            filter: brightness(1.15);
+            z-index: 30;
+        }
+
+        .slot-pop {
+            transform: translateY(6px) scale(0.92) !important;
+            filter: brightness(1.6) !important;
+        }
+
+        /* Bucket Color Tiers */
+        .mul-16 {
+            background: linear-gradient(180deg, #ff2a40 0%, #be123c 100%);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 42, 64, 0.45);
+        }
+        .mul-9 {
+            background: linear-gradient(180deg, #f97316 0%, #c2410c 100%);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+        }
+        .mul-2 {
+            background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
+            color: #000000;
+        }
+        .mul-1-4 {
+            background: linear-gradient(180deg, #eab308 0%, #a16207 100%);
+            color: #000000;
+        }
+        .mul-1-1 {
+            background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+            color: #000000;
+        }
+        .mul-1 {
+            background: linear-gradient(180deg, #06b6d4 0%, #0e7490 100%);
+            color: #ffffff;
+        }
+        .mul-0-5 {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            color: #94a3b8;
+        }
+
+        /* Floating Win Text */
+        .float-win {
+            position: absolute;
+            font-weight: 900;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.95);
+            pointer-events: none;
+            animation: floatUp 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            z-index: 40;
+            white-space: nowrap;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, 0) scale(0.7); }
+            40% { opacity: 1; transform: translate(-50%, -22px) scale(1.15); }
+            100% { opacity: 0; transform: translate(-50%, -48px) scale(1); }
+        }
+
+        .chip-btn {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            border-radius: 10px;
+            padding: 7px 0;
+            font-size: 12px;
+            font-weight: 800;
+            transition: all 0.15s ease;
+        }
+        .chip-btn:hover {
+            border-color: #ec4899;
+            color: #ffffff;
+            background: rgba(236, 72, 153, 0.15);
+        }
+        .chip-btn:active { transform: scale(0.95); }
+
+        @media (max-width: 768px) {
+            .peg { width: 5px; height: 5px; }
+            .plinko-ball { width: 11px; height: 11px; }
+            .slot-bucket { border-radius: 5px; }
+        }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-20 md:pb-0 overflow-x-hidden" onclick="initAudio()">
+
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI OVERLAY -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-pink-500">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-pink-500/15 text-pink-400 px-2 py-0.5 rounded border border-pink-500/30">PRO MAX</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-pink-500/10 text-pink-400 font-bold rounded-xl border border-pink-500/20"><i class="fa-solid fa-circle-nodes w-5 text-center"></i> Plinko Pro</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-pink-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex items-center justify-between px-4 py-2.5 bg-[#090c14]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(236,72,153,0.5)]">
+                        <i class="fa-solid fa-circle-nodes"></i> PLINKO
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-gray-400 bg-black/50 border border-gray-800 px-2 py-0.5 rounded hidden sm:inline-block">12 ROWS • 16X MAX</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <!-- Active Balls in Flight Badge -->
+                <div id="inflight-badge" class="hidden items-center gap-1.5 bg-pink-500/15 border border-pink-500/40 px-2.5 py-1 rounded-full text-[10px] font-black text-pink-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping"></span>
+                    <span id="inflight-count">0</span> IN FLIGHT
+                </div>
+
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <div class="font-black text-pink-400 text-sm mr-2 transition-transform duration-300" id="balance-wrapper">
+                        <span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    </div>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-pink-500 hover:bg-pink-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(236,72,153,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- RECENT DROPS RIBBON -->
+        <div class="bg-[#080b12] px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-bolt text-pink-500"></i> Recent Hits:
+            </span>
+            <div id="recent-hits-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <span class="text-[10px] font-mono text-gray-600 italic">Drop a ball to start telemetry...</span>
+            </div>
+        </div>
+
+        <!-- MAIN STAGE: CONTROLS + PYRAMID BOARD -->
+        <div class="flex-1 flex flex-col lg:flex-row gap-5 p-3 md:p-6 max-w-6xl mx-auto w-full items-center lg:items-stretch">
+
+            <!-- LEFT COCKPIT: BETTING, AUTO-STREAM & STATS (Order 2 on Mobile, Order 1 on Desktop) -->
+            <div class="w-full lg:w-80 glass-panel rounded-3xl p-4 md:p-5 flex flex-col justify-between order-2 lg:order-1 shrink-0 z-10">
+                <div>
+                    <!-- Manual vs Auto Mode Switcher -->
+                    <div class="grid grid-cols-2 gap-1.5 bg-black/60 p-1 rounded-2xl border border-gray-800 mb-4">
+                        <button type="button" onclick="setPlayMode('manual')" id="tab-manual" class="py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow transition">
+                            <i class="fa-solid fa-hand-pointer mr-1"></i> Manual
+                        </button>
+                        <button type="button" onclick="setPlayMode('auto')" id="tab-auto" class="py-2 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 hover:text-white transition">
+                            <i class="fa-solid fa-robot mr-1"></i> Auto Stream
+                        </button>
+                    </div>
+
+                    <!-- Stake Input -->
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Bet Amount (₹)</label>
+                        <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 bg-black/70 border border-gray-700 rounded-2xl p-1.5 mb-2.5 focus-within:border-pink-500 transition shadow-inner">
+                        <button type="button" onclick="adjustStake(-10)" class="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-base transition">-</button>
+                        <div class="relative flex-1">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-pink-500 font-black text-sm">₹</span>
+                            <input type="number" id="stake" value="50" min="10" step="10" oninput="updateInspector()" class="w-full bg-transparent text-center text-white font-black font-mono text-xl focus:outline-none pl-4">
+                        </div>
+                        <button type="button" onclick="adjustStake(10)" class="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-base transition">+</button>
+                    </div>
+
+                    <!-- Quick Stake Chips -->
+                    <div class="grid grid-cols-6 gap-1.5 mb-4">
+                        <button type="button" onclick="setStake(10)" class="chip-btn">10</button>
+                        <button type="button" onclick="setStake(50)" class="chip-btn">50</button>
+                        <button type="button" onclick="setStake(100)" class="chip-btn">100</button>
+                        <button type="button" onclick="setStake(500)" class="chip-btn">500</button>
+                        <button type="button" onclick="multiplyStake(0.5)" class="chip-btn text-purple-400">½</button>
+                        <button type="button" onclick="multiplyStake(2)" class="chip-btn text-amber-400">2×</button>
+                    </div>
+
+                    <!-- Burst Drop Bar (Manual Mode) -->
+                    <div id="manual-burst-box" class="mb-4">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Multi-Ball Burst</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="burstDrop(1)" class="bg-black/50 hover:bg-pink-500/20 border border-gray-800 hover:border-pink-500/50 rounded-xl py-2 text-xs font-black text-gray-200 transition active:scale-95">
+                                <i class="fa-solid fa-circle text-[9px] text-pink-400 mr-1"></i> 1 Ball
+                            </button>
+                            <button type="button" onclick="burstDrop(3)" class="bg-black/50 hover:bg-pink-500/20 border border-gray-800 hover:border-pink-500/50 rounded-xl py-2 text-xs font-black text-pink-300 transition active:scale-95">
+                                <i class="fa-solid fa-meteor text-[10px] text-pink-400 mr-1"></i> 3× Burst
+                            </button>
+                            <button type="button" onclick="burstDrop(5)" class="bg-black/50 hover:bg-purple-500/20 border border-gray-800 hover:border-purple-500/50 rounded-xl py-2 text-xs font-black text-purple-300 transition active:scale-95">
+                                <i class="fa-solid fa-bolt text-[10px] text-amber-400 mr-1"></i> 5× Burst
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Auto Stream Settings (Auto Mode) -->
+                    <div id="auto-settings-box" class="hidden mb-4 bg-black/40 border border-gray-800 rounded-2xl p-3">
+                        <div class="flex justify-between items-center text-xs font-bold text-gray-300 mb-2">
+                            <span>Drop Speed</span>
+                            <span id="auto-speed-label" class="text-pink-400 font-mono">Fast (350ms)</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button type="button" onclick="setAutoSpeed(600, 'Normal')" class="chip-btn">Normal</button>
+                            <button type="button" onclick="setAutoSpeed(350, 'Fast')" class="chip-btn border-pink-500/50 text-pink-400">Fast</button>
+                            <button type="button" onclick="setAutoSpeed(180, 'Turbo')" class="chip-btn text-amber-400">Turbo</button>
+                        </div>
+                    </div>
+
+                    <!-- Board Specs Card -->
+                    <div class="bg-black/45 border border-gray-800/90 rounded-2xl p-3 mb-4 space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-semibold">Pyramid Density</span>
+                            <span class="font-mono font-black text-white">12 Rows (13 Slots)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-semibold">Max Jackpot Payout</span>
+                            <span class="font-mono font-black text-amber-400" id="max-payout-display">₹800.00 (16x)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRIMARY DROP / AUTO START BUTTON -->
+                <div>
+                    <button type="button" id="drop-btn" onclick="handleMainAction()" class="w-full py-4 bg-gradient-to-r from-pink-600 via-pink-500 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-black text-xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(236,72,153,0.45)] border-b-4 border-pink-900 active:translate-y-0.5 active:border-b-0 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-arrow-down"></i>
+                        <span id="drop-btn-text">DROP BALL</span>
+                    </button>
+
+                    <!-- Live Session Telemetry Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Drops</div>
+                            <div id="stat-drops" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Best Hit</div>
+                            <div id="stat-best" class="text-xs font-mono font-black text-amber-400 mt-0.5">0.0x</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Net P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT ARENA: PYRAMID BOARD & PAYOUT INSPECTOR (Order 1 on Mobile, Order 2 on Desktop) -->
+            <div class="flex-1 w-full max-w-2xl flex flex-col justify-center order-1 lg:order-2">
+
+                <div id="plinko-board" class="game-board border border-gray-800/80">
+                    <!-- Top Plasma Spawner Nozzle -->
+                    <div class="absolute top-1.5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
+                        <div class="w-10 h-3 bg-gradient-to-r from-purple-900 via-pink-500 to-purple-900 rounded-b-xl border border-pink-400/50 shadow-[0_0_15px_rgba(236,72,153,0.8)]"></div>
+                        <div id="spawner-pulse" class="w-3 h-3 rounded-full bg-pink-400/50 blur-[2px] -mt-1 transition-transform"></div>
+                    </div>
+
+                    <!-- Pegs Injected via JS -->
+
+                    <!-- 13 Multiplier Buckets -->
+                    <div class="absolute bottom-2.5 w-[94%] left-[3%] flex justify-between h-[8.5%] gap-[3px] md:gap-1" id="slots-container">
+                        <!-- Buckets Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Interactive Bucket Payout Inspector Bar -->
+                <div class="mt-3 glass-panel rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                        <span class="text-gray-400 font-bold uppercase text-[10px] tracking-wider" id="inspector-title">Bucket Inspector (Hover/Tap Slot):</span>
+                    </div>
+                    <div class="flex items-center gap-4 font-mono">
+                        <div><span class="text-gray-500 text-[10px]">MULTIPLIER:</span> <span id="insp-mult" class="font-black text-pink-400">16.0x</span></div>
+                        <div><span class="text-gray-500 text-[10px]">PAYOUT:</span> <span id="insp-win" class="font-black text-emerald-400">₹800.00</span></div>
+                        <div class="hidden sm:block"><span class="text-gray-500 text-[10px]">CHANCE:</span> <span id="insp-chance" class="font-bold text-gray-300">0.024%</span></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 w-full bg-[#090c14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-pink-500 transition"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    </nav>
+
+    <script>
+        // =====================================================
+        // 1. WEB AUDIO SYNTHESIZER (Peg Plinks & Bucket Chimes)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? 'fa-solid fa-volume-xmark text-red-400' : 'fa-solid fa-volume-high text-pink-400';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<i class="${icon}"></i>`;
+            });
+        }
+
+        function playTone(freq, type, duration, vol = 0.06) {
+            if (!audioCtx || isMuted) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function soundPegHit(rowIdx) {
+            // Musical pentatonic scale progression as ball falls from row 1 to 12
+            const scale = [330, 370, 415, 440, 493, 554, 587, 659, 740, 830, 880, 987];
+            const freq = scale[Math.min(11, rowIdx)] + (Math.random() * 12 - 6);
+            playTone(freq, 'sine', 0.055, 0.045);
+        }
+
+        function soundBucketLand(mult) {
+            if (mult >= 9) {
+                playTone(523.25, 'triangle', 0.14, 0.16);
+                setTimeout(() => playTone(659.25, 'triangle', 0.14, 0.16), 90);
+                setTimeout(() => playTone(783.99, 'triangle', 0.16, 0.16), 180);
+                setTimeout(() => playTone(1046.50, 'triangle', 0.45, 0.2), 270);
+            } else if (mult >= 1) {
+                playTone(587.33, 'triangle', 0.12, 0.1);
+                setTimeout(() => playTone(880, 'sine', 0.22, 0.12), 80);
+            } else {
+                playTone(190, 'sawtooth', 0.18, 0.06);
+            }
+        }
+
+        // =====================================================
+        // 2. FIXED NON-DISRUPTIVE TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) {
+                container.firstChild.remove();
+            }
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Plinko Desk' : 'Notice'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action failed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 3. BOARD GEOMETRY & PYRAMID INITIALIZATION
+        // =====================================================
+        const ROWS = 12;
+        const MULTIPLIERS = [16, 9, 2, 1.4, 1.1, 1, 0.5, 1, 1.1, 1.4, 2, 9, 16];
+        const CLASSES = ['mul-16', 'mul-9', 'mul-2', 'mul-1-4', 'mul-1-1', 'mul-1', 'mul-0-5', 'mul-1', 'mul-1-1', 'mul-1-4', 'mul-2', 'mul-9', 'mul-16'];
+        // Binomial probabilities for 12 coin flips: C(12, k) / 4096
+        const BINOMIAL_PROBS = [0.024, 0.29, 1.61, 5.37, 12.08, 19.34, 22.56, 19.34, 12.08, 5.37, 1.61, 0.29, 0.024];
+
+        const board = document.getElementById('plinko-board');
+        const slotsContainer = document.getElementById('slots-container');
+
+        let displayedBalance = parseFloat(document.getElementById('bal').innerText) || 0;
+        let latestServerBalance = displayedBalance;
+        let inFlightBalls = 0;
+
+        // Session Telemetry
+        let totalDrops = 0;
+        let bestMultiplier = 0;
+        let sessionNetPnL = 0;
+        let selectedInspectorSlot = 0;
+
+        // Play Mode ('manual' or 'auto')
+        let playMode = 'manual';
+        let autoIntervalId = null;
+        let autoSpeedMs = 350;
+
+        // Exact Coordinate Helpers so Pegs & Buckets Align 100%
+        const BOARD_WIDTH_PCT = 86; // Usable horizontal span across bottom row
+        const PEG_STEP_X = BOARD_WIDTH_PCT / (ROWS + 1); // Horizontal distance between adjacent pegs in a row
+        const TOP_START_Y = 11; // Row 1 Y%
+        const BOTTOM_END_Y = 81; // Row 12 Y%
+        const ROW_STEP_Y = (BOTTOM_END_Y - TOP_START_Y) / (ROWS - 1);
+        const BUCKET_LAND_Y = 92; // Bucket center Y%
+
+        function getPegCoords(row, col) {
+            // row: 1..12, col: 0..(row+1)
+            const pegsInRow = row + 2;
+            const offsetFromCenter = col - (pegsInRow - 1) / 2;
+            const xPct = 50 + offsetFromCenter * PEG_STEP_X;
+            const yPct = TOP_START_Y + (row - 1) * ROW_STEP_Y;
+            return { x: xPct, y: yPct };
+        }
+
+        function initBoard() {
+            // Render 12 Rows of Pegs
+            for (let row = 1; row <= ROWS; row++) {
+                const pegsInRow = row + 2;
+                for (let col = 0; col < pegsInRow; col++) {
+                    const coords = getPegCoords(row, col);
+                    const peg = document.createElement('div');
+                    peg.className = 'peg';
+                    peg.id = `peg-${row}-${col}`;
+                    peg.style.left = `${coords.x}%`;
+                    peg.style.top = `${coords.y}%`;
+                    board.appendChild(peg);
+                }
+            }
+
+            // Render 13 Multiplier Buckets aligned with final bounce offsets (-6 to +6)
+            MULTIPLIERS.forEach((mult, idx) => {
+                const slot = document.createElement('div');
+                slot.className = `slot-bucket flex-1 ${CLASSES[idx]}`;
+                slot.id = `slot-${idx}`;
+                slot.innerHTML = `<span class="text-[9px] sm:text-[11px] md:text-xs leading-none tracking-tighter">${mult}x</span>`;
+                slot.addEventListener('mouseenter', () => inspectSlot(idx));
+                slot.addEventListener('click', () => inspectSlot(idx));
+                slotsContainer.appendChild(slot);
+            });
+
+            inspectSlot(0);
+        }
+
+        function inspectSlot(idx) {
+            selectedInspectorSlot = idx;
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            const mult = MULTIPLIERS[idx];
+            const payout = stake * mult;
+            document.getElementById('insp-mult').innerText = `${mult}x`;
+            document.getElementById('insp-win').innerText = `₹${payout.toFixed(2)}`;
+            document.getElementById('insp-chance').innerText = `${BINOMIAL_PROBS[idx]}%`;
+        }
+
+        function updateInspector() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            document.getElementById('max-payout-display').innerText = `₹${(stake * 16).toFixed(2)} (16x)`;
+            inspectSlot(selectedInspectorSlot);
+        }
+
+        // =====================================================
+        // 4. STAKE & MODE CONTROLS
+        // =====================================================
+        function setStake(val) {
+            initAudio();
+            playTone(800, 'sine', 0.04, 0.04);
+            document.getElementById('stake').value = val;
+            updateInspector();
+        }
+
+        function adjustStake(delta) {
+            initAudio();
+            playTone(800, 'sine', 0.04, 0.04);
+            const input = document.getElementById('stake');
+            const cur = parseFloat(input.value) || 10;
+            input.value = Math.max(10, cur + delta);
+            updateInspector();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            playTone(800, 'sine', 0.04, 0.04);
+            const input = document.getElementById('stake');
+            const cur = parseFloat(input.value) || 10;
+            input.value = Math.max(10, Math.round(cur * factor));
+            updateInspector();
+        }
+
+        function setPlayMode(mode) {
+            initAudio();
+            playTone(750, 'sine', 0.04, 0.04);
+            if (autoIntervalId) stopAutoStream();
+            playMode = mode;
+
+            const tMan = document.getElementById('tab-manual');
+            const tAuto = document.getElementById('tab-auto');
+            const burstBox = document.getElementById('manual-burst-box');
+            const autoBox = document.getElementById('auto-settings-box');
+            const btnText = document.getElementById('drop-btn-text');
+
+            if (mode === 'manual') {
+                tMan.className = "py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow transition";
+                tAuto.className = "py-2 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 hover:text-white transition";
+                burstBox.classList.remove('hidden');
+                autoBox.classList.add('hidden');
+                btnText.innerText = "DROP BALL";
+            } else {
+                tAuto.className = "py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow transition";
+                tMan.className = "py-2 rounded-xl text-xs font-black uppercase tracking-wider text-gray-400 hover:text-white transition";
+                burstBox.classList.add('hidden');
+                autoBox.classList.remove('hidden');
+                btnText.innerText = "START AUTO STREAM";
+            }
+        }
+
+        function setAutoSpeed(ms, label) {
+            autoSpeedMs = ms;
+            document.getElementById('auto-speed-label').innerText = `${label} (${ms}ms)`;
+            if (autoIntervalId) {
+                stopAutoStream();
+                startAutoStream();
+            }
+        }
+
+        function handleMainAction() {
+            initAudio();
+            if (playMode === 'manual') {
+                dropBall();
+            } else {
+                if (autoIntervalId) stopAutoStream();
+                else startAutoStream();
+            }
+        }
+
+        function startAutoStream() {
+            const btn = document.getElementById('drop-btn');
+            const btnText = document.getElementById('drop-btn-text');
+            btn.className = "w-full py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(239,68,68,0.5)] border-b-4 border-red-900 flex items-center justify-center gap-2 animate-pulse";
+            btnText.innerText = "STOP AUTO STREAM";
+            dropBall();
+            autoIntervalId = setInterval(() => {
+                const stake = parseFloat(document.getElementById('stake').value) || 0;
+                if (stake > displayedBalance) {
+                    stopAutoStream();
+                    showToast("Auto-Stream paused: Insufficient balance", "error");
+                    return;
+                }
+                dropBall();
+            }, autoSpeedMs);
+        }
+
+        function stopAutoStream() {
+            if (autoIntervalId) {
+                clearInterval(autoIntervalId);
+                autoIntervalId = null;
+            }
+            const btn = document.getElementById('drop-btn');
+            const btnText = document.getElementById('drop-btn-text');
+            btn.className = "w-full py-4 bg-gradient-to-r from-pink-600 via-pink-500 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-black text-xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(236,72,153,0.45)] border-b-4 border-pink-900 active:translate-y-0.5 active:border-b-0 flex items-center justify-center gap-2";
+            btnText.innerText = playMode === 'auto' ? "START AUTO STREAM" : "DROP BALL";
+        }
+
+        function burstDrop(count) {
+            initAudio();
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => dropBall(), i * 140);
+            }
+        }
+
+        function updateInFlightUI() {
+            const badge = document.getElementById('inflight-badge');
+            const countEl = document.getElementById('inflight-count');
+            countEl.innerText = inFlightBalls;
+            if (inFlightBalls > 0) {
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+            }
+        }
+
+        // =====================================================
+        // 5. BACKEND DROP DISPATCH & PARABOLIC BALL PHYSICS
+        // =====================================================
+        async function dropBall() {
+            initAudio();
+            const stakeInput = document.getElementById('stake');
+            const stake = parseFloat(stakeInput.value);
+
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+            if (stake > displayedBalance) {
+                showToast('Insufficient balance!', 'error');
+                return;
+            }
+
+            // Deduct stake immediately for responsive multi-ball action
+            displayedBalance = Math.max(0, displayedBalance - stake);
+            document.getElementById('bal').innerText = displayedBalance.toFixed(2);
+            inFlightBalls++;
+            updateInFlightUI();
+
+            // Pulse top spawner nozzle
+            const pulse = document.getElementById('spawner-pulse');
+            pulse.style.transform = 'scale(1.8)';
+            setTimeout(() => pulse.style.transform = 'scale(1)', 120);
+
+            try {
+                const res = await fetch('/plinko/drop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake })
+                });
+                const d = await res.json();
+
+                if (d.success) {
+                    latestServerBalance = d.new_total;
+                    animateParabolicBall(d.path, d.slot, d.multiplier, d.winnings, stake);
+                } else {
+                    inFlightBalls = Math.max(0, inFlightBalls - 1);
+                    updateInFlightUI();
+                    displayedBalance += stake;
+                    document.getElementById('bal').innerText = displayedBalance.toFixed(2);
+                    showToast(d.error || 'Unable to drop ball', 'error');
+                }
+            } catch (e) {
+                inFlightBalls = Math.max(0, inFlightBalls - 1);
+                updateInFlightUI();
+                displayedBalance += stake;
+                document.getElementById('bal').innerText = displayedBalance.toFixed(2);
+                showToast('Network Error', 'error');
+            }
+        }
+
+        function pulsePeg(row, col, xPct, yPct) {
+            const peg = document.getElementById(`peg-${row}-${col}`);
+            if (peg) {
+                peg.classList.add('peg-hit');
+                setTimeout(() => peg.classList.remove('peg-hit'), 160);
+            }
+            const ring = document.createElement('div');
+            ring.className = 'peg-ring';
+            ring.style.left = `${xPct}%`;
+            ring.style.top = `${yPct}%`;
+            board.appendChild(ring);
+            setTimeout(() => ring.remove(), 450);
+        }
+
+        function animateParabolicBall(path, finalSlot, multiplier, winnings, stake) {
+            const ball = document.createElement('div');
+            ball.className = 'plinko-ball';
+            board.appendChild(ball);
+
+            // Build waypoint nodes:
+            // Node 0: Spawner (50%, 3%)
+            // Node 1..12: Exact peg coordinates hit on Rows 1..12
+            // Node 13: Final Bucket center
+            const waypoints = [{ x: 50, y: 3, row: 0, col: 1 }];
+            let pegCol = 1; // Starts targeting middle peg of Row 1 (col = 1 out of 0,1,2)
+
+            for (let r = 1; r <= ROWS; r++) {
+                const coords = getPegCoords(r, pegCol);
+                waypoints.push({ x: coords.x, y: coords.y, row: r, col: pegCol });
+                // Next row has 1 more peg; if path[r-1] == 1 (Right), peg index increments by 1
+                const dir = path[r - 1];
+                pegCol += (dir === 1) ? 1 : 0;
+            }
+
+            // Final Bucket X coordinate aligns with the 13 buckets (width 94%, left 3%)
+            const bucketWidthPct = 94 / 13;
+            const bucketCenterX = 3 + (finalSlot + 0.5) * bucketWidthPct;
+            waypoints.push({ x: bucketCenterX, y: BUCKET_LAND_Y, row: 13, col: finalSlot });
+
+            const totalSegments = waypoints.length - 1; // 13 segments
+            const segDuration = 165; // ms per row bounce (~2.14s total fall)
+            const startTime = performance.now();
+            let lastTriggeredSegment = -1;
+            let trailTick = 0;
+
+            function stepFrame(now) {
+                const elapsed = now - startTime;
+                const exactSeg = elapsed / segDuration;
+                const segIdx = Math.floor(exactSeg);
+                const t = exactSeg - segIdx; // 0..1 within current segment
+
+                if (segIdx >= totalSegments) {
+                    // Ball landed in final bucket!
+                    finishBallDrop(ball, bucketCenterX, finalSlot, multiplier, winnings, stake);
+                    return;
+                }
+
+                // Trigger peg collision FX when entering a new segment (hitting waypoints[segIdx])
+                if (segIdx !== lastTriggeredSegment) {
+                    lastTriggeredSegment = segIdx;
+                    if (segIdx >= 1 && segIdx <= ROWS) {
+                        const wp = waypoints[segIdx];
+                        pulsePeg(wp.row, wp.col, wp.x, wp.y);
+                        soundPegHit(segIdx - 1);
+                    }
+                }
+
+                const p0 = waypoints[segIdx];
+                const p1 = waypoints[segIdx + 1];
+
+                // Horizontal interpolation with micro jitter
+                const curX = p0.x + (p1.x - p0.x) * t;
+
+                // Vertical parabolic gravity trajectory
+                let curY;
+                if (segIdx === 0) {
+                    // Initial free-fall from nozzle onto Row 1 center peg
+                    curY = p0.y + (p1.y - p0.y) * (t * t);
+                } else {
+                    // Bounce arc off peg p0 -> accelerate down to p1
+                    const bounceArc = (ROW_STEP_Y * 0.36) * 4 * t * (1 - t);
+                    curY = p0.y + (p1.y - p0.y) * (t * t) - bounceArc;
+                }
+
+                ball.style.left = `${curX}%`;
+                ball.style.top = `${curY}%`;
+
+                // Spawn subtle plasma trail every 3 frames
+                trailTick++;
+                if (trailTick % 3 === 0) {
+                    const tr = document.createElement('div');
+                    tr.className = 'ball-trail';
+                    tr.style.left = `${curX}%`;
+                    tr.style.top = `${curY}%`;
+                    board.appendChild(tr);
+                    setTimeout(() => tr.remove(), 280);
+                }
+
+                requestAnimationFrame(stepFrame);
+            }
+
+            requestAnimationFrame(stepFrame);
+        }
+
+        function finishBallDrop(ball, landX, finalSlot, multiplier, winnings, stake) {
+            ball.remove();
+            soundBucketLand(multiplier);
+
+            // 1. Compress Bucket
+            const targetSlot = document.getElementById(`slot-${finalSlot}`);
+            if (targetSlot) {
+                targetSlot.classList.remove('slot-pop');
+                void targetSlot.offsetWidth;
+                targetSlot.classList.add('slot-pop');
+                setTimeout(() => targetSlot.classList.remove('slot-pop'), 220);
+            }
+
+            // 2. Floating Win Popup above Bucket
+            if (winnings > 0) {
+                const floatText = document.createElement('div');
+                floatText.className = 'float-win text-xs sm:text-sm md:text-base';
+                floatText.innerText = `+₹${winnings.toFixed(2)}`;
+                floatText.style.left = `${landX}%`;
+                floatText.style.bottom = `11%`;
+
+                if (multiplier >= 9) {
+                    floatText.style.color = '#fbbf24';
+                    spawnJackpotConfetti();
+                } else if (multiplier >= 1) {
+                    floatText.style.color = '#34d399';
+                } else {
+                    floatText.style.color = '#94a3b8';
+                }
+
+                board.appendChild(floatText);
+                setTimeout(() => floatText.remove(), 1100);
+            }
+
+            // 3. Reconcile Balance & In-Flight Counter
+            inFlightBalls = Math.max(0, inFlightBalls - 1);
+            updateInFlightUI();
+
+            if (inFlightBalls === 0) {
+                displayedBalance = latestServerBalance;
+            } else {
+                displayedBalance += winnings;
+            }
+            document.getElementById('bal').innerText = displayedBalance.toFixed(2);
+
+            if (multiplier >= 2) {
+                const wrap = document.getElementById('balance-wrapper');
+                wrap.style.transform = 'scale(1.2)';
+                setTimeout(() => wrap.style.transform = 'scale(1)', 300);
+            }
+
+            // 4. Update Session Stats & Ribbon
+            updateSessionTelemetry(finalSlot, multiplier, winnings, stake);
+        }
+
+        function updateSessionTelemetry(slotIdx, mult, winnings, stake) {
+            totalDrops++;
+            if (mult > bestMultiplier) bestMultiplier = mult;
+            sessionNetPnL += (winnings - stake);
+
+            document.getElementById('stat-drops').innerText = totalDrops;
+            document.getElementById('stat-best').innerText = `${bestMultiplier}x`;
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionNetPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionNetPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionNetPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+            // Add pill to top ribbon
+            const ribbon = document.getElementById('recent-hits-ribbon');
+            if (totalDrops === 1) ribbon.innerHTML = '';
+
+            const pill = document.createElement('span');
+            pill.className = `px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black shrink-0 ${CLASSES[slotIdx]} shadow-sm`;
+            pill.innerText = `${mult}x`;
+            ribbon.prepend(pill);
+
+            while (ribbon.children.length > 18) {
+                ribbon.lastChild.remove();
+            }
+        }
+
+        function spawnJackpotConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#ec4899', '#fbbf24', '#38bdf8', '#a855f7', '#10b981'];
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '55%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 70 + Math.random() * 220;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 80;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 950 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>

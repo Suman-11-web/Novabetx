@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jhandi Munda - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .felt-bg { background: radial-gradient(circle at center, #0f766e 0%, #042f2e 100%); }
+        .die-box { width: 70px; height: 70px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4); border: 2px solid #e5e7eb; transition: transform 0.2s; }
+        .rolling { animation: shake 0.3s infinite linear; }
+        @keyframes shake { 0% { transform: translate(2px, 1px) rotate(0deg); } 20% { transform: translate(-3px, 0px) rotate(5deg); } 40% { transform: translate(1px, -1px) rotate(10deg); } 60% { transform: translate(-1px, 2px) rotate(0deg); } 80% { transform: translate(3px, -2px) rotate(-5deg); } 100% { transform: translate(0px, 0px) rotate(0deg); } }
+        .symbol-btn { transition: all 0.2s; border: 2px solid transparent; }
+        .symbol-btn.active { border-color: #facc15; background: rgba(250, 204, 21, 0.2); box-shadow: 0 0 15px rgba(250,204,21,0.5); transform: scale(1.05); }
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
+            <a href="/games" class="text-teal-500 font-black flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> Jhandi Munda</a>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </header>
+
+        <div class="flex-1 felt-bg flex flex-col justify-center items-center p-4 relative shadow-inner">
+            
+            <div id="result-msg" class="absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-3xl md:text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest hidden w-full text-center"></div>
+
+            <div class="grid grid-cols-3 gap-4 mb-12" id="dice-container">
+                <div class="die-box text-red-500">♥</div>
+                <div class="die-box text-black">♠</div>
+                <div class="die-box text-red-500">♦</div>
+                <div class="die-box text-black">♣</div>
+                <div class="die-box text-blue-500"><i class="fa-regular fa-flag"></i></div>
+                <div class="die-box text-yellow-500"><i class="fa-solid fa-crown"></i></div>
+            </div>
+
+            <!-- Betting Board -->
+            <div class="w-full max-w-xl bg-black/50 p-4 rounded-2xl border border-teal-900/50">
+                <div class="text-[10px] text-teal-300 font-bold uppercase tracking-widest mb-3 text-center">Select Symbol to Bet On</div>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    <button onclick="selectSymbol('Heart')" id="sym-Heart" class="symbol-btn active bg-[#1C232E] py-4 rounded-xl text-3xl text-red-500">♥</button>
+                    <button onclick="selectSymbol('Spade')" id="sym-Spade" class="symbol-btn bg-[#1C232E] py-4 rounded-xl text-3xl text-black">♠</button>
+                    <button onclick="selectSymbol('Diamond')" id="sym-Diamond" class="symbol-btn bg-[#1C232E] py-4 rounded-xl text-3xl text-red-500">♦</button>
+                    <button onclick="selectSymbol('Club')" id="sym-Club" class="symbol-btn bg-[#1C232E] py-4 rounded-xl text-3xl text-black">♣</button>
+                    <button onclick="selectSymbol('Flag')" id="sym-Flag" class="symbol-btn bg-[#1C232E] py-4 rounded-xl text-3xl text-blue-500"><i class="fa-regular fa-flag"></i></button>
+                    <button onclick="selectSymbol('Crown')" id="sym-Crown" class="symbol-btn bg-[#1C232E] py-4 rounded-xl text-3xl text-yellow-500"><i class="fa-solid fa-crown"></i></button>
+                </div>
+                <div class="mt-3 flex justify-between text-[10px] font-bold text-gray-500 px-2">
+                    <span>1 Match = 1x (Push)</span>
+                    <span>2+ Matches = Escalating Multiplier</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
+            <div class="w-full max-w-xl flex gap-3">
+                <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white outline-none focus:border-teal-500">
+                <button id="roll-btn" onclick="rollJhandi()" class="flex-1 py-4 bg-teal-600 hover:bg-teal-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(13,148,136,0.4)]">ROLL DICE</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentSym = 'Heart';
+        const symMap = { 'Heart': '<span class="text-red-500">♥</span>', 'Spade': '<span class="text-black">♠</span>', 'Diamond': '<span class="text-red-500">♦</span>', 'Club': '<span class="text-black">♣</span>', 'Flag': '<span class="text-blue-500"><i class="fa-regular fa-flag"></i></span>', 'Crown': '<span class="text-yellow-500"><i class="fa-solid fa-crown"></i></span>' };
+
+        function selectSymbol(s) {
+            document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sym-' + s).classList.add('active');
+            currentSym = s;
+        }
+
+        async function rollJhandi() {
+            const btn = document.getElementById('roll-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            btn.disabled = true; btn.innerText = "ROLLING...";
+            document.getElementById('result-msg').classList.add('hidden');
+            
+            const boxes = document.querySelectorAll('.die-box');
+            boxes.forEach(b => b.classList.add('rolling'));
+
+            try {
+                const res = await fetch('/jhandi_munda/roll', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, symbol: currentSym}) });
+                const d = await res.json();
+                
+                if(d.success) {
+                    setTimeout(() => {
+                        boxes.forEach((b, i) => {
+                            b.classList.remove('rolling');
+                            b.innerHTML = symMap[d.rolls[i]];
+                        });
+                        
+                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                        const msg = document.getElementById('result-msg');
+                        if (d.matches > 0) {
+                            msg.innerText = `${d.matches} MATCHES! +₹${d.winnings.toFixed(2)}`;
+                            msg.className = "absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-3xl md:text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-green-400";
+                        } else {
+                            msg.innerText = "NO MATCH";
+                            msg.className = "absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-4xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-red-500";
+                        }
+                        msg.classList.remove('hidden');
+                        btn.disabled = false; btn.innerText = "ROLL DICE";
+                    }, 1000);
+                } else { alert(d.error); boxes.forEach(b => b.classList.remove('rolling')); btn.disabled = false; btn.innerText = "ROLL DICE"; }
+            } catch(e) { alert("Error"); btn.disabled = false; btn.innerText = "ROLL DICE"; }
+        }
+    </script>
+</body>
+</html>

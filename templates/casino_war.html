@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino War - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .felt-bg { background: radial-gradient(circle at center, #7f1d1d 0%, #450a0a 100%); }
+        .playing-card { width: 100px; height: 140px; background: white; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; font-weight: 900; font-size: 2rem; box-shadow: 0 10px 20px rgba(0,0,0,0.6); border: 2px solid #e5e7eb; position: relative; animation: slideIn 0.3s ease-out forwards; }
+        .card-red { color: #ef4444; } .card-black { color: #111827; }
+        .card-suit-large { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; opacity: 0.15; }
+        @keyframes slideIn { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
+            <a href="/games" class="text-red-500 font-black flex items-center gap-2"><i class="fa-solid fa-khanda"></i> Casino War</a>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </header>
+
+        <div class="flex-1 felt-bg flex flex-col justify-center items-center p-4 relative shadow-inner">
+            <div id="result-msg" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl md:text-7xl font-black italic drop-shadow-[0_0_30px_rgba(0,0,0,1)] uppercase tracking-widest hidden w-full text-center"></div>
+
+            <!-- Dealer -->
+            <div class="text-center w-full mb-12">
+                <div class="text-red-300 font-bold uppercase tracking-widest text-xs mb-3 bg-black/40 px-4 py-1 rounded-full inline-block border border-red-900/50">Dealer</div>
+                <div id="dealer-card" class="flex justify-center min-h-[140px]">
+                    <div class="playing-card bg-gray-200" style="background: repeating-linear-gradient(45deg, #7f1d1d, #7f1d1d 10px, #450a0a 10px, #450a0a 20px);"></div>
+                </div>
+            </div>
+
+            <!-- Player -->
+            <div class="text-center w-full">
+                <div id="player-card" class="flex justify-center min-h-[140px] mb-3">
+                    <div class="playing-card bg-gray-200" style="background: repeating-linear-gradient(45deg, #1e3a8a, #1e3a8a 10px, #0f172a 10px, #0f172a 20px);"></div>
+                </div>
+                <div class="text-blue-300 font-bold uppercase tracking-widest text-xs bg-black/40 px-4 py-1 rounded-full inline-block border border-blue-900/50">Player (You)</div>
+            </div>
+        </div>
+
+        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
+            <div class="w-full max-w-xl flex gap-3">
+                <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white outline-none focus:border-red-500">
+                <button id="deal-btn" onclick="playGame()" class="flex-1 py-4 bg-red-600 hover:bg-red-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(220,38,38,0.4)]">DRAW CARDS</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function getCardHTML(card) {
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            const colorClass = isRed ? 'card-red' : 'card-black';
+            return `<div class="playing-card ${colorClass}"><span>${card.rank}</span><div class="card-suit-large">${card.suit}</div><span class="text-right">${card.suit}</span></div>`;
+        }
+
+        async function playGame() {
+            const btn = document.getElementById('deal-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            btn.disabled = true; btn.innerText = "DRAWING...";
+            document.getElementById('result-msg').classList.add('hidden');
+
+            try {
+                const res = await fetch('/casino_war/play', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake}) });
+                const d = await res.json();
+                
+                if(d.success) {
+                    document.getElementById('player-card').innerHTML = getCardHTML(d.player);
+                    
+                    setTimeout(() => {
+                        document.getElementById('dealer-card').innerHTML = getCardHTML(d.dealer);
+                        
+                        setTimeout(() => {
+                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                            const msg = document.getElementById('result-msg');
+                            
+                            if (d.winnings > stake * 2) {
+                                msg.innerText = `WAR WON! +₹${d.winnings.toFixed(2)}`;
+                                msg.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl md:text-7xl font-black italic drop-shadow-[0_0_30px_rgba(0,0,0,1)] uppercase tracking-widest text-yellow-400";
+                            } else if (d.win) {
+                                msg.innerText = `YOU WIN! +₹${d.winnings.toFixed(2)}`;
+                                msg.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl md:text-7xl font-black italic drop-shadow-[0_0_30px_rgba(0,0,0,1)] uppercase tracking-widest text-green-400";
+                            } else {
+                                msg.innerText = "DEALER WINS";
+                                msg.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl md:text-7xl font-black italic drop-shadow-[0_0_30px_rgba(0,0,0,1)] uppercase tracking-widest text-red-500";
+                            }
+                            msg.classList.remove('hidden');
+                            
+                            btn.disabled = false; btn.innerText = "DRAW CARDS";
+                        }, 500);
+                    }, 500);
+                } else { alert(d.error); btn.disabled = false; btn.innerText = "DRAW CARDS"; }
+            } catch(e) { alert("Error"); btn.disabled = false; btn.innerText = "DRAW CARDS"; }
+        }
+    </script>
+</body>
+</html>

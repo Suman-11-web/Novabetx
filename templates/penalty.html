@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Shootout - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .stadium-bg { background: linear-gradient(to bottom, #0f172a 0%, #064e3b 100%); }
+        .goal-net { border: 8px solid #cbd5e1; border-bottom: none; border-radius: 10px 10px 0 0; position: relative; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 12px), repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 12px); }
+        .target-zone { transition: all 0.2s; border: 2px dashed rgba(255,255,255,0.3); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .target-zone:hover { background: rgba(16, 185, 129, 0.4); border-color: #10b981; transform: scale(1.1); box-shadow: 0 0 15px #10b981; }
+        .keeper { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 4rem; color: #facc15; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10;}
+        .ball { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); font-size: 2rem; color: #fff; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 20;}
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
+            <a href="/games" class="text-emerald-500 font-black flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> Penalty Shootout</a>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </header>
+
+        <div class="flex-1 stadium-bg flex flex-col items-center justify-center p-4 relative shadow-inner">
+            <div id="result-msg" class="absolute top-10 left-1/2 transform -translate-x-1/2 z-30 text-3xl md:text-5xl font-black italic drop-shadow-[0_0_10px_rgba(0,0,0,1)] uppercase tracking-widest hidden w-full text-center"></div>
+
+            <div class="goal-net w-full max-w-2xl h-64 md:h-80 flex flex-col justify-between p-4 mb-16">
+                <div class="flex justify-between w-full">
+                    <div onclick="shoot(1)" class="target-zone group"><i class="fa-solid fa-crosshairs text-white/50 group-hover:text-emerald-400"></i></div>
+                    <div onclick="shoot(2)" class="target-zone group"><i class="fa-solid fa-crosshairs text-white/50 group-hover:text-emerald-400"></i></div>
+                </div>
+                <div class="flex justify-center w-full">
+                    <div onclick="shoot(3)" class="target-zone group"><i class="fa-solid fa-crosshairs text-white/50 group-hover:text-emerald-400"></i></div>
+                </div>
+                <div class="flex justify-between w-full">
+                    <div onclick="shoot(4)" class="target-zone group"><i class="fa-solid fa-crosshairs text-white/50 group-hover:text-emerald-400"></i></div>
+                    <div onclick="shoot(5)" class="target-zone group"><i class="fa-solid fa-crosshairs text-white/50 group-hover:text-emerald-400"></i></div>
+                </div>
+                <i id="keeper" class="fa-solid fa-child-reaching keeper"></i>
+                <i id="ball" class="fa-solid fa-futbol ball drop-shadow-md"></i>
+            </div>
+        </div>
+
+        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
+            <div class="w-full max-w-xl flex flex-col items-center">
+                <label class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Set Stake & Click a Zone to Shoot (Pays 1.95x)</label>
+                <div class="flex w-full gap-3">
+                    <input type="number" id="stake" value="100" min="10" class="flex-1 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-emerald-500 outline-none py-4">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let isShooting = false;
+        const positions = { 1: {x: '-45%', y: '-200px'}, 2: {x: '45%', y: '-200px'}, 3: {x: '0%', y: '-100px'}, 4: {x: '-45%', y: '-40px'}, 5: {x: '45%', y: '-40px'} };
+        async function shoot(zone) {
+            if (isShooting) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (stake < 10) return alert('Min bet is 10');
+            isShooting = true;
+            document.getElementById('result-msg').classList.add('hidden');
+            const keeper = document.getElementById('keeper');
+            const ball = document.getElementById('ball');
+            keeper.style.transform = 'translate(-50%, 0)';
+            ball.style.transform = 'translate(-50%, 0)';
+            try {
+                const res = await fetch('/penalty/shoot', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, zone}) });
+                const d = await res.json();
+                if(d.success) {
+                    ball.style.transform = `translate(calc(-50% + ${positions[zone].x}), ${positions[zone].y}) scale(0.6)`;
+                    setTimeout(() => { keeper.style.transform = `translate(calc(-50% + ${positions[d.keeper_zone].x}), ${positions[d.keeper_zone].y}) scale(0.8) rotate(${d.keeper_zone % 2 === 0 ? '45deg' : '-45deg'})`; }, 100);
+                    setTimeout(() => {
+                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                        const msg = document.getElementById('result-msg');
+                        msg.innerText = d.goal ? `GOAL! +₹${d.winnings.toFixed(2)}` : "SAVED!";
+                        msg.className = `absolute top-10 left-1/2 transform -translate-x-1/2 z-30 text-4xl font-black italic drop-shadow-[0_0_10px_rgba(0,0,0,1)] uppercase tracking-widest ${d.goal ? 'text-green-400' : 'text-red-500'}`;
+                        msg.classList.remove('hidden');
+                        setTimeout(() => { keeper.style.transform = 'translate(-50%, 0)'; ball.style.transform = 'translate(-50%, 0) scale(1)'; isShooting = false; }, 1500);
+                    }, 500);
+                } else { alert(d.error); isShooting = false; }
+            } catch(e) { isShooting = false; }
+        }
+    </script>
+</body>
+</html>

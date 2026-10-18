@@ -6,241 +6,650 @@
     <title>Novabetx - Sports & Casino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',surface:'#121721',brand:'#1CDA3A'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06090e',
+                        surface: '#0f141d',
+                        surfaceLight: '#171f2e',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass-panel { background: rgba(15, 20, 30, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-        .epic-border { position: relative; border-radius: 1rem; background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); padding: 1px; transition: all 0.4s ease; }
-        .epic-border:hover { background: linear-gradient(to bottom, #1CDA3A, rgba(28,218,58,0.1)); box-shadow: 0 10px 30px -10px rgba(28,218,58,0.3); transform: translateY(-2px); }
-        .epic-border-red { position: relative; border-radius: 1rem; background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); padding: 1px; transition: all 0.4s ease; }
-        .epic-border-red:hover { background: linear-gradient(to bottom, #ef4444, rgba(239,68,68,0.1)); box-shadow: 0 10px 30px -10px rgba(239,68,68,0.3); transform: translateY(-2px); }
-        .odds-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
-        .odds-btn:hover { background: rgba(28,218,58,0.1); border-color: rgba(28,218,58,0.5); }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(15, 20, 30, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        /* Animated Gradient Borders for Match Cards */
+        .epic-border {
+            position: relative;
+            border-radius: 1.25rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            padding: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .epic-border:hover {
+            background: linear-gradient(145deg, #1CDA3A, rgba(28,218,58,0.1));
+            box-shadow: 0 12px 35px -10px rgba(28,218,58,0.28);
+            transform: translateY(-3px);
+        }
+
+        .epic-border-red {
+            position: relative;
+            border-radius: 1.25rem;
+            background: linear-gradient(145deg, rgba(239,68,68,0.35), rgba(255,255,255,0.03));
+            padding: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .epic-border-red:hover {
+            background: linear-gradient(145deg, #ef4444, rgba(239,68,68,0.15));
+            box-shadow: 0 12px 35px -10px rgba(239,68,68,0.35);
+            transform: translateY(-3px);
+        }
+
+        /* Odds Buttons */
+        .odds-btn {
+            background: rgba(6, 9, 14, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.2s ease;
+        }
+        .odds-btn:hover {
+            background: rgba(28, 218, 58, 0.14);
+            border-color: rgba(28, 218, 58, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(28, 218, 58, 0.15);
+        }
+        .odds-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Live Winners Marquee */
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            animation: tickerScroll 32s linear infinite;
+        }
+        .ticker-track:hover {
+            animation-play-state: paused;
+        }
+
+        /* Hero Mesh Glow */
+        .hero-mesh {
+            background:
+                radial-gradient(circle at 85% 20%, rgba(28, 218, 58, 0.22) 0%, transparent 45%),
+                radial-gradient(circle at 15% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #0c121e 0%, #070a10 100%);
+        }
+
+        .sport-filter-btn.active {
+            background: #1CDA3A;
+            color: #000000;
+            border-color: #1CDA3A;
+            box-shadow: 0 0 15px rgba(28, 218, 58, 0.35);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh]">
-    
-    <div id="toast-container"></div>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-20 md:pb-0 select-none" onclick="initAudio()">
 
-    <!-- HEADER -->
-    <header class="bg-[#0a0d14]/90 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50 shadow-sm">
-        <div class="flex items-center justify-between px-4 py-3">
-            <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
-            <div class="flex items-center space-x-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/10 shadow-inner">
-                <div class="text-sm font-bold text-white">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-500 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(28,218,58,0.4)] active:scale-95 transition-transform"><i class="fa-solid fa-plus text-sm"></i></a>
-            </div>
-        </div>
-    </header>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <!-- MAIN CONTENT with massive bottom padding -->
-    <div class="p-4 pb-[250px] max-w-4xl mx-auto space-y-8">
-        
-        <!-- Hero Banner -->
-        <div class="bg-gradient-to-r from-brand/20 via-[#0a0d14] to-blue-600/20 border border-white/10 rounded-2xl p-6 relative overflow-hidden flex items-center justify-between shadow-2xl">
-            <div class="relative z-10">
-                <h2 class="text-2xl font-black italic uppercase text-white drop-shadow-lg">Sports & <span class="text-brand">Casino</span></h2>
-                <p class="text-xs text-gray-400 mt-1 font-medium">Bet on live sports and play Provably Fair games.</p>
-            </div>
-            <i class="fa-solid fa-trophy text-7xl text-white/5 absolute right-2 -bottom-2 transform -rotate-12"></i>
+    <!-- CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[110] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 z-50 shrink-0 sticky top-0">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+            <span class="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_10px_#1CDA3A] animate-pulse" title="Server Online"></span>
         </div>
 
-        <!-- LIVE CASINO MINI-HUB -->
-        <div>
-            <div class="flex justify-between items-end mb-4 px-1">
-                <h3 class="text-lg font-black uppercase tracking-wider flex items-center gap-2 drop-shadow-md">
-                    <div class="w-1.5 h-6 bg-purple-500 rounded-full"></div> Live Casino
-                </h3>
-                <a href="{{ url_for('games') }}" class="text-[10px] font-bold text-gray-400 hover:text-white bg-white/5 px-3 py-1.5 rounded-full border border-white/10 transition flex items-center uppercase tracking-wider">
-                    View All <i class="fa-solid fa-chevron-right text-[8px] ml-1.5"></i>
-                </a>
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-1">Main Lobby</div>
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/25 font-bold transition shadow-[0_0_15px_rgba(28,218,58,0.1)]">
+                <i class="fa-solid fa-house w-5 text-center"></i> Home & Sports
+            </a>
+            <a href="{{ url_for('games') }}" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-gamepad w-5 text-center text-purple-400"></i> Casino Games</span>
+                <span class="text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">37</span>
+            </a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-file-lines w-5 text-center text-blue-400"></i> My Bets
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Instant Originals</div>
+            <a href="{{ url_for('aviator_game') }}" class="flex items-center justify-between p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-plane-up w-5 text-center text-red-500"></i> Aviator</span>
+                <span class="text-[9px] font-black text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">HOT</span>
+            </a>
+            <a href="{{ url_for('jetx_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-rocket w-5 text-center text-amber-400"></i> JetX Rocket
+            </a>
+            <a href="{{ url_for('color_prediction_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-palette w-5 text-center text-purple-400"></i> Color Trading
+            </a>
+            <a href="{{ url_for('plinko_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-circle-nodes w-5 text-center text-pink-400"></i> Plinko Drop
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Account & Vault</div>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-user-shield w-5 text-center text-cyan-400"></i> VIP Profile
+            </a>
+            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-brand/10 text-brand font-bold transition">
+                <i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/25 text-sm">
+                <i class="fa-solid fa-power-off"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-h-screen relative w-full overflow-x-hidden">
+
+        <!-- LIVE WINNERS TICKER RIBBON -->
+        <div class="bg-[#05070b] border-b border-gray-800/80 py-1.5 px-3 overflow-hidden flex items-center relative z-40">
+            <div class="bg-brand/15 border border-brand/30 text-brand text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded flex items-center gap-1.5 shrink-0 mr-3 z-10 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand animate-ping"></span> LIVE WINS
             </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <a href="{{ url_for('aviator_game') }}" class="block bg-gradient-to-br from-red-900/80 to-black rounded-2xl border border-red-500/30 p-4 hover:-translate-y-1 transition-all shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                    <i class="fa-solid fa-plane-up absolute -right-2 -top-2 text-6xl text-red-500 opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"></i>
-                    <div class="bg-red-500/20 text-red-400 border border-red-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest shadow-md backdrop-blur-sm">Multiplier</div>
-                    <h2 class="text-lg md:text-xl font-black italic text-white uppercase leading-none drop-shadow-md">Aviator</h2>
-                    <div class="mt-5 flex justify-between items-center relative z-10">
-                        <span class="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors">PLAY NOW</span>
-                        <div class="bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(231,76,60,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+            <div class="overflow-hidden flex-1">
+                <div class="ticker-track gap-6 text-[11px] font-mono text-gray-400 items-center" id="live-ticker">
+                    <span><strong class="text-white">rahul***</strong> won <strong class="text-brand">₹4,850</strong> in <span class="text-red-400">Aviator (9.70x)</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">vikram***</strong> won <strong class="text-brand">₹1,950</strong> in <span class="text-yellow-400">Dragon Tiger</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">kiran***</strong> won <strong class="text-brand">₹8,000</strong> in <span class="text-pink-400">Plinko (16.0x)</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">arjun***</strong> won <strong class="text-brand">₹3,240</strong> in <span class="text-purple-400">Color Predict</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">sandeep***</strong> won <strong class="text-brand">₹6,400</strong> in <span class="text-amber-400">JetX Rocket</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">rahul***</strong> won <strong class="text-brand">₹4,850</strong> in <span class="text-red-400">Aviator (9.70x)</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">vikram***</strong> won <strong class="text-brand">₹1,950</strong> in <span class="text-yellow-400">Dragon Tiger</span></span>
+                    <span>•</span>
+                    <span><strong class="text-white">kiran***</strong> won <strong class="text-brand">₹8,000</strong> in <span class="text-pink-400">Plinko (16.0x)</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE STICKY HEADER -->
+        <header class="md:hidden bg-[#090c14]/95 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center justify-between px-4 py-3">
+                <div class="text-2xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center bg-black/70 pl-3.5 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                        <span class="text-[10px] font-bold text-gray-400 mr-1">₹</span>
+                        <div class="text-sm font-black text-brand mr-2.5"><span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+                        <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-500 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(28,218,58,0.5)] active:scale-95 transition-transform">
+                            <i class="fa-solid fa-plus text-xs font-black"></i>
+                        </a>
                     </div>
-                </a>
+                </div>
+            </div>
+        </header>
 
-                <a href="{{ url_for('dragon_tiger_game') }}" class="block bg-gradient-to-br from-yellow-900/80 to-black rounded-2xl border border-yellow-500/30 p-4 hover:-translate-y-1 transition-all shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                    <i class="fa-solid fa-dragon absolute -right-2 -top-2 text-6xl text-yellow-500 opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"></i>
-                    <div class="bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest shadow-md backdrop-blur-sm">Card Flip</div>
-                    <h2 class="text-lg md:text-xl font-black italic text-white uppercase leading-none drop-shadow-md">Dragon Tiger</h2>
-                    <div class="mt-5 flex justify-between items-center relative z-10">
-                        <span class="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors">PLAY NOW</span>
-                        <div class="bg-yellow-500 text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
-                    </div>
+        <!-- DESKTOP STICKY HEADER -->
+        <div class="hidden md:flex justify-between items-center px-8 py-3.5 border-b border-gray-800/80 bg-[#090c14]/95 backdrop-blur-md sticky top-0 z-40 shrink-0">
+            <div class="flex items-center gap-3">
+                <a href="#sportsbook-section" class="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 hover:text-white transition flex items-center gap-2 border border-white/5">
+                    <i class="fa-solid fa-trophy text-brand"></i> Live Sportsbook
+                </a>
+                <a href="{{ url_for('games') }}" class="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 hover:text-white transition flex items-center gap-2 border border-white/5">
+                    <i class="fa-solid fa-dice text-purple-400"></i> 37 Casino Games
+                </a>
+                <a href="{{ url_for('spin_game') }}" class="px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-xs font-bold text-purple-300 transition flex items-center gap-2 border border-purple-500/20">
+                    <i class="fa-solid fa-dharmachakra animate-spin"></i> Daily Free Spin
+                </a>
+            </div>
+
+            <div class="flex items-center gap-4 bg-surface px-4 py-1.5 rounded-2xl border border-gray-800 shadow-inner">
+                <div class="text-right">
+                    <div class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Available Wallet</div>
+                    <div class="text-base font-black text-brand font-mono">₹<span id="desktop-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+                </div>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-400 text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider transition shadow-[0_0_15px_rgba(28,218,58,0.3)] flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-bolt"></i> Deposit
                 </a>
             </div>
         </div>
 
-        <!-- EPIC LIVE SPORTS -->
-        <div>
-            <h3 class="text-lg font-black uppercase tracking-wider mb-4 px-1 flex items-center gap-2 drop-shadow-md">
-                <div class="w-1.5 h-6 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></div> Live Sports
-            </h3>
-            <div class="space-y-4">
-                {% for m in live_matches %}
-                <div class="epic-border-red group">
-                    <div class="glass-panel rounded-[15px] p-5 h-full relative overflow-hidden">
-                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-500/20 transition-colors"></div>
-                        
-                        <div class="flex justify-between items-center mb-5 pb-3 border-b border-white/5 relative z-10">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-satellite-dish text-red-500 text-xs animate-pulse"></i>
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ m.sport }} <span class="text-gray-600 px-1">•</span> {{ m.league }}</span>
-                            </div>
-                            <span class="text-[9px] font-black text-red-100 bg-red-600 px-2.5 py-1 rounded shadow-[0_0_10px_rgba(239,68,68,0.6)] tracking-widest uppercase">LIVE</span>
+        <!-- MAIN BODY CONTAINER -->
+        <div class="p-4 md:p-8 pb-36 max-w-6xl mx-auto space-y-8 w-full">
+
+            <!-- HERO BANNER & QUICK STATS -->
+            <div class="hero-mesh border border-white/10 rounded-3xl p-6 md:p-9 relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-8 -bottom-8 w-64 h-64 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
+                <i class="fa-solid fa-trophy text-8xl md:text-[10rem] text-white/[0.04] absolute right-4 md:right-10 -bottom-4 transform -rotate-12 pointer-events-none"></i>
+
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="max-w-xl">
+                        <div class="inline-flex items-center gap-2 bg-brand/15 border border-brand/30 text-brand text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+                            <i class="fa-solid fa-shield-halved"></i> Provably Fair • Instant Withdrawals
                         </div>
-                        
-                        <div class="flex justify-between items-center mb-6 relative z-10">
-                            <div class="w-2/5 text-right"><h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team1 }}</h4></div>
-                            <div class="w-1/5 flex justify-center">
-                                <div class="bg-black/50 text-red-400 text-xs font-black px-4 py-2 rounded-lg border border-white/5 shadow-inner">
-                                    {{ m.score if m.score else "VS" }}
+                        <h1 class="text-2xl sm:text-3xl md:text-5xl font-black italic uppercase text-white leading-tight drop-shadow-lg">
+                            Next-Gen <span class="text-brand">Sportsbook</span> & Live Casino
+                        </h1>
+                        <p class="text-xs md:text-sm text-gray-400 mt-2 font-medium leading-relaxed">
+                            Experience high-multiplier crash originals, real-time Indian card tables, and live championship sports odds with instant settlement.
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-3 mt-5">
+                            <a href="{{ url_for('games') }}" class="bg-brand hover:bg-green-400 text-black font-black text-xs md:text-sm uppercase tracking-wider px-5 py-3 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.4)] transition active:scale-95 flex items-center gap-2">
+                                <i class="fa-solid fa-gamepad"></i> Explore Casino
+                            </a>
+                            <a href="#sportsbook-section" class="bg-white/10 hover:bg-white/15 text-white border border-white/15 font-black text-xs md:text-sm uppercase tracking-wider px-5 py-3 rounded-xl transition active:scale-95 flex items-center gap-2">
+                                <i class="fa-solid fa-satellite-dish text-red-400 animate-pulse"></i> Live Odds
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Highlight Stats Cards -->
+                    <div class="grid grid-cols-3 md:grid-cols-1 gap-2.5 shrink-0 md:w-48">
+                        <div class="bg-black/45 border border-white/10 rounded-2xl p-3 backdrop-blur-md">
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Live Matches</div>
+                            <div class="text-base md:text-xl font-black text-white font-mono mt-0.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> {{ live_matches|length }} Active
+                            </div>
+                        </div>
+                        <div class="bg-black/45 border border-white/10 rounded-2xl p-3 backdrop-blur-md">
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Casino Originals</div>
+                            <div class="text-base md:text-xl font-black text-brand font-mono mt-0.5">37 Games</div>
+                        </div>
+                        <div class="bg-black/45 border border-white/10 rounded-2xl p-3 backdrop-blur-md">
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Referral Bonus</div>
+                            <div class="text-base md:text-xl font-black text-purple-400 font-mono mt-0.5">₹50 Free</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEATURED CASINO GAMES BENTO GRID -->
+            <div>
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <h2 class="text-lg md:text-xl font-black uppercase tracking-wider flex items-center gap-2.5 drop-shadow-md">
+                        <span class="w-1.5 h-6 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7]"></span> Trending Originals
+                    </h2>
+                    <a href="{{ url_for('games') }}" class="text-[11px] md:text-xs font-bold text-gray-300 hover:text-brand bg-white/5 hover:bg-white/10 px-3.5 py-1.5 rounded-full border border-white/10 transition flex items-center uppercase tracking-wider">
+                        All 37 Games <i class="fa-solid fa-arrow-right text-[10px] ml-1.5"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                    <!-- 1. AVIATOR -->
+                    <a href="{{ url_for('aviator_game') }}" class="bg-gradient-to-br from-red-950/90 via-[#12080c] to-black rounded-2xl border border-red-500/30 hover:border-red-500 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-plane-up absolute -right-3 -top-2 text-6xl text-red-500/15 group-hover:text-red-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 border border-red-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">Crash</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">Aviator</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+
+                    <!-- 2. DRAGON TIGER -->
+                    <a href="{{ url_for('dragon_tiger_game') }}" class="bg-gradient-to-br from-amber-950/90 via-[#141006] to-black rounded-2xl border border-yellow-500/30 hover:border-yellow-400 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-dragon absolute -right-3 -top-2 text-6xl text-yellow-500/15 group-hover:text-yellow-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">Cards</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">Dragon Tiger</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-yellow-500 text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(234,179,8,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+
+                    <!-- 3. JETX ROCKET -->
+                    <a href="{{ url_for('jetx_game') }}" class="bg-gradient-to-br from-orange-950/90 via-[#140c06] to-black rounded-2xl border border-orange-500/30 hover:border-orange-400 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-rocket absolute -right-3 -top-2 text-6xl text-orange-500/15 group-hover:text-orange-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">Supersonic</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">JetX</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-orange-500 text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(249,115,22,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+
+                    <!-- 4. COLOR TRADING -->
+                    <a href="{{ url_for('color_prediction_game') }}" class="bg-gradient-to-br from-purple-950/90 via-[#11081a] to-black rounded-2xl border border-purple-500/30 hover:border-purple-400 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-palette absolute -right-3 -top-2 text-6xl text-purple-500/15 group-hover:text-purple-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">WinGo</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">Color Trade</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-purple-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+
+                    <!-- 5. PLINKO BALL -->
+                    <a href="{{ url_for('plinko_game') }}" class="bg-gradient-to-br from-pink-950/90 via-[#170712] to-black rounded-2xl border border-pink-500/30 hover:border-pink-400 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-circle-nodes absolute -right-3 -top-2 text-6xl text-pink-500/15 group-hover:text-pink-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">16x Max</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">Plinko</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-pink-500 text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(236,72,153,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+
+                    <!-- 6. CYBER MINES -->
+                    <a href="{{ url_for('mines_game') }}" class="bg-gradient-to-br from-cyan-950/90 via-[#061318] to-black rounded-2xl border border-cyan-500/30 hover:border-cyan-400 p-4 hover:-translate-y-1 transition-all shadow-lg relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
+                        <i class="fa-solid fa-bomb absolute -right-3 -top-2 text-6xl text-cyan-500/15 group-hover:text-cyan-500/30 group-hover:scale-110 transition-all duration-500"></i>
+                        <div>
+                            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[8px] font-black uppercase px-2 py-0.5 rounded tracking-widest">Grid</span>
+                            <h3 class="text-base md:text-lg font-black italic text-white uppercase mt-2">Cyber Mines</h3>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-white">PLAY</span>
+                            <div class="bg-cyan-400 text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(6,182,212,0.6)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-[9px] ml-0.5"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SPORTSBOOK FILTER & SEARCH BAR -->
+            <div id="sportsbook-section" class="pt-2">
+                <div class="glass-panel rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <!-- Sport Category Filter Pills -->
+                    <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0" id="sport-filters">
+                        <button type="button" onclick="filterSports('ALL', this)" class="sport-filter-btn active px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border border-white/10 transition shrink-0">
+                            <i class="fa-solid fa-fire mr-1"></i> All Sports
+                        </button>
+                        <button type="button" onclick="filterSports('Cricket', this)" class="sport-filter-btn bg-black/40 text-gray-300 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">
+                            <i class="fa-solid fa-baseball-bat-ball mr-1 text-brand"></i> Cricket
+                        </button>
+                        <button type="button" onclick="filterSports('Football', this)" class="sport-filter-btn bg-black/40 text-gray-300 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">
+                            <i class="fa-solid fa-futbol mr-1 text-blue-400"></i> Football
+                        </button>
+                        <button type="button" onclick="filterSports('Tennis', this)" class="sport-filter-btn bg-black/40 text-gray-300 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shrink-0">
+                            <i class="fa-solid fa-table-tennis-paddle-ball mr-1 text-yellow-400"></i> Tennis
+                        </button>
+                    </div>
+
+                    <!-- Instant Team/League Search -->
+                    <div class="relative sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        <input type="text" id="match-search" oninput="applyMatchFilters()" placeholder="Search team or league..." class="w-full bg-black/60 border border-gray-700/80 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE SPORTS SECTION -->
+            <div>
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <h3 class="text-lg md:text-xl font-black uppercase tracking-wider flex items-center gap-2.5 drop-shadow-md">
+                        <span class="w-1.5 h-6 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></span>
+                        In-Play Live Sports
+                    </h3>
+                    <span class="text-[10px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> REAL-TIME ODDS
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 {% if live_matches|length > 1 %}md:grid-cols-2{% endif %} gap-4 md:gap-6" id="live-matches-grid">
+                    {% for m in live_matches %}
+                    <div class="epic-border-red group w-full match-card" data-sport="{{ m.sport }}" data-search="{{ m.sport }} {{ m.league }} {{ m.team1 }} {{ m.team2 }}">
+                        <div class="glass-panel rounded-[19px] p-5 h-full relative overflow-hidden flex flex-col justify-between">
+                            <div class="absolute -top-12 -right-12 w-36 h-36 bg-red-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-500/20 transition-colors"></div>
+
+                            <!-- Card Header -->
+                            <div class="flex justify-between items-center mb-4 pb-3 border-b border-white/5 relative z-10">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-satellite-dish text-red-500 text-xs animate-pulse"></i>
+                                    <span class="text-[10px] md:text-xs text-gray-300 font-bold uppercase tracking-widest">{{ m.sport }} <span class="text-gray-600 px-1">•</span> <span class="text-gray-400">{{ m.league }}</span></span>
+                                </div>
+                                <span class="text-[9px] font-black text-white bg-red-600 px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.6)] tracking-widest uppercase flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> LIVE
+                                </span>
+                            </div>
+
+                            <!-- Teams & Scoreboard -->
+                            <div class="flex justify-between items-center my-2 relative z-10">
+                                <div class="w-2/5 flex flex-col items-end text-right pr-2">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-500/20 to-black border border-red-500/30 flex items-center justify-center font-black text-sm text-red-300 mb-1.5 shadow-inner">
+                                        {{ m.team1[:2]|upper }}
+                                    </div>
+                                    <h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team1 }}</h4>
+                                </div>
+
+                                <div class="w-1/5 flex flex-col items-center justify-center">
+                                    <div class="bg-black/80 text-red-400 text-xs md:text-sm font-mono font-black px-3.5 py-2 rounded-xl border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.15)] whitespace-nowrap">
+                                        {{ m.score if m.score else "LIVE" }}
+                                    </div>
+                                    <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">1X2 Market</span>
+                                </div>
+
+                                <div class="w-2/5 flex flex-col items-start text-left pl-2">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-black border border-blue-500/30 flex items-center justify-center font-black text-sm text-blue-300 mb-1.5 shadow-inner">
+                                        {{ m.team2[:2]|upper }}
+                                    </div>
+                                    <h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team2 }}</h4>
                                 </div>
                             </div>
-                            <div class="w-2/5 text-left"><h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team2 }}</h4></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-3 gap-3 relative z-10">
-                            <button onclick="openBetModal({{ m.id }}, '{{ m.team1 }}', {{ m.odds1 }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Team 1</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.odds1) }}</span>
-                            </button>
-                            <button onclick="openBetModal({{ m.id }}, 'Draw', {{ m.oddsX }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Draw</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.oddsX) }}</span>
-                            </button>
-                            <button onclick="openBetModal({{ m.id }}, '{{ m.team2 }}', {{ m.odds2 }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Team 2</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.odds2) }}</span>
-                            </button>
+
+                            <!-- 1X2 Odds Buttons -->
+                            <div class="grid grid-cols-3 gap-2.5 mt-4 relative z-10">
+                                <button onclick="openBetModal({{ m.id }}, '{{ m.team1 }}', {{ m.odds1 }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase truncate max-w-[60%] group-hover/btn:text-white">1 • {{ m.team1 }}</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-brand">{{ "%.2f"|format(m.odds1) }}</span>
+                                </button>
+                                <button onclick="openBetModal({{ m.id }}, 'Draw', {{ m.oddsX }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase group-hover/btn:text-white">X • Draw</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-gray-200 group-hover/btn:text-brand">{{ "%.2f"|format(m.oddsX) }}</span>
+                                </button>
+                                <button onclick="openBetModal({{ m.id }}, '{{ m.team2 }}', {{ m.odds2 }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase truncate max-w-[60%] group-hover/btn:text-white">2 • {{ m.team2 }}</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-brand">{{ "%.2f"|format(m.odds2) }}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-span-1 md:col-span-full glass-panel text-sm text-gray-400 p-8 text-center rounded-2xl border border-white/5">
+                        <i class="fa-solid fa-satellite-dish text-2xl text-gray-600 mb-2 block"></i>
+                        No live matches in play right now. Browse upcoming fixtures below or jump into the Casino Lobby.
+                    </div>
+                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="glass-panel text-sm text-gray-500 italic p-6 text-center rounded-2xl">No live matches at the moment. Check upcoming matches below.</div>
-                {% endfor %}
             </div>
-        </div>
 
-        <!-- EPIC UPCOMING SPORTS -->
-        <div>
-            <h3 class="text-lg font-black uppercase tracking-wider mb-4 px-1 flex items-center gap-2 drop-shadow-md">
-                <div class="w-1.5 h-6 bg-brand rounded-full shadow-[0_0_10px_rgba(28,218,58,0.5)]"></div> Upcoming Matches
-            </h3>
-            <div class="space-y-4">
-                {% for m in popular_matches %}
-                <div class="epic-border group">
-                    <div class="glass-panel rounded-[15px] p-5 h-full relative overflow-hidden">
-                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand/5 rounded-full blur-3xl pointer-events-none group-hover:bg-brand/10 transition-colors"></div>
-                        
-                        <div class="flex justify-between items-center mb-5 pb-3 border-b border-white/5 relative z-10">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-day text-brand text-xs"></i>
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ m.sport }} <span class="text-gray-600 px-1">•</span> {{ m.league }}</span>
+            <!-- UPCOMING MATCHES SECTION -->
+            <div>
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <h3 class="text-lg md:text-xl font-black uppercase tracking-wider flex items-center gap-2.5 drop-shadow-md">
+                        <span class="w-1.5 h-6 bg-brand rounded-full shadow-[0_0_10px_rgba(28,218,58,0.5)]"></span>
+                        Upcoming Fixtures
+                    </h3>
+                    <span class="text-[10px] font-mono font-bold text-gray-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
+                        PRE-MATCH MARKETS
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 {% if popular_matches|length > 1 %}md:grid-cols-2{% endif %} gap-4 md:gap-6" id="upcoming-matches-grid">
+                    {% for m in popular_matches %}
+                    <div class="epic-border group w-full match-card" data-sport="{{ m.sport }}" data-search="{{ m.sport }} {{ m.league }} {{ m.team1 }} {{ m.team2 }}">
+                        <div class="glass-panel rounded-[19px] p-5 h-full relative overflow-hidden flex flex-col justify-between">
+                            <div class="absolute -top-12 -right-12 w-36 h-36 bg-brand/5 rounded-full blur-3xl pointer-events-none group-hover:bg-brand/15 transition-colors"></div>
+
+                            <!-- Card Header -->
+                            <div class="flex justify-between items-center mb-4 pb-3 border-b border-white/5 relative z-10">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar-day text-brand text-xs"></i>
+                                    <span class="text-[10px] md:text-xs text-gray-300 font-bold uppercase tracking-widest">{{ m.sport }} <span class="text-gray-600 px-1">•</span> <span class="text-gray-400">{{ m.league }}</span></span>
+                                </div>
+                                <span class="text-[9px] font-black text-brand bg-brand/10 px-2.5 py-0.5 rounded-full border border-brand/25 tracking-widest uppercase">
+                                    PRE-MATCH
+                                </span>
                             </div>
-                            <span class="text-[9px] font-black text-gray-400 bg-white/5 px-2.5 py-1 rounded border border-white/10 tracking-widest uppercase">UPCOMING</span>
-                        </div>
-                        
-                        <div class="flex justify-between items-center mb-6 relative z-10">
-                            <div class="w-2/5 text-right"><h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team1 }}</h4></div>
-                            <div class="w-1/5 flex justify-center">
-                                <div class="bg-black/50 text-gray-500 text-[10px] font-black px-3 py-1.5 rounded-full border border-white/5 shadow-inner">VS</div>
+
+                            <!-- Teams Display -->
+                            <div class="flex justify-between items-center my-2 relative z-10">
+                                <div class="w-2/5 flex flex-col items-end text-right pr-2">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand/20 to-black border border-brand/30 flex items-center justify-center font-black text-sm text-brand mb-1.5 shadow-inner">
+                                        {{ m.team1[:2]|upper }}
+                                    </div>
+                                    <h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team1 }}</h4>
+                                </div>
+
+                                <div class="w-1/5 flex flex-col items-center justify-center">
+                                    <div class="bg-black/60 text-gray-400 text-[11px] font-black px-3 py-1.5 rounded-full border border-white/10 shadow-inner">
+                                        VS
+                                    </div>
+                                </div>
+
+                                <div class="w-2/5 flex flex-col items-start text-left pl-2">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/20 to-black border border-purple-500/30 flex items-center justify-center font-black text-sm text-purple-300 mb-1.5 shadow-inner">
+                                        {{ m.team2[:2]|upper }}
+                                    </div>
+                                    <h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team2 }}</h4>
+                                </div>
                             </div>
-                            <div class="w-2/5 text-left"><h4 class="text-sm md:text-base font-black text-white leading-tight drop-shadow-md">{{ m.team2 }}</h4></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-3 gap-3 relative z-10">
-                            <button onclick="openBetModal({{ m.id }}, '{{ m.team1 }}', {{ m.odds1 }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Team 1</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.odds1) }}</span>
-                            </button>
-                            <button onclick="openBetModal({{ m.id }}, 'Draw', {{ m.oddsX }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Draw</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.oddsX) }}</span>
-                            </button>
-                            <button onclick="openBetModal({{ m.id }}, '{{ m.team2 }}', {{ m.odds2 }})" class="odds-btn rounded-xl py-3 flex flex-col items-center justify-center group/btn">
-                                <span class="text-[10px] text-gray-500 font-bold mb-0.5 uppercase tracking-widest group-hover/btn:text-brand transition-colors">Team 2</span>
-                                <span class="text-sm font-black text-white">{{ "%.2f"|format(m.odds2) }}</span>
-                            </button>
+
+                            <!-- 1X2 Odds Buttons -->
+                            <div class="grid grid-cols-3 gap-2.5 mt-4 relative z-10">
+                                <button onclick="openBetModal({{ m.id }}, '{{ m.team1 }}', {{ m.odds1 }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase truncate max-w-[60%] group-hover/btn:text-white">1 • {{ m.team1 }}</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-brand">{{ "%.2f"|format(m.odds1) }}</span>
+                                </button>
+                                <button onclick="openBetModal({{ m.id }}, 'Draw', {{ m.oddsX }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase group-hover/btn:text-white">X • Draw</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-gray-200 group-hover/btn:text-brand">{{ "%.2f"|format(m.oddsX) }}</span>
+                                </button>
+                                <button onclick="openBetModal({{ m.id }}, '{{ m.team2 }}', {{ m.odds2 }})" class="odds-btn rounded-xl py-2.5 px-3 flex items-center justify-between group/btn">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase truncate max-w-[60%] group-hover/btn:text-white">2 • {{ m.team2 }}</span>
+                                    <span class="text-xs md:text-sm font-mono font-black text-brand">{{ "%.2f"|format(m.odds2) }}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-span-1 md:col-span-full glass-panel text-sm text-gray-400 p-8 text-center rounded-2xl border border-white/5">
+                        No upcoming fixtures scheduled right now.
+                    </div>
+                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="glass-panel text-sm text-gray-500 italic p-6 text-center rounded-2xl">No upcoming matches available.</div>
-                {% endfor %}
             </div>
+
         </div>
-
-        <!-- MASSIVE INVISIBLE SPACER -->
-        <div class="h-[150px] w-full pointer-events-none"></div>
-
-    </div>
+    </main>
 
     <!-- FLOATING DAILY SPIN BUTTON -->
-    <a href="{{ url_for('spin_game') }}" class="fixed bottom-[85px] right-4 z-40 bg-gradient-to-r from-purple-600 to-indigo-600 p-1.5 rounded-full shadow-[0_0_25px_rgba(168,85,247,0.7)] flex items-center pr-4 border border-purple-400/50 animate-bounce group transition-all hover:scale-105 md:bottom-8 md:right-8">
-        <div class="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center mr-2 shadow-inner">
-            <i class="fa-solid fa-dharmachakra text-white text-xl animate-[spin_3s_linear_infinite] group-hover:animate-[spin_1s_linear_infinite]"></i>
+    <a href="{{ url_for('spin_game') }}" class="fixed bottom-[82px] md:bottom-8 right-4 md:right-8 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 p-1.5 md:p-2 rounded-full shadow-[0_0_25px_rgba(168,85,247,0.65)] flex items-center pr-4 md:pr-5 border border-purple-400/50 group transition-all hover:scale-105 active:scale-95">
+        <div class="bg-black/30 w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center mr-2.5 shadow-inner border border-white/10">
+            <i class="fa-solid fa-dharmachakra text-amber-300 text-xl md:text-2xl animate-[spin_4s_linear_infinite] group-hover:animate-[spin_1s_linear_infinite]"></i>
         </div>
         <div class="flex flex-col">
             <span class="text-[9px] font-bold text-purple-200 uppercase tracking-widest leading-none mb-0.5">Free Bonus</span>
-            <span class="text-sm font-black text-white italic leading-none drop-shadow-md">DAILY SPIN</span>
+            <span class="text-xs md:text-sm font-black text-white italic leading-none drop-shadow">DAILY SPIN</span>
         </div>
     </a>
 
-    <!-- BETTING MODAL -->
-    <div id="betModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-[#121721] border border-gray-700 rounded-t-3xl sm:rounded-2xl w-full max-w-md shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative flex flex-col overflow-hidden">
-            <div class="p-5 border-b border-gray-800 flex justify-between items-center bg-[#1C232E]">
-                <h3 class="text-lg font-black text-white flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-ticket text-brand"></i> Bet Slip</h3>
-                <button onclick="closeBetModal()" class="text-gray-400 hover:text-white bg-white/5 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+    <!-- INTERACTIVE SPORTS BET SLIP MODAL -->
+    <div id="betModal" class="hidden fixed inset-0 bg-black/85 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md transition-opacity">
+        <div class="bg-[#0f141d] border border-gray-700/80 rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-[0_-10px_50px_rgba(0,0,0,0.8)] relative flex flex-col overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="p-4 px-5 border-b border-gray-800 flex justify-between items-center bg-[#151c28]">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-brand animate-ping"></span>
+                    <h3 class="text-base font-black uppercase tracking-wider text-white flex items-center gap-2">
+                        <i class="fa-solid fa-ticket text-brand"></i> Official Bet Slip
+                    </h3>
+                </div>
+                <button type="button" onclick="closeBetModal()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 w-8 h-8 rounded-full flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div class="p-6">
-                <div class="mb-5 bg-[#0a0d14] p-4 rounded-xl border border-gray-800 shadow-inner">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1.5">Your Pick</div>
-                    <div class="flex justify-between items-end">
-                        <div class="font-black text-white text-lg w-2/3 leading-tight" id="modal-team">Team Name</div>
-                        <div class="font-black text-brand text-2xl" id="modal-odds">0.00</div>
+
+            <div class="p-5 space-y-5">
+                <!-- Selected Pick Card -->
+                <div class="bg-[#090c12] p-4 rounded-2xl border border-gray-800 shadow-inner flex justify-between items-center">
+                    <div>
+                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Selected Outcome</div>
+                        <div class="font-black text-white text-lg leading-tight" id="modal-team">Team Name</div>
+                    </div>
+                    <div class="text-right bg-brand/10 border border-brand/30 px-3 py-1.5 rounded-xl">
+                        <div class="text-[9px] text-brand font-bold uppercase tracking-wider">Odds</div>
+                        <div class="font-mono font-black text-brand text-xl" id="modal-odds">0.00</div>
                     </div>
                 </div>
-                
-                <div class="mb-6">
-                    <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase mb-2">
+
+                <!-- Stake Controls -->
+                <div>
+                    <div class="flex justify-between text-[11px] text-gray-400 font-bold uppercase mb-2">
                         <span>Stake Amount (₹)</span>
-                        <span>Balance: <span class="text-white">₹<span id="modal-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></span></span>
+                        <span>Available: <span class="text-brand font-mono">₹<span id="modal-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></span></span>
                     </div>
-                    <div class="flex items-center bg-[#0a0d14] border border-gray-700 rounded-xl px-2 py-1 shadow-inner mb-3">
-                        <button onclick="adjustBetStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-2xl transition">-</button>
-                        <input type="number" id="bet-stake" value="100" oninput="calcReturn()" class="w-full bg-transparent text-center text-white font-black text-3xl focus:outline-none py-2">
-                        <button onclick="adjustBetStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-2xl transition">+</button>
+
+                    <div class="flex items-center bg-[#090c12] border border-gray-700 focus-within:border-brand rounded-2xl p-1.5 shadow-inner mb-3 transition">
+                        <button type="button" onclick="adjustBetStake(-50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-xl transition">-</button>
+                        <input type="number" id="bet-stake" value="100" min="10" oninput="calcReturn()" class="w-full bg-transparent text-center text-white font-black font-mono text-2xl focus:outline-none py-1">
+                        <button type="button" onclick="adjustBetStake(50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-black text-xl transition">+</button>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mb-2">
-                        <button onclick="setBetStake(100)" class="bg-[#1C232E] hover:bg-gray-700 border border-white/5 text-gray-300 rounded-lg text-xs font-bold py-2 transition shadow-sm">100</button>
-                        <button onclick="setBetStake(500)" class="bg-[#1C232E] hover:bg-gray-700 border border-white/5 text-gray-300 rounded-lg text-xs font-bold py-2 transition shadow-sm">500</button>
-                        <button onclick="setBetStake(1000)" class="bg-[#1C232E] hover:bg-gray-700 border border-white/5 text-gray-300 rounded-lg text-xs font-bold py-2 transition shadow-sm">1K</button>
-                        <button onclick="setBetStake(5000)" class="bg-[#1C232E] hover:bg-gray-700 border border-white/5 text-gray-300 rounded-lg text-xs font-bold py-2 transition shadow-sm">5K</button>
+
+                    <div class="grid grid-cols-6 gap-1.5">
+                        <button type="button" onclick="setBetStake(100)" class="bg-[#171f2e] hover:bg-gray-700 border border-white/5 text-gray-200 rounded-xl text-xs font-bold py-2 transition">100</button>
+                        <button type="button" onclick="setBetStake(500)" class="bg-[#171f2e] hover:bg-gray-700 border border-white/5 text-gray-200 rounded-xl text-xs font-bold py-2 transition">500</button>
+                        <button type="button" onclick="setBetStake(1000)" class="bg-[#171f2e] hover:bg-gray-700 border border-white/5 text-gray-200 rounded-xl text-xs font-bold py-2 transition">1K</button>
+                        <button type="button" onclick="setBetStake(5000)" class="bg-[#171f2e] hover:bg-gray-700 border border-white/5 text-gray-200 rounded-xl text-xs font-bold py-2 transition">5K</button>
+                        <button type="button" onclick="multiplyBetStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 rounded-xl text-xs font-black py-2 transition">½</button>
+                        <button type="button" onclick="multiplyBetStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 rounded-xl text-xs font-black py-2 transition">2×</button>
                     </div>
                 </div>
-                
-                <div class="flex justify-between items-center bg-brand/10 p-4 rounded-xl border border-brand/20 mb-6 shadow-inner">
-                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Est. Payout</span>
-                    <span class="font-black text-brand text-2xl drop-shadow-md">₹<span id="modal-return">0.00</span></span>
+
+                <!-- Payout Summary -->
+                <div class="bg-gradient-to-r from-brand/15 via-emerald-950/30 to-black p-4 rounded-2xl border border-brand/30 flex justify-between items-center shadow-inner">
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Estimated Payout</span>
+                        <span class="text-[11px] font-mono text-gray-400">Net Profit: <strong class="text-emerald-400">+₹<span id="modal-profit">0.00</span></strong></span>
+                    </div>
+                    <span class="font-mono font-black text-brand text-2xl drop-shadow-md">₹<span id="modal-return">0.00</span></span>
                 </div>
-                
-                <button id="submit-bet-btn" onclick="submitBet()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-xl py-4 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.4)] active:scale-[0.98] transition-all uppercase tracking-wider">PLACE BET</button>
+
+                <button type="button" id="submit-bet-btn" onclick="submitBet()" class="w-full bg-gradient-to-r from-green-500 to-brand hover:brightness-110 text-black font-black text-lg py-4 rounded-2xl shadow-[0_0_25px_rgba(28,218,58,0.4)] active:scale-[0.98] transition-all uppercase tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-double"></i> CONFIRM & PLACE BET
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- FIXED BOTTOM NAV -->
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-xl border-t border-white/5 z-50 py-2 px-6 flex justify-between items-center md:hidden pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-[#090c14]/95 backdrop-blur-xl border-t border-white/10 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-10px_30px_rgba(0,0,0,0.85)]">
         <a href="{{ url_for('home') }}" class="flex flex-col items-center text-brand"><i class="fa-solid fa-house text-xl mb-1 drop-shadow-[0_0_10px_rgba(28,218,58,0.6)]"></i><span class="text-[10px] font-bold">Home</span></a>
         <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-colors"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
         <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-colors"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
@@ -248,21 +657,100 @@
     </nav>
 
     <script>
-        function showToast(message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
-            const toast = document.createElement('div'); const isSuccess = type === 'success';
-            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        // ==========================================
+        // 1. WEB AUDIO SYNTHESIZER
+        // ==========================================
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playTone(freq, type, dur, vol = 0.05) {
+            if (!audioCtx) return;
+            try {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = type;
+                o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                g.gain.setValueAtTime(vol, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.start();
+                o.stop(audioCtx.currentTime + dur);
+            } catch (e) {}
         }
 
+        // ==========================================
+        // 2. FIXED NON-SHIFTING TOAST NOTIFICATIONS
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Confirmed' : 'Notice'}</h4>
+                    <p class="text-gray-200 text-xs truncate mt-0.5">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ==========================================
+        // 3. SPORT CATEGORY FILTER & SEARCH
+        // ==========================================
+        let selectedSport = 'ALL';
+
+        function filterSports(sport, btnEl) {
+            initAudio();
+            playTone(800, 'sine', 0.04, 0.04);
+            selectedSport = sport;
+            document.querySelectorAll('.sport-filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('bg-black/40', 'text-gray-300');
+            });
+            btnEl.classList.add('active');
+            btnEl.classList.remove('bg-black/40', 'text-gray-300');
+            applyMatchFilters();
+        }
+
+        function applyMatchFilters() {
+            const query = (document.getElementById('match-search').value || '').toLowerCase().trim();
+            document.querySelectorAll('.match-card').forEach(card => {
+                const cardSport = (card.getAttribute('data-sport') || '').toLowerCase();
+                const cardSearch = (card.getAttribute('data-search') || '').toLowerCase();
+                const sportMatch = (selectedSport === 'ALL') || cardSport.includes(selectedSport.toLowerCase());
+                const textMatch = !query || cardSearch.includes(query);
+                card.style.display = (sportMatch && textMatch) ? '' : 'none';
+            });
+        }
+
+        // ==========================================
+        // 4. BET SLIP MODAL & SUBMISSION
+        // ==========================================
         let activeMatchId = null;
         let activeOdds = 0;
 
         function openBetModal(matchId, team, odds) {
+            initAudio();
+            playTone(720, 'sine', 0.05, 0.05);
             if (odds <= 0) return;
             activeMatchId = matchId;
             activeOdds = odds;
@@ -278,6 +766,8 @@
         }
 
         function adjustBetStake(amt) {
+            initAudio();
+            playTone(850, 'sine', 0.03, 0.04);
             let el = document.getElementById('bet-stake');
             let val = parseInt(el.value) || 0;
             el.value = Math.max(10, val + amt);
@@ -285,22 +775,41 @@
         }
 
         function setBetStake(val) {
+            initAudio();
+            playTone(850, 'sine', 0.03, 0.04);
             document.getElementById('bet-stake').value = val;
+            calcReturn();
+        }
+
+        function multiplyBetStake(factor) {
+            initAudio();
+            playTone(850, 'sine', 0.03, 0.04);
+            let el = document.getElementById('bet-stake');
+            let val = parseInt(el.value) || 100;
+            el.value = Math.max(10, Math.round(val * factor));
             calcReturn();
         }
 
         function calcReturn() {
             let stake = parseFloat(document.getElementById('bet-stake').value) || 0;
-            document.getElementById('modal-return').innerText = (stake * activeOdds).toFixed(2);
+            let totalReturn = stake * activeOdds;
+            let netProfit = Math.max(0, totalReturn - stake);
+            document.getElementById('modal-return').innerText = totalReturn.toFixed(2);
+            document.getElementById('modal-profit').innerText = netProfit.toFixed(2);
         }
 
         async function submitBet() {
+            initAudio();
             let stake = parseFloat(document.getElementById('bet-stake').value);
             let team = document.getElementById('modal-team').innerText;
-            if(isNaN(stake) || stake < 10) { showToast('Minimum bet is ₹10', 'error'); return; }
-            
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
             let btn = document.getElementById('submit-bet-btn');
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PROCESSING...';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PROCESSING...';
 
             try {
                 let res = await fetch("/place_bet", {
@@ -308,23 +817,27 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ match_id: activeMatchId, team: team, odds: activeOdds, stake: stake })
                 });
-                
-                if(!res.ok) throw new Error("Server error");
+
+                if (!res.ok) throw new Error("Server error");
                 let data = await res.json();
-                
-                if(data.success) {
-                    document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
-                    document.getElementById('modal-balance').innerText = data.new_total.toFixed(2);
-                    showToast('Bet placed successfully!', 'success');
+
+                if (data.success) {
+                    playTone(587.33, 'triangle', 0.12, 0.12);
+                    setTimeout(() => playTone(880, 'triangle', 0.25, 0.15), 90);
+                    if (document.getElementById('display-balance')) document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                    if (document.getElementById('desktop-balance')) document.getElementById('desktop-balance').innerText = data.new_total.toFixed(2);
+                    if (document.getElementById('modal-balance')) document.getElementById('modal-balance').innerText = data.new_total.toFixed(2);
+                    showToast(`Bet placed on ${team}!`, 'success');
                     closeBetModal();
                 } else {
-                    showToast(data.error, 'error');
+                    showToast(data.error || 'Could not place bet', 'error');
                 }
-            } catch(e) {
+            } catch (e) {
                 showToast('Network error processing bet', 'error');
             }
-            
-            btn.disabled = false; btn.innerText = 'PLACE BET';
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> CONFIRM & PLACE BET';
         }
     </script>
 </body>

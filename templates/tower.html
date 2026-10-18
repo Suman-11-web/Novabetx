@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tower Climb Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonPurple: '#a855f7',
+                        neonGreen: '#10b981',
+                        neonRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 4px; }
+        
+        .arena-bg { background: radial-gradient(ellipse at top, #1e1332 0%, #05070c 100%); }
+
+        /* Tower Grid Styling */
+        .tile { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            background: rgba(255,255,255,0.03); 
+            border: 2px solid rgba(255,255,255,0.05); 
+            border-radius: 12px; 
+            cursor: not-allowed; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 900; 
+            font-size: 1.5rem; 
+            height: 55px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) { .tile { height: 65px; font-size: 2rem; } }
+
+        .row-active .tile { 
+            cursor: pointer; 
+            border-color: rgba(168,85,247,0.5); 
+            background: rgba(168,85,247,0.1); 
+            box-shadow: 0 0 15px rgba(168,85,247,0.2), inset 0 0 10px rgba(168,85,247,0.1);
+        }
+        .row-active .tile:hover { 
+            background: rgba(168,85,247,0.25); 
+            border-color: #a855f7;
+            transform: translateY(-2px) scale(1.02); 
+            box-shadow: 0 5px 20px rgba(168,85,247,0.4);
+        }
+
+        .tile.safe { 
+            background: rgba(16,185,129,0.2); 
+            border-color: #10b981; 
+            color: #10b981; 
+            box-shadow: 0 0 20px rgba(16,185,129,0.4), inset 0 0 15px rgba(16,185,129,0.2);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .tile.broken { 
+            background: rgba(239,68,68,0.2); 
+            border-color: #ef4444; 
+            color: #ef4444; 
+            box-shadow: 0 0 20px rgba(239,68,68,0.4), inset 0 0 15px rgba(239,68,68,0.2);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+        }
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .ripple-effect::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            background: rgba(16,185,129,0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        .glow-purple { filter: drop-shadow(0 0 15px rgba(168,85,247,0.6)); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-neonPurple">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20">PRO MAX</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-purple-500/10 text-purple-400 font-bold rounded-xl border border-purple-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-purple-400 text-sm hover:text-purple-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-neonPurple text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-cubes-stacked"></i> TOWER CLIMB</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-purple-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- GAME ARENA -->
+        <div class="flex-1 arena-bg relative flex flex-col items-center justify-center p-4 overflow-hidden">
+            
+            <div class="w-full max-w-lg bg-[#0a0d15] p-6 md:p-8 rounded-[2rem] border border-purple-900/30 shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 my-auto">
+                
+                <!-- HUD -->
+                <div class="flex justify-between items-center mb-6 bg-black/50 p-4 rounded-2xl border border-gray-800">
+                    <div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Multiplier</div>
+                        <div id="current-mult" class="text-2xl font-black text-white font-mono">1.00x</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Potential Win</div>
+                        <div id="current-win" class="text-2xl font-black text-green-400 font-mono">₹0.00</div>
+                    </div>
+                </div>
+
+                <!-- TOWER GRID (Reversed so Tier 1 is at bottom) -->
+                <div class="flex flex-col gap-2.5 mb-2" id="tower-grid">
+                    <div class="flex gap-3 w-full items-center group" id="row-8"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">12.0x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-7"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">8.0x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-6"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">5.8x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-5"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">4.2x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-4"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">3.1x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-3"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">2.3x</div></div>
+                    <div class="flex gap-3 w-full items-center group" id="row-2"><div class="tile w-1/2"></div><div class="tile w-1/2"></div><div class="w-16 flex items-center justify-end text-sm font-black text-gray-600 transition-colors group-[.row-active]:text-purple-400">1.7x</div></div>
+                    <div class="flex gap-3 w-full items-center group row-active" id="row-1"><div class="tile w-1/2 pointer-events-none opacity-50" id="tile-init-0"></div><div class="tile w-1/2 pointer-events-none opacity-50" id="tile-init-1"></div><div class="w-16 flex items-center justify-end text-sm font-black text-purple-400">1.3x</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-6 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stake Amount</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Min: ₹10</span>
+                    </div>
+
+                    <div class="relative flex mb-4">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-purple-500 outline-none transition shadow-inner">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(500)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+500</button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTON -->
+                <div class="w-full md:w-1/2 flex flex-col justify-center">
+                    <button id="action-btn" onclick="startGame()" class="w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        START CLIMB
+                        <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrow-up"></i> Place Bet</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. AUDIO SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundStart() { playTone(400, 'square', 0.15, 0.1); setTimeout(() => playTone(600, 'square', 0.2, 0.1), 150); }
+        function soundClick() { playTone(300, 'sawtooth', 0.1, 0.05); }
+        function soundSafe(tier) { 
+            const baseFreq = 500 + (tier * 50);
+            playTone(baseFreq, 'sine', 0.15, 0.15); 
+            setTimeout(() => playTone(baseFreq * 1.25, 'sine', 0.3, 0.15), 100); 
+        }
+        function soundBomb() { 
+            playTone(100, 'square', 0.5, 0.3); 
+            playTone(50, 'sawtooth', 0.7, 0.4); 
+        }
+        function soundCashout() { 
+            playTone(523.25, 'triangle', 0.15, 0.2); 
+            setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); 
+            setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); 
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING LOGIC
+        // ----------------------------------------------------
+        function adjustStake(factor) {
+            if(isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+        function setStake(amount) {
+            if(isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        // ----------------------------------------------------
+        // 3. GAME ENGINE
+        // ----------------------------------------------------
+        let currentTier = 0;
+        let isPlaying = false;
+        let currentWinnings = 0;
+        let isProcessing = false; // Prevent double clicks
+
+        function resetGrid() {
+            document.querySelectorAll('.flex.gap-3').forEach(r => {
+                r.classList.remove('row-active');
+                r.querySelectorAll('.tile').forEach(t => { 
+                    t.className = 'tile w-1/2'; 
+                    t.innerHTML = ''; 
+                    t.onclick = null; 
+                });
+            });
+            document.getElementById('current-mult').innerText = '1.00x';
+            document.getElementById('current-win').innerText = '₹0.00';
+            currentWinnings = 0;
+        }
+
+        function startGame() {
+            const stake = parseFloat(document.getElementById('stake').value);
+            if(isNaN(stake) || stake < 10) return alert('Minimum bet is ₹10');
+            
+            soundStart();
+            resetGrid();
+            isPlaying = true;
+            isProcessing = false;
+            currentTier = 1;
+            activateRow(currentTier);
+            
+            const btn = document.getElementById('action-btn');
+            btn.innerHTML = 'CASH OUT <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none text-green-200">TAKE WINNINGS</span>';
+            btn.className = "w-full h-full min-h-[90px] py-4 bg-gray-700 text-gray-500 font-black text-3xl rounded-2xl uppercase tracking-widest border-b-4 border-gray-900 cursor-not-allowed flex flex-col items-center justify-center";
+            btn.onclick = cashout;
+            btn.disabled = true; // Cannot cashout until tier 1 is passed
+        }
+
+        function activateRow(tier) {
+            document.querySelectorAll('.flex.gap-3').forEach(r => r.classList.remove('row-active'));
+            if(tier <= 8) {
+                const row = document.getElementById(`row-${tier}`);
+                row.classList.add('row-active');
+                const tiles = row.querySelectorAll('.tile');
+                tiles[0].onclick = () => step(0, tiles[0]);
+                tiles[1].onclick = () => step(1, tiles[1]);
+            }
+        }
+
+        async function step(tileIdx, element) {
+            if(!isPlaying || isProcessing) return;
+            isProcessing = true;
+            soundClick();
+            
+            element.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-purple-400"></i>';
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            try {
+                const res = await fetch('/tower/step', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake, tier: currentTier, tile: tileIdx}) 
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    if (currentTier === 1) document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    
+                    const row = document.getElementById(`row-${currentTier}`);
+                    const tiles = row.querySelectorAll('.tile');
+                    
+                    if(d.safe) {
+                        soundSafe(currentTier);
+                        tiles[tileIdx].classList.add('safe', 'ripple-effect');
+                        tiles[tileIdx].innerHTML = '<i class="fa-solid fa-gem"></i>';
+                        tiles[d.broken_tile].innerHTML = '<i class="fa-solid fa-bomb text-gray-600 opacity-30"></i>';
+                        tiles[d.broken_tile].onclick = null;
+                        
+                        currentWinnings = d.winnings;
+                        document.getElementById('current-mult').innerText = d.multiplier + 'x';
+                        document.getElementById('current-win').innerText = '₹' + d.winnings.toFixed(2);
+                        
+                        // Enable Cashout Button
+                        const btn = document.getElementById('action-btn');
+                        btn.disabled = false;
+                        btn.className = "w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-green-400 to-green-600 hover:from-green-300 hover:to-green-500 text-black font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(16,185,129,0.4)] border-b-4 border-green-800 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center animate-pulse";
+                        
+                        currentTier++;
+                        isProcessing = false;
+                        
+                        if(currentTier > 8) { 
+                            setTimeout(() => {
+                                alert(`Maximum Height Reached! Auto Cashout: ₹${d.winnings.toFixed(2)}`); 
+                                cashout(); 
+                            }, 500);
+                        } else { 
+                            activateRow(currentTier); 
+                        }
+                        
+                    } else {
+                        soundBomb();
+                        tiles[tileIdx].classList.add('broken');
+                        tiles[tileIdx].innerHTML = '<i class="fa-solid fa-bomb text-white drop-shadow-md"></i>';
+                        
+                        // Show where the safe spot was
+                        const safeIdx = tileIdx === 0 ? 1 : 0;
+                        tiles[safeIdx].innerHTML = '<i class="fa-solid fa-gem text-green-500/50"></i>';
+                        
+                        endGameLoose();
+                    }
+                } else { 
+                    alert(d.error); 
+                    element.innerHTML = '';
+                    isProcessing = false;
+                }
+            } catch(e) { 
+                alert("Network Error"); 
+                element.innerHTML = '';
+                isProcessing = false;
+            }
+        }
+
+        async function cashout() {
+            if(!isPlaying || currentWinnings === 0 || isProcessing) return;
+            isProcessing = true;
+            try {
+                const res = await fetch('/tower/cashout', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({winnings: currentWinnings}) 
+                });
+                const d = await res.json();
+                if(d.success) {
+                    soundCashout();
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    alert(`Successfully Cashed Out: ₹${currentWinnings.toFixed(2)}`);
+                    resetToStart();
+                }
+            } catch(e) { isProcessing = false; }
+        }
+
+        function endGameLoose() {
+            isPlaying = false;
+            document.querySelectorAll('.flex.gap-3').forEach(r => r.classList.remove('row-active'));
+            setTimeout(resetToStart, 1500);
+        }
+
+        function resetToStart() {
+            isPlaying = false;
+            isProcessing = false;
+            const btn = document.getElementById('action-btn');
+            btn.innerHTML = 'START CLIMB <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrow-up"></i> Place Bet</span>';
+            btn.className = "w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(168,85,247,0.4)] border-b-4 border-purple-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center";
+            btn.onclick = startGame;
+            btn.disabled = false;
+            
+            // Re-add initial faded state to row 1
+            const r1 = document.getElementById('row-1');
+            r1.classList.add('row-active');
+            r1.querySelectorAll('.tile').forEach(t => {
+                t.className = 'tile w-1/2 pointer-events-none opacity-50';
+                t.innerHTML = '';
+            });
+        }
+    </script>
+</body>
+</html>

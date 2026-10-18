@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Turbo Wheel Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonRed: '#ef4444',
+                        neonBlue: '#3b82f6'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
+        
+        .arena-bg { background: radial-gradient(ellipse at center, #1a0f14 0%, #05070c 100%); }
+        
+        /* 3D Wheel Styling */
+        .wheel-rim {
+            position: relative;
+            border-radius: 50%;
+            padding: 12px;
+            background: linear-gradient(145deg, #1f2937, #000000);
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.3), inset 0 5px 15px rgba(255,255,255,0.1);
+        }
+        
+        .wheel-container { 
+            position: relative; 
+            width: 280px; 
+            height: 280px; 
+            border-radius: 50%; 
+            transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1); /* Realistic friction curve */
+            overflow: hidden; 
+            background: #111827; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-container { width: 380px; height: 380px; }
+        }
+
+        /* 12 Segments (30 degrees each) using skew technique */
+        .wheel-segment { 
+            position: absolute; 
+            top: 0; 
+            left: 50%; 
+            width: 50%; 
+            height: 50%; 
+            transform-origin: 0% 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            writing-mode: vertical-rl; 
+            text-orientation: mixed; 
+            font-weight: 900; 
+            font-size: 1.1rem; 
+            color: #fff; 
+            padding-bottom: 25px; 
+            box-sizing: border-box; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            border-left: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-segment { font-size: 1.4rem; padding-bottom: 40px; }
+        }
+
+        .wheel-center { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 60px; 
+            height: 60px; 
+            background: radial-gradient(circle, #374151 0%, #111827 100%); 
+            border: 4px solid #ef4444;
+            border-radius: 50%; 
+            z-index: 20; 
+            box-shadow: 0 0 25px rgba(0,0,0,0.9), inset 0 0 10px rgba(239,68,68,0.5); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wheel-center-inner {
+            width: 20px; height: 20px; background: #ef4444; border-radius: 50%; filter: blur(2px);
+        }
+
+        .wheel-pointer { 
+            position: absolute; 
+            top: -15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 0; 
+            height: 0; 
+            border-left: 20px solid transparent; 
+            border-right: 20px solid transparent; 
+            border-top: 40px solid #ef4444; 
+            z-index: 30; 
+            filter: drop-shadow(0 5px 10px rgba(239,68,68,0.6)); 
+        }
+
+        /* Wheel Colors */
+        .c-0 { background: #1f2937; transform: rotate(0deg) skewY(-60deg); }
+        .c-1 { background: #3b82f6; transform: rotate(30deg) skewY(-60deg); }
+        .c-2 { background: #1f2937; transform: rotate(60deg) skewY(-60deg); }
+        .c-3 { background: #10b981; transform: rotate(90deg) skewY(-60deg); }
+        .c-4 { background: #ef4444; transform: rotate(120deg) skewY(-60deg); }
+        .c-5 { background: #3b82f6; transform: rotate(150deg) skewY(-60deg); }
+        .c-6 { background: #8b5cf6; transform: rotate(180deg) skewY(-60deg); }
+        .c-7 { background: #1f2937; transform: rotate(210deg) skewY(-60deg); }
+        .c-8 { background: #f59e0b; transform: rotate(240deg) skewY(-60deg); }
+        .c-9 { background: #ef4444; transform: rotate(270deg) skewY(-60deg); }
+        .c-10 { background: #3b82f6; transform: rotate(300deg) skewY(-60deg); }
+        .c-11 { background: #ec4899; transform: rotate(330deg) skewY(-60deg); }
+
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-red-500">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">PRO MAX</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-red-500/10 text-red-400 font-bold rounded-xl border border-red-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-red-400 text-sm hover:text-red-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-red-500 text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-circle-radiation"></i> TURBO WHEEL</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-red-500 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- WHEEL ARENA -->
+        <div class="flex-1 arena-bg relative flex flex-col items-center justify-center py-10 px-4 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
+            
+            <!-- Result Overlay -->
+            <div id="result-overlay" class="absolute top-10 md:top-16 left-1/2 -translate-x-1/2 z-40 text-center w-full hidden pointer-events-none transition-all">
+                <div id="result-msg" class="text-5xl md:text-7xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-xl md:text-2xl font-bold mt-2 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- The Wheel Engine -->
+            <div class="relative z-10 my-auto">
+                <div class="wheel-pointer" id="pointer"></div>
+                <div class="wheel-rim">
+                    <div id="wheel" class="wheel-container">
+                        <div class="wheel-segment c-0">1.2x</div>
+                        <div class="wheel-segment c-1">1.5x</div>
+                        <div class="wheel-segment c-2">1.2x</div>
+                        <div class="wheel-segment c-3 text-black">2.0x</div>
+                        <div class="wheel-segment c-4 text-black">0.0x</div>
+                        <div class="wheel-segment c-5">1.5x</div>
+                        <div class="wheel-segment c-6 text-black">3.0x</div>
+                        <div class="wheel-segment c-7">1.2x</div>
+                        <div class="wheel-segment c-8 text-black">5.0x</div>
+                        <div class="wheel-segment c-9 text-black">0.0x</div>
+                        <div class="wheel-segment c-10">1.5x</div>
+                        <div class="wheel-segment c-11 text-black">10x</div>
+                        <div class="wheel-center"><div class="wheel-center-inner"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-6 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stake Amount</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Max Win: 10x</span>
+                    </div>
+
+                    <div class="relative flex mb-4">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-red-500 outline-none transition shadow-inner">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(100)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+100</button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTON -->
+                <div class="w-full md:w-1/2 flex flex-col justify-center">
+                    <button id="spin-btn" onclick="spinWheel()" class="w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-red-500 to-red-700 hover:from-red-400 hover:to-red-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(239,68,68,0.4)] border-b-4 border-red-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        SPIN WHEEL
+                        <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Particle Container -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. AUDIO SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundTick() { playTone(800, 'square', 0.02, 0.03); }
+        function soundWinBig() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
+        function soundWinSmall() { playTone(523.25, 'triangle', 0.2, 0.15); setTimeout(() => playTone(783.99, 'triangle', 0.3, 0.15), 150); }
+        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING LOGIC
+        // ----------------------------------------------------
+        let isSpinning = false;
+
+        function adjustStake(factor) {
+            if(isSpinning) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+        function setStake(amount) {
+            if(isSpinning) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        // ----------------------------------------------------
+        // 3. WHEEL PHYSICS ENGINE
+        // ----------------------------------------------------
+        let currentRotation = 0;
+        
+        // Simulates realistic mechanical ticking as the wheel slows down
+        function startTickingSound() {
+            if(isAudioMuted) return;
+            let tickDelay = 30; // Starts fast
+            let totalTime = 0;
+            
+            function scheduleNextTick() {
+                if(!isSpinning) return;
+                soundTick();
+                
+                // Add CSS animation pointer flick
+                const pointer = document.getElementById('pointer');
+                pointer.style.transform = "translateX(-50%) rotate(15deg)";
+                setTimeout(() => pointer.style.transform = "translateX(-50%) rotate(0deg)", 50);
+
+                totalTime += tickDelay;
+                
+                // Gradually increase delay (friction simulation matching CSS curve)
+                if (totalTime < 1000) tickDelay += 1;
+                else if (totalTime < 2500) tickDelay += 5;
+                else if (totalTime < 3500) tickDelay += 15;
+                else tickDelay += 30;
+
+                if (totalTime < 3900) {
+                    setTimeout(scheduleNextTick, tickDelay);
+                }
+            }
+            scheduleNextTick();
+        }
+
+        async function spinWheel() {
+            if(isSpinning) return;
+            const btn = document.getElementById('spin-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            if(isNaN(stake) || stake < 10) return alert('Minimum bet is ₹10');
+            
+            isSpinning = true;
+            btn.classList.add('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'SPINNING... <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Please Wait</span>';
+            
+            const overlay = document.getElementById('result-overlay');
+            overlay.classList.add('hidden');
+
+            try {
+                const res = await fetch('/wheel/spin', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake}) 
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    // Start audio physics simulation
+                    startTickingSound();
+
+                    // Calculate Angles
+                    const sliceDeg = 360 / 12; // 30 degrees per slice
+                    const baseTargetAngle = 360 - (d.segment_index * sliceDeg) - (sliceDeg / 2);
+                    
+                    // Add slight random jitter so it doesn't land perfectly center every time
+                    const jitter = (Math.random() * 20) - 10; 
+                    
+                    // Add 6 full spins (2160 deg) for suspense
+                    const extraSpins = 2160;
+                    const finalRotation = currentRotation + extraSpins + baseTargetAngle + jitter - (currentRotation % 360);
+                    
+                    document.getElementById('wheel').style.transform = `rotate(${finalRotation}deg)`;
+                    currentRotation = finalRotation;
+
+                    // Wait for CSS Transition to finish (4000ms)
+                    setTimeout(() => {
+                        isSpinning = false;
+                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                        
+                        const msg = document.getElementById('result-msg');
+                        const sub = document.getElementById('result-sub');
+                        
+                        overlay.classList.remove('hidden');
+
+                        if (d.winnings > 0) {
+                            if (d.multiplier >= 3.0) {
+                                soundWinBig();
+                                spawnParticles('gold');
+                                msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-yellow-400 glow-win";
+                            } else {
+                                soundWinSmall();
+                                msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-green-400 glow-win";
+                            }
+                            msg.innerText = `YOU WIN!`;
+                            sub.innerText = `+₹${d.winnings.toFixed(2)} (${d.multiplier}x)`;
+                            sub.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-green-300 drop-shadow-md";
+                        } else {
+                            soundLose();
+                            msg.innerText = "NO WIN";
+                            msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-red-500 glow-lose";
+                            sub.innerText = "BET LOST (0.0x)";
+                            sub.className = "text-xl md:text-2xl font-bold mt-2 font-mono text-red-400 drop-shadow-md";
+                        }
+                        
+                        // Reset button
+                        setTimeout(() => {
+                            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+                            btn.innerHTML = 'SPIN WHEEL <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>';
+                        }, 1500);
+
+                    }, 4200); // 4000ms CSS + 200ms padding
+                } else { 
+                    alert(d.error); resetBtn(); 
+                }
+            } catch(e) { 
+                alert("Network Error"); resetBtn(); 
+            }
+        }
+
+        function resetBtn() {
+            isSpinning = false;
+            const btn = document.getElementById('spin-btn');
+            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'SPIN WHEEL <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>';
+        }
+
+        // ----------------------------------------------------
+        // 4. PARTICLE ENGINE
+        // ----------------------------------------------------
+        function spawnParticles(type) {
+            const container = document.getElementById('particle-container');
+            const colors = type === 'gold' ? ['#f59e0b', '#fbbf24', '#fcd34d'] : ['#10b981', '#34d399', '#a7f3d0'];
+            
+            for(let i=0; i<50; i++) {
+                const p = document.createElement('div');
+                p.innerHTML = '<i class="fa-solid fa-gem"></i>';
+                p.className = "absolute text-2xl drop-shadow-lg";
+                p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%'; p.style.top = '40%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 25;
+                const tx = Math.cos(angle) * velocity * 15;
+                const ty = Math.sin(angle) * velocity * 15 - 150; // Bias upward
+                
+                container.appendChild(p);
+                
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(0.5) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 1000 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
+                
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+    </script>
+</body>
+</html>

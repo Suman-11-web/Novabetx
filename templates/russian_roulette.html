@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russian Roulette - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
+    <header class="w-full max-w-md flex justify-between items-center py-4 border-b border-gray-800 mb-6">
+        <a href="/games" class="text-gray-400 font-bold text-sm uppercase tracking-widest hover:text-white"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
+        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    </header>
+
+    <div class="w-full max-w-md flex flex-col items-center bg-[#0a0d14] p-8 rounded-3xl border border-gray-800 shadow-2xl relative my-auto">
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Pull trigger to multiply</div>
+        <i id="gun-icon" class="fa-solid fa-gun text-9xl text-gray-700 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-100 my-8"></i>
+        <div class="flex justify-between w-full mb-6">
+            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Multiplier</span><span id="current-mult" class="text-2xl font-black text-white">1.0x</span></div>
+            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Pulls</span><span id="step-counter" class="text-2xl font-black text-gray-400">0/5</span></div>
+            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Potential Win</span><span id="current-win" class="text-2xl font-black text-green-400">₹0.00</span></div>
+        </div>
+        <div class="flex gap-3 w-full">
+            <input type="number" id="stake" value="50" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-gray-500 outline-none">
+            <button id="action-btn" onclick="startGame()" class="flex-1 py-4 bg-gray-300 hover:bg-white text-black font-black text-xl rounded-xl uppercase tracking-wider transition">START</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0; let isPlaying = false; let currentWinnings = 0;
+        function startGame() {
+            const stake = parseFloat(document.getElementById('stake').value);
+            if(stake < 10) return;
+            isPlaying = true; currentStep = 1;
+            document.getElementById('current-mult').innerText = '1.0x'; document.getElementById('step-counter').innerText = '0/5'; document.getElementById('current-win').innerText = '₹0.00';
+            const btn = document.getElementById('action-btn');
+            btn.innerText = "PULL TRIGGER"; btn.className = "flex-1 py-4 bg-red-600 hover:bg-red-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(220,38,38,0.5)]";
+            btn.onclick = pullTrigger;
+        }
+        async function pullTrigger() {
+            if(!isPlaying) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            const gun = document.getElementById('gun-icon');
+            gun.style.transform = 'translateY(-20px) rotate(-15deg)'; setTimeout(() => gun.style.transform = 'translateY(0) rotate(0deg)', 100);
+            try {
+                const res = await fetch('/russian_roulette/play', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, step: currentStep}) });
+                const d = await res.json();
+                if(d.success) {
+                    if (currentStep === 1) document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    if(d.survived) {
+                        currentWinnings = d.winnings;
+                        document.getElementById('current-mult').innerText = d.multiplier + 'x';
+                        document.getElementById('current-win').innerText = '₹' + d.winnings.toFixed(2);
+                        document.getElementById('step-counter').innerText = currentStep + '/5';
+                        const btn = document.getElementById('action-btn');
+                        btn.innerText = "CASH OUT"; btn.className = "flex-1 py-4 bg-green-500 hover:bg-green-400 text-black font-black text-xl rounded-xl uppercase shadow-[0_0_20px_rgba(34,197,94,0.4)] transition";
+                        btn.onclick = cashout;
+                        currentStep++;
+                        if(currentStep > 5) cashout();
+                    } else {
+                        gun.className = "fa-solid fa-skull text-9xl text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.8)] my-8";
+                        document.getElementById('current-win').innerText = "DEAD"; document.getElementById('current-win').className = "text-2xl font-black text-red-500";
+                        setTimeout(resetToStart, 2000);
+                    }
+                }
+            } catch(e) {}
+        }
+        async function cashout() {
+            if(!isPlaying || currentWinnings === 0) return;
+            try {
+                const res = await fetch('/russian_roulette/cashout', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({winnings: currentWinnings}) });
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    alert(`Cashed out: ₹${currentWinnings.toFixed(2)}`); resetToStart();
+                }
+            } catch(e) {}
+        }
+        function resetToStart() {
+            isPlaying = false;
+            document.getElementById('gun-icon').className = "fa-solid fa-gun text-9xl text-gray-700 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-100 my-8";
+            document.getElementById('current-win').className = "text-2xl font-black text-green-400";
+            const btn = document.getElementById('action-btn');
+            btn.innerText = "START"; btn.className = "flex-1 py-4 bg-gray-300 hover:bg-white text-black font-black text-xl rounded-xl uppercase tracking-wider transition";
+            btn.onclick = startGame;
+        }
+    </script>
+</body>
+</html>

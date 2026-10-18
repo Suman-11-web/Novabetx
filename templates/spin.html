@@ -11,52 +11,96 @@
         body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
         .radial-bg { background: radial-gradient(circle at 50% 40%, #1e1b4b 0%, #06090e 100%); }
         .wheel-container { width: 300px; height: 300px; margin: 0 auto; border-radius: 50%; position: relative; border: 12px solid #1a222d; box-shadow: 0 0 40px rgba(28,218,58,0.2), inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
+        @media (min-width: 1024px) { .wheel-container { width: 500px; height: 500px; border-width: 20px; } }
         .wheel { width: 100%; height: 100%; border-radius: 50%; position: relative; transition: transform 5s cubic-bezier(0.2, 0.8, 0.1, 1); background: conic-gradient( #ef4444 0deg 60deg, #22c55e 60deg 120deg, #3b82f6 120deg 180deg, #a855f7 180deg 240deg, #f97316 240deg 300deg, #eab308 300deg 360deg ); }
         .segment { position: absolute; top: 0; left: 50%; width: 100px; height: 50%; margin-left: -50px; transform-origin: bottom center; display: flex; justify-content: center; padding-top: 15px; font-weight: 900; font-size: 1.5rem; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+        @media (min-width: 1024px) { .segment { font-size: 2.5rem; padding-top: 35px; width: 160px; margin-left: -80px; } }
         .seg-1 { transform: rotate(30deg); } .seg-2 { transform: rotate(90deg); } .seg-3 { transform: rotate(150deg); } .seg-4 { transform: rotate(210deg); } .seg-5 { transform: rotate(270deg); } .seg-6 { transform: rotate(330deg); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #fff; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); z-index: 10; }
+        @media (min-width: 1024px) { .pointer { border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 60px solid #fff; top: -25px; } }
         .center-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 5; }
+        @media (min-width: 1024px) { .center-dot { width: 70px; height: 70px; } }
         .glass-panel { background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-16 md:pb-0" onclick="initAudio()">
 
     <div id="toast-container"></div>
 
-    <div class="flex justify-between items-center bg-[#0a0d14] px-4 py-3 border-b border-gray-800 shadow-md">
-        <div class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-yellow-500/30 flex items-center gap-2">
-            <i class="fa-solid fa-star"></i> DAILY BONUS
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800">
+            <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
         </div>
-        <div class="text-right">
-            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-            <div class="font-black text-brand text-sm transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-2">Menu</div>
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-6">Account</div>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-500/10 text-green-500 hover:text-green-400 font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
         </div>
-    </div>
+    </aside>
 
-    <div class="relative w-full flex-1 radial-bg border-b border-gray-800 flex flex-col items-center justify-center p-6 shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)]">
-        <h1 class="text-3xl font-black italic tracking-wide text-white uppercase mb-8 drop-shadow-lg text-center">Spin to <span class="text-brand">Win</span></h1>
+    <main class="flex-1 flex flex-col min-h-screen relative w-full overflow-hidden">
 
-        <div class="relative">
-            <div class="pointer"></div>
-            <div class="wheel-container"><div class="center-dot"></div><div id="the-wheel" class="wheel"><div class="segment seg-1">₹0</div><div class="segment seg-2">₹5</div><div class="segment seg-3">₹10</div><div class="segment seg-4">₹50</div><div class="segment seg-5">₹0</div><div class="segment seg-6">₹500</div></div></div>
-        </div>
-        
-        <div class="mt-10 w-full max-w-sm glass-panel p-5 rounded-2xl text-center shadow-2xl">
-            {% if can_spin %}
-                <p class="text-gray-400 text-sm font-bold mb-4">You have <span class="text-brand">1 Free Spin</span> available today!</p>
-                <button id="spin-btn" onclick="startSpin()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-2xl py-4 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.5)] active:scale-95 transition-transform">
-                    SPIN NOW
-                </button>
-            {% else %}
-                <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl"><i class="fa-solid fa-clock"></i></div>
-                <h3 class="text-xl font-bold text-white mb-2">Come Back Tomorrow</h3>
-                <p class="text-gray-400 text-sm">Your next free spin unlocks in:</p>
-                <div id="countdown" class="text-3xl font-black text-brand tracking-widest mt-2 font-mono">00:00:00</div>
-            {% endif %}
-        </div>
-    </div>
+        <header class="md:hidden bg-[#0a0d14] border-b border-gray-800 shadow-md sticky top-0 z-40">
+            <div class="flex justify-between items-center px-4 py-3">
+                <div class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-yellow-500/30 flex items-center gap-2">
+                    <i class="fa-solid fa-star"></i> DAILY BONUS
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+                    <div class="font-black text-brand text-sm transition-transform duration-300 balance-wrapper">₹<span class="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+                </div>
+            </div>
+        </header>
 
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+        <div class="hidden md:flex justify-end items-center p-4 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
+            <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
+                <div class="text-right">
+                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+                    <div class="text-lg font-black text-brand balance-wrapper">₹<span class="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+                </div>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
+            </div>
+        </div>
+
+        <div class="relative w-full flex-1 radial-bg flex flex-col items-center justify-center p-6 md:p-12 shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)] overflow-y-auto">
+            <h1 class="text-3xl lg:text-6xl font-black italic tracking-wide text-white uppercase mb-8 lg:mb-16 drop-shadow-lg text-center">Spin to <span class="text-brand">Win</span></h1>
+
+            <div class="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-24 w-full max-w-6xl">
+                
+                <div class="relative shrink-0">
+                    <div class="pointer"></div>
+                    <div class="wheel-container"><div class="center-dot"></div><div id="the-wheel" class="wheel"><div class="segment seg-1">₹0</div><div class="segment seg-2">₹5</div><div class="segment seg-3">₹10</div><div class="segment seg-4">₹50</div><div class="segment seg-5">₹0</div><div class="segment seg-6">₹500</div></div></div>
+                </div>
+                
+                <div class="w-full lg:w-[450px] glass-panel p-6 lg:p-10 rounded-3xl text-center shadow-2xl shrink-0">
+                    {% if can_spin %}
+                        <p class="text-gray-400 text-sm lg:text-lg font-bold mb-6 lg:mb-10">You have <span class="text-brand">1 Free Spin</span> available today!</p>
+                        <button id="spin-btn" onclick="startSpin()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-2xl lg:text-4xl py-5 lg:py-6 rounded-2xl shadow-[0_0_20px_rgba(28,218,58,0.5)] active:scale-95 transition-transform uppercase tracking-wider hover:from-green-400 hover:to-green-500">
+                            SPIN NOW
+                        </button>
+                    {% else %}
+                        <div class="w-16 h-16 lg:w-24 lg:h-24 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 text-3xl lg:text-5xl shadow-inner border border-red-500/20"><i class="fa-solid fa-clock"></i></div>
+                        <h3 class="text-xl lg:text-3xl font-bold text-white mb-2 lg:mb-4">Come Back Tomorrow</h3>
+                        <p class="text-gray-400 text-sm lg:text-lg">Your next free spin unlocks in:</p>
+                        <div id="countdown" class="text-4xl lg:text-6xl font-black text-brand tracking-widest mt-4 lg:mt-6 font-mono drop-shadow-[0_0_15px_rgba(28,218,58,0.3)]">00:00:00</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] pb-safe">
         <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
         <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
         <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
@@ -75,9 +119,6 @@
             setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // ==========================================
-        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
-        // ==========================================
         let audioCtx;
         function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
         const Sound = {
@@ -89,44 +130,36 @@
                 o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
             },
             tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            
-            // Bright, triumphant 4-note ascending chime (Jackpot feel)
-            win: () => { 
-                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
-                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
-                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
-                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
-            },
-            
-            // Deep, sad, descending 3-note buzzer (Womp.. womp.. womp..)
-            lose: () => { 
-                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
-                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
-                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
-            },
-            
-            // Specific sounds for Cyber Mines
-            gem: () => { setTimeout(()=>Sound.play(800,'sine',0.1,0.05),0); setTimeout(()=>Sound.play(1200,'sine',0.2,0.05),50); },
-            boom: () => { Sound.play(100,'square',0.5,0.2); Sound.play(50,'sawtooth',0.8,0.2); }
+            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
+            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); }
         };
-
 
         function triggerWinAnimation(winnings, newTotal) {
             Sound.win();
-            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
-            if(!balEl || !balWrapper) return;
-            const floater = document.createElement('div');
-            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
-            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
-            const rect = balWrapper.getBoundingClientRect();
-            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
-            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
-            document.body.appendChild(floater);
-            void floater.offsetWidth; 
-            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
-            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
-            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+            const balWrappers = document.querySelectorAll('.balance-wrapper'); 
+            const balEls = document.querySelectorAll('.display-balance');
+            if(!balEls.length || !balWrappers.length) return;
+            
+            balWrappers.forEach(wrapper => {
+                if(window.getComputedStyle(wrapper).display === 'none') return;
+                const floater = document.createElement('div');
+                floater.className = 'fixed z-[10000] font-black text-brand text-2xl md:text-4xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
+                floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+                const rect = wrapper.getBoundingClientRect();
+                floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
+                floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
+                document.body.appendChild(floater);
+                void floater.offsetWidth; 
+                floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
+                wrapper.style.transform = 'scale(1.15)'; wrapper.style.color = '#1CDA3A';
+                
+                setTimeout(() => { floater.style.opacity = '0'; }, 1000);
+                setTimeout(() => { 
+                    floater.remove(); 
+                    balEls.forEach(el => el.innerText = parseFloat(newTotal).toFixed(2)); 
+                    wrapper.style.transform = 'scale(1)'; wrapper.style.color = ''; 
+                }, 1500);
+            });
         }
 
         let isSpinning = false;

@@ -26,19 +26,28 @@
         .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3); }
         .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 8px 0; font-size: 14px; font-weight: bold; transition: all 0.2s; }
         .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
 
     <div id="toast-container"></div>
 
-    <div class="flex justify-between items-center bg-[#0a0505] px-4 py-3 border-b border-gray-800 shadow-md">
-        <div class="flex gap-3">
-            <div class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-yellow-500/30 flex items-center gap-2">
+    <div class="flex justify-between items-start bg-[#0a0505] px-4 py-3 border-b border-gray-800 shadow-md z-40 relative">
+        <div class="flex flex-col gap-1.5 justify-center">
+            <div class="bg-yellow-500/20 text-yellow-500 px-3 py-0.5 rounded text-[10px] font-black tracking-widest border border-yellow-500/30 flex items-center gap-1.5 w-max">
                 <i class="fa-solid fa-dragon"></i> LIVE
             </div>
+            <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Current ID:</span>
+                <div class="text-xs font-mono font-black text-brand bg-brand/10 border border-brand/50 px-2 py-0.5 rounded shadow-[0_0_15px_rgba(28,218,58,0.2)] animate-pulse" id="live-match-number">
+                    #000000
+                </div>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 h-full pt-1">
             <div class="text-right">
                 <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
                 <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
@@ -46,9 +55,7 @@
         </div>
     </div>
 
-    <div id="history-strip" class="bg-[#120808] flex items-center px-3 py-2.5 gap-2 overflow-x-auto whitespace-nowrap text-xs font-black border-b border-gray-800 shadow-inner"></div>
-
-    <div class="relative w-full h-[280px] md:h-[400px] table-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)]">
+    <div class="relative w-full h-[280px] md:h-[400px] table-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)] shrink-0">
         <div id="game-status" class="absolute top-6 z-20 bg-black/60 px-6 py-2 rounded-full border border-gray-700 backdrop-blur-md text-center shadow-lg">
             <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div>
             <div id="timer-text" class="text-2xl font-black text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:15</div>
@@ -68,9 +75,7 @@
                     </div>
                 </div>
             </div>
-            
             <div class="w-12 h-12 md:w-16 md:h-16 bg-black rounded-full border-2 border-yellow-500 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.5)]"><span class="text-yellow-500 font-black italic md:text-xl">VS</span></div>
-            
             <div class="flex flex-col items-center gap-3">
                 <div class="text-tBlue font-black tracking-widest text-lg md:text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">TIGER</div>
                 <div class="card-container">
@@ -83,9 +88,8 @@
         </div>
     </div>
 
-    <div class="flex-1 bg-bgDark p-3 overflow-y-auto flex flex-col justify-center">
-        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full relative">
-            
+    <div class="flex-1 bg-bgDark p-3 overflow-y-auto flex flex-col custom-scrollbar">
+        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full relative shrink-0">
             <div class="grid grid-cols-3 gap-3 mb-6">
                 <button id="btn-dragon" onclick="placeBet('Dragon')" class="bg-gradient-to-b from-red-600 to-red-900 border-2 border-red-500 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(225,29,72,0.3)] hover:shadow-[0_0_25px_rgba(225,29,72,0.6)] hover:border-red-400 transition-all active:scale-95">
                     <span class="font-black text-lg tracking-wider drop-shadow-md">DRAGON</span>
@@ -119,9 +123,76 @@
                 Bet Placed: ₹<span id="my-bet-amt" class="text-white text-lg ml-1">0</span> on <span id="my-bet-target" class="text-brand uppercase tracking-wider ml-1">Target</span>
             </div>
         </div>
+
+        <div class="w-full max-w-md mx-auto shrink-0 mt-4">
+            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 pl-1">
+                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Round History
+            </div>
+            <div id="history-strip" class="bg-black/30 border border-gray-800 rounded-xl flex flex-col p-2 gap-2 overflow-y-auto max-h-[250px] custom-scrollbar w-full shadow-inner"></div>
+        </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
+    <div id="depositModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h3 class="text-xl font-black mb-2 text-white flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down text-brand"></i> Deposit Funds</h3>
+            <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">Transfer to admin, then submit proof.</p>
+            
+            <div class="bg-black/50 p-3 rounded-xl border border-gray-700 mb-5 text-xs font-mono text-gray-300 space-y-2">
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">UPI ID:</span> {{ site_settings.upi_id }}</div>
+                    <button type="button" onclick="copyText('{{ site_settings.upi_id }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">Bank A/c:</span> {{ site_settings.bank_account }}</div>
+                    <button type="button" onclick="copyText('{{ site_settings.bank_account }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">IFSC:</span> {{ site_settings.ifsc_code }}</div>
+                    <button type="button" onclick="copyText('{{ site_settings.ifsc_code }}', this)" class="text-gray-400 hover:text-white transition w-8 text-center"><i class="fa-solid fa-copy text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+                    <div><span class="text-brand font-bold uppercase">QR Code:</span> Scan to Pay</div>
+                    <button type="button" onclick="document.getElementById('profileQRDT').classList.toggle('hidden')" class="bg-brand text-black px-3 py-1 rounded font-black uppercase text-[9px] tracking-wider shadow-[0_0_10px_rgba(28,218,58,0.3)] hover:bg-green-500 transition">Show QR</button>
+                </div>
+                <div id="profileQRDT" class="hidden mt-2 flex justify-center">
+                    <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                        <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black font-bold>qr.png missing in static folder</p>')" alt="QR Code" class="w-32 h-32 object-contain">
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('deposit') }}" enctype="multipart/form-data" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Method</label>
+                        <select name="method" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-brand font-bold shadow-inner" required>
+                            <option value="UPI">UPI (GPay/PhonePe)</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="QR Code Scan">QR Code Scan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-brand mb-1 uppercase tracking-widest">Amount (₹)</label>
+                        <input type="number" step="0.01" name="amount" placeholder="0.00" min="10" class="w-full bg-black/50 border border-brand/50 rounded-lg p-3 text-white font-black focus:outline-none focus:border-brand transition shadow-inner" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Transaction UTR Number</label>
+                    <input type="text" name="utr" placeholder="Enter 12-digit UTR" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white font-mono text-sm focus:outline-none focus:border-brand transition shadow-inner" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Payment Screenshot Proof</label>
+                    <input type="file" name="screenshot" accept="image/*" class="w-full bg-black/50 border border-gray-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-brand transition shadow-inner file:bg-gray-800 file:border-0 file:text-white file:px-3 file:py-1 file:rounded file:font-bold file:text-xs file:mr-3 cursor-pointer" required>
+                </div>
+                <div class="flex gap-3 mt-6 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="document.getElementById('depositModal').classList.add('hidden')" class="flex-1 bg-gray-800 text-gray-300 font-black text-sm py-3.5 rounded-xl hover:bg-gray-700 transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="flex-1 bg-brand text-black font-black text-sm py-3.5 rounded-xl hover:bg-green-500 transition shadow-[0_0_15px_rgba(28,218,58,0.3)] active:scale-95 uppercase tracking-wider">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-[100] py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
         <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
         <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
         <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1 relative"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
@@ -140,9 +211,6 @@
             setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // ==========================================
-        // UPGRADED JS SYNTHESIZER AUDIO ENGINE
-        // ==========================================
         let audioCtx;
         function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
         const Sound = {
@@ -154,21 +222,12 @@
                 o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
             },
             tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            win: () => { 
-                setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); 
-                setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); 
-                setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); 
-                setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); 
-            },
-            lose: () => { 
-                setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); 
-                setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); 
-                setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); 
-            }
+            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
+            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); }
         };
 
         function triggerWinAnimation(winnings, newTotal) {
-            Sound.win(); // THIS IS THE ONLY PLACE THE WIN SOUND PLAYS NOW
+            Sound.win(); 
             const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
             if(!balEl || !balWrapper) return;
             const floater = document.createElement('div');
@@ -193,12 +252,26 @@
         function getCardFace(val) { if(val == 11) return 'J'; if(val == 12) return 'Q'; if(val == 13) return 'K'; if(val == 14) return 'A'; return val; }
         function getSuit() { const suits = ['♠','♥','♣','♦']; return suits[Math.floor(Math.random()*suits.length)]; }
 
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-brand scale-125 transition-transform"></i>';
+            showToast('Copied successfully!', 'success');
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        }
+
         function renderHistory(hist) {
             const strip = document.getElementById('history-strip'); strip.innerHTML = '';
             hist.forEach(r => {
-                let col = r === "Dragon" ? "text-red-500 border-red-500/50 bg-red-900/20" : r === "Tiger" ? "text-blue-500 border-blue-500/50 bg-blue-900/20" : "text-green-500 border-green-500/50 bg-green-900/20";
-                let l = r === "Dragon" ? "D" : r === "Tiger" ? "T" : "Tie";
-                strip.innerHTML += `<div class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full border shadow-sm ${col}">${l}</div>`;
+                let borderClass = "border-green-500/30"; let textClass = "text-green-500"; let bgClass = "bg-green-900/20";
+                if(r.val === "Dragon") { borderClass = "border-red-500/30"; textClass = "text-red-500"; bgClass = "bg-red-900/20"; }
+                else if(r.val === "Tiger") { borderClass = "border-blue-500/30"; textClass = "text-blue-500"; bgClass = "bg-blue-900/20"; }
+                
+                strip.innerHTML += `
+                <div class="w-full ${bgClass} border ${borderClass} rounded-lg px-4 py-2.5 flex justify-between items-center transition-all hover:bg-white/5">
+                    <span class="text-xs font-mono font-bold text-gray-400">#${r.id}</span>
+                    <span class="text-base font-black ${textClass}">${r.val.toUpperCase()}</span>
+                </div>`;
             });
         }
 
@@ -220,7 +293,10 @@
 
         async function syncLoop() {
             try {
-                let res = await fetch('/dragon_tiger/sync'); let data = await res.json(); renderHistory(data.history);
+                let res = await fetch('/dragon_tiger/sync'); let data = await res.json(); 
+                
+                document.getElementById('live-match-number').innerText = "#" + data.match_number;
+                renderHistory(data.history);
 
                 if (data.state !== localState) {
                     localState = data.state;
@@ -240,7 +316,6 @@
                         document.getElementById('d-val').innerHTML = `<span class="${dSuit=='♥'||dSuit=='♦'?'text-red-600':''}">${getCardFace(data.d_card)}${dSuit}</span>`;
                         document.getElementById('t-val').innerHTML = `<span class="${tSuit=='♥'||tSuit=='♦'?'text-red-600':''}">${getCardFace(data.t_card)}${tSuit}</span>`;
                         
-                        // Flip animation
                         cDragon.classList.add('flipped'); 
                         setTimeout(() => cTiger.classList.add('flipped'), 500); 
                         
@@ -254,22 +329,13 @@
                             else { rt.innerText = "TIE"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]"; }
                             
                             if(hasBet) { 
-                                // Fetch final balance to definitively check if they won or lost
                                 fetch('/dragon_tiger').then(r => r.text()).then(html => {
-                                    const match = html.match(/id="display-balance">([\d.]+)<\/span>/);
+                                    const match = html.match(/id="display-balance">([\d.]+)/);
                                     if(match && match[1]) {
                                         let newBal = parseFloat(match[1]); 
                                         let oldBal = parseFloat(document.getElementById('display-balance').innerText);
-                                        
-                                        if (newBal > oldBal) { 
-                                            // THIS TRIGGERS THE 1 WIN SOUND AND GREEN ANIMATION
-                                            triggerWinAnimation(newBal - oldBal, newBal); 
-                                        } 
-                                        else { 
-                                            // THIS TRIGGERS THE 1 LOSE SOUND
-                                            Sound.lose();
-                                            document.getElementById('display-balance').innerText = newBal.toFixed(2); 
-                                        }
+                                        if (newBal > oldBal) { triggerWinAnimation(newBal - oldBal, newBal); } 
+                                        else { Sound.lose(); document.getElementById('display-balance').innerText = newBal.toFixed(2); }
                                     }
                                 });
                             }

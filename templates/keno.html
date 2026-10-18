@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Classic Keno Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonBlue: '#3b82f6',
+                        neonCyan: '#06b6d4',
+                        neonAmber: '#f59e0b',
+                        neonGreen: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        
+        .keno-bg { background: radial-gradient(ellipse at center, #101c38 0%, #05070c 100%); }
+
+        /* 3D Tile Styles */
+        .keno-num { 
+            background: linear-gradient(145deg, #162032, #0d121c); 
+            border: 2px solid rgba(255,255,255,0.06); 
+            border-radius: 12px; 
+            height: 54px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 900; 
+            font-size: 1.25rem; 
+            cursor: pointer; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            color: #94a3b8; 
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.05), 0 4px 8px rgba(0,0,0,0.5);
+            position: relative;
+            user-select: none;
+        }
+        @media (min-width: 768px) {
+            .keno-num { height: 64px; font-size: 1.45rem; border-radius: 14px; }
+        }
+        .keno-num:hover:not(.disabled) { 
+            border-color: #3b82f6; 
+            color: #fff; 
+            transform: translateY(-2px); 
+            box-shadow: 0 0 15px rgba(59,130,246,0.4); 
+        }
+
+        /* Tile States */
+        .keno-num.selected { 
+            background: linear-gradient(145deg, #0284c7, #0369a1); 
+            border-color: #38bdf8; 
+            color: #fff; 
+            box-shadow: 0 0 20px rgba(56,189,248,0.7), inset 0 2px 6px rgba(255,255,255,0.3); 
+            transform: scale(1.02);
+        }
+        .keno-num.drawn { 
+            background: linear-gradient(145deg, #d97706, #b45309); 
+            border-color: #fcd34d; 
+            color: #000; 
+            animation: popBall 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            box-shadow: 0 0 20px rgba(245,158,11,0.6);
+        }
+        .keno-num.matched { 
+            background: linear-gradient(145deg, #059669, #047857); 
+            border-color: #34d399; 
+            color: #fff; 
+            box-shadow: 0 0 30px rgba(16,185,129,0.9), inset 0 0 10px rgba(255,255,255,0.5); 
+            animation: hitBounce 0.45s ease-out forwards; 
+            z-index: 10;
+        }
+
+        @keyframes popBall { 
+            0% { transform: scale(0.6); opacity: 0; } 
+            70% { transform: scale(1.15); opacity: 1; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        @keyframes hitBounce { 
+            0% { transform: scale(0.8); } 
+            50% { transform: scale(1.25) rotate(-3deg); } 
+            100% { transform: scale(1.05) rotate(0deg); } 
+        }
+
+        /* Top Ball Chute */
+        .ball-slot {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #090d15; border: 2px dashed rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-family: monospace; font-weight: 900; font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        @media (min-width: 768px) {
+            .ball-slot { width: 46px; height: 46px; font-size: 1.15rem; }
+        }
+        .ball-slot.filled {
+            border: 2px solid #fcd34d;
+            background: radial-gradient(circle at 35% 35%, #fbbf24, #b45309);
+            color: #000; box-shadow: 0 0 15px rgba(245,158,11,0.8);
+            animation: popBall 0.3s ease-out;
+        }
+        .ball-slot.hit {
+            border: 2px solid #34d399;
+            background: radial-gradient(circle at 35% 35%, #34d399, #065f46);
+            color: #fff; box-shadow: 0 0 20px rgba(16,185,129,0.9);
+            animation: hitBounce 0.4s ease-out;
+        }
+
+        /* Payout Highlight Row */
+        .payout-row.active-tier {
+            background: rgba(16,185,129,0.2) !important;
+            border-color: #10b981 !important;
+            color: #34d399 !important;
+            box-shadow: 0 0 15px rgba(16,185,129,0.4);
+            transform: scale(1.02);
+        }
+
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-neonBlue">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-blue-500/10 text-blue-400 font-bold rounded-xl border border-blue-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-blue-400 text-sm hover:text-blue-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-neonBlue text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-ticket"></i> CLASSIC KENO</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-blue-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- KENO ARENA -->
+        <div class="flex-1 keno-bg relative flex flex-col items-center justify-center p-4 md:p-6 overflow-hidden">
+            
+            <!-- Result Banner Overlay -->
+            <div id="result-overlay" class="absolute top-8 left-1/2 -translate-x-1/2 z-40 text-center w-full hidden pointer-events-none transition-all">
+                <div id="result-msg" class="text-4xl md:text-6xl font-black italic uppercase tracking-widest drop-shadow-[0_0_25px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-lg md:text-2xl font-bold mt-1 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- LIVE BALL CHUTE HUD -->
+            <div class="w-full max-w-4xl bg-[#090d15]/80 backdrop-blur-md border border-gray-800/80 rounded-2xl p-3 md:p-4 mb-4 md:mb-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-notch fa-spin text-amber-500" id="drum-icon"></i> DRAWN BALLS:
+                    </span>
+                    <span id="chute-counter" class="text-xs font-mono font-bold text-gray-400">0/8</span>
+                </div>
+                <div class="flex items-center gap-2 overflow-x-auto max-w-full py-1 custom-scrollbar" id="ball-chute">
+                    <div class="ball-slot" id="slot-0">-</div>
+                    <div class="ball-slot" id="slot-1">-</div>
+                    <div class="ball-slot" id="slot-2">-</div>
+                    <div class="ball-slot" id="slot-3">-</div>
+                    <div class="ball-slot" id="slot-4">-</div>
+                    <div class="ball-slot" id="slot-5">-</div>
+                    <div class="ball-slot" id="slot-6">-</div>
+                    <div class="ball-slot" id="slot-7">-</div>
+                </div>
+            </div>
+
+            <!-- MAIN GRID & PAYOUT SIDE-BY-SIDE -->
+            <div class="w-full max-w-4xl flex flex-col lg:flex-row gap-5 items-stretch">
+                
+                <!-- PAYOUT TIERS -->
+                <div class="w-full lg:w-60 bg-surface border border-gray-800 rounded-3xl p-4 shadow-xl flex flex-col justify-between shrink-0">
+                    <div>
+                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center mb-3 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-award text-yellow-400"></i> PAYOUT TIERS (PICK 5)
+                        </div>
+
+                        <div class="space-y-1.5 font-mono text-xs">
+                            <div id="tier-5" class="payout-row flex justify-between items-center p-2 rounded-xl bg-black/40 border border-gray-800/80 transition-all">
+                                <span class="font-bold text-gray-300">5 Matches</span>
+                                <span class="font-black text-yellow-400 text-sm">50.0x</span>
+                            </div>
+                            <div id="tier-4" class="payout-row flex justify-between items-center p-2 rounded-xl bg-black/40 border border-gray-800/80 transition-all">
+                                <span class="font-bold text-gray-300">4 Matches</span>
+                                <span class="font-black text-blue-400 text-sm">15.0x</span>
+                            </div>
+                            <div id="tier-3" class="payout-row flex justify-between items-center p-2 rounded-xl bg-black/40 border border-gray-800/80 transition-all">
+                                <span class="font-bold text-gray-300">3 Matches</span>
+                                <span class="font-black text-cyan-400 text-sm">4.0x</span>
+                            </div>
+                            <div id="tier-2" class="payout-row flex justify-between items-center p-2 rounded-xl bg-black/40 border border-gray-800/80 transition-all">
+                                <span class="font-bold text-gray-300">2 Matches</span>
+                                <span class="font-black text-emerald-400 text-sm">1.5x</span>
+                            </div>
+                            <div id="tier-1" class="payout-row flex justify-between items-center p-2 rounded-xl bg-black/20 border border-gray-800/40 text-gray-600 transition-all">
+                                <span class="font-bold">0-1 Matches</span>
+                                <span class="font-black text-xs">0.0x</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="mt-4 pt-3 border-t border-gray-800 text-center">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Your Match Score</div>
+                        <div id="live-match-badge" class="text-xl font-black font-mono text-gray-400">0 / 5 HITS</div>
+                    </div>
+                </div>
+
+                <!-- 30-NUMBER BOARD -->
+                <div class="flex-1 bg-surface border border-gray-800 rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col justify-between">
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-pointer"></i> CHOOSE 5 NUMBERS:
+                            <span id="pick-count" class="ml-1 text-white bg-blue-600/30 px-2 py-0.5 rounded border border-blue-500/40">0 / 5</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="autoPick()" id="btn-auto" class="text-xs font-black bg-white/10 hover:bg-white/20 text-blue-300 hover:text-white px-3 py-1.5 rounded-xl border border-white/10 transition active:scale-95 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Auto Pick
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Number Grid (6 columns x 5 rows = 30 numbers) -->
+                    <div class="grid grid-cols-6 gap-2 md:gap-3 my-auto" id="keno-board">
+                        <!-- Generated via JS -->
+                    </div>
+
+                    <div class="text-[10px] text-gray-500 font-bold tracking-wider text-center mt-3">
+                        <i class="fa-solid fa-shield-halved text-blue-500 mr-1"></i> Provably Fair Pseudo-Random Generator
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] border-t border-gray-800/80">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-5 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Bet Stake (₹)</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Min: ₹10</span>
+                    </div>
+
+                    <div class="relative flex mb-3">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="50" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-3.5 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-blue-500 outline-none transition shadow-inner font-mono">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(100)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2.5 rounded-lg transition border border-gray-700 active:scale-95">+100</button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="w-full md:w-1/2 flex gap-3 items-stretch justify-center min-h-[90px]">
+                    <!-- Dedicated Clear Button -->
+                    <button onclick="clearPicks()" id="btn-clear-bottom" class="w-24 bg-[#162032] hover:bg-gray-800 border border-gray-700 text-red-400 font-black rounded-2xl uppercase tracking-widest transition-all shadow-inner active:scale-95 flex flex-col items-center justify-center shrink-0">
+                        <i class="fa-solid fa-trash-can text-2xl mb-1 opacity-80"></i>
+                        <span class="text-[10px]">CLEAR</span>
+                    </button>
+
+                    <!-- Draw Button -->
+                    <button id="draw-btn" onclick="drawKeno()" class="flex-1 w-full h-full py-4 bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(59,130,246,0.4)] border-b-4 border-blue-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        DRAW BALLS
+                        <span id="draw-sub" class="text-[10px] text-blue-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none">Select 5 Numbers</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Celebration Particle Canvas -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. WEB AUDIO API SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function soundSelect() { playTone(900, 'sine', 0.05, 0.06); }
+        function soundDeselect() { playTone(450, 'sine', 0.05, 0.04); }
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundBallDrop() { playTone(350, 'triangle', 0.08, 0.1); }
+        function soundMatch() { 
+            playTone(659.25, 'triangle', 0.12, 0.2); // E5
+            setTimeout(() => playTone(880.00, 'triangle', 0.18, 0.25), 80); // A5
+        }
+        function soundWin() {
+            playTone(523.25, 'triangle', 0.15, 0.2);
+            setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 120);
+            setTimeout(() => playTone(783.99, 'triangle', 0.25, 0.25), 240);
+            setTimeout(() => playTone(1046.50, 'triangle', 0.45, 0.3), 360);
+        }
+        function soundLose() { 
+            playTone(220, 'sawtooth', 0.25, 0.12); 
+            setTimeout(() => playTone(164.81, 'sawtooth', 0.4, 0.15), 200); 
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon;
+            document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING STAKE CONTROLS
+        // ----------------------------------------------------
+        let isDrawing = false;
+        let selected = [];
+
+        function adjustStake(factor) {
+            if (isDrawing) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+
+        function setStake(amount) {
+            if (isDrawing) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        // ----------------------------------------------------
+        // 3. GENERATE BOARD TILES & CLEAR PICKS
+        // ----------------------------------------------------
+        const board = document.getElementById('keno-board');
+        for (let i = 1; i <= 30; i++) {
+            const div = document.createElement('div');
+            div.className = 'keno-num';
+            div.innerText = i;
+            div.id = `num-${i}`;
+            div.onclick = () => toggleNum(i);
+            board.appendChild(div);
+        }
+
+        function updateUIHeader() {
+            document.getElementById('pick-count').innerText = `${selected.length} / 5`;
+            const sub = document.getElementById('draw-sub');
+            if (selected.length === 5) {
+                sub.innerText = "READY FOR LAUNCH";
+                sub.className = "text-[10px] text-emerald-300 font-bold tracking-widest uppercase mt-1 drop-shadow-none";
+            } else {
+                sub.innerText = `Select ${5 - selected.length} More Number${5 - selected.length === 1 ? '' : 's'}`;
+                sub.className = "text-[10px] text-blue-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none";
+            }
+        }
+
+        function toggleNum(num) {
+            if (isDrawing) return;
+            const idx = selected.indexOf(num);
+            if (idx > -1) {
+                selected.splice(idx, 1);
+                document.getElementById(`num-${num}`).classList.remove('selected');
+                soundDeselect();
+            } else {
+                if (selected.length < 5) {
+                    selected.push(num);
+                    document.getElementById(`num-${num}`).classList.add('selected');
+                    soundSelect();
+                }
+            }
+            updateUIHeader();
+        }
+
+        function autoPick() {
+            if (isDrawing) return;
+            clearPicks(false);
+            soundSelect();
+            while (selected.length < 5) {
+                let r = Math.floor(Math.random() * 30) + 1;
+                if (!selected.includes(r)) selected.push(r);
+            }
+            selected.forEach(n => document.getElementById(`num-${n}`).classList.add('selected'));
+            updateUIHeader();
+        }
+
+        function clearPicks(playSnd = true) {
+            if (isDrawing) return;
+            if (playSnd) soundDeselect();
+            
+            // Wipe all user selections
+            selected.forEach(n => document.getElementById(`num-${n}`).classList.remove('selected'));
+            selected = [];
+            updateUIHeader();
+            resetChute();
+            
+            // CRITICAL FIX: Ensure previous drawn balls & results are completely removed visually
+            for (let i = 1; i <= 30; i++) {
+                const el = document.getElementById(`num-${i}`);
+                el.classList.remove('drawn', 'matched');
+            }
+            document.getElementById('result-overlay').classList.add('hidden');
+        }
+
+        function resetChute() {
+            for (let i = 0; i < 8; i++) {
+                const s = document.getElementById(`slot-${i}`);
+                s.className = 'ball-slot';
+                s.innerText = '-';
+            }
+            document.getElementById('chute-counter').innerText = '0/8';
+            document.getElementById('live-match-badge').innerText = '0 / 5 HITS';
+            document.getElementById('live-match-badge').className = 'text-xl font-black font-mono text-gray-400';
+            document.querySelectorAll('.payout-row').forEach(r => r.classList.remove('active-tier'));
+        }
+
+        // ----------------------------------------------------
+        // 4. DRAWING SIMULATION & ANIMATION
+        // ----------------------------------------------------
+        async function drawKeno() {
+            if (selected.length !== 5) {
+                alert("Please select exactly 5 lucky numbers to play!");
+                return;
+            }
+            if (isDrawing) return;
+
+            const btn = document.getElementById('draw-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) { alert("Minimum bet is ₹10"); return; }
+
+            isDrawing = true;
+            btn.classList.add('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'DRAWING... <span class="text-[10px] text-blue-200 font-bold tracking-widest uppercase mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Dropping Balls</span>';
+
+            const overlay = document.getElementById('result-overlay');
+            overlay.classList.add('hidden');
+            resetChute();
+
+            // Clear previous grid draws visually before starting
+            for (let i = 1; i <= 30; i++) {
+                const el = document.getElementById(`num-${i}`);
+                el.classList.remove('drawn', 'matched');
+            }
+
+            try {
+                const res = await fetch('/keno/draw', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({stake, numbers: selected})
+                });
+                const d = await res.json();
+
+                if (d.success) {
+                    let matchCount = 0;
+
+                    // Staggered ball chute drop (1 ball every 380ms)
+                    d.drawn.forEach((num, index) => {
+                        setTimeout(() => {
+                            const isMatch = selected.includes(num);
+                            const slot = document.getElementById(`slot-${index}`);
+                            const gridTile = document.getElementById(`num-${num}`);
+
+                            slot.innerText = num;
+                            document.getElementById('chute-counter').innerText = `${index + 1}/8`;
+
+                            if (isMatch) {
+                                matchCount++;
+                                slot.className = 'ball-slot hit';
+                                gridTile.classList.add('matched');
+                                soundMatch();
+
+                                // Update HUD match progress
+                                const badge = document.getElementById('live-match-badge');
+                                badge.innerText = `${matchCount} / 5 HITS`;
+                                badge.className = 'text-xl font-black font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]';
+
+                                // Highlight current payout tier
+                                document.querySelectorAll('.payout-row').forEach(r => r.classList.remove('active-tier'));
+                                if (matchCount >= 2) {
+                                    const tierEl = document.getElementById(`tier-${Math.min(5, matchCount)}`);
+                                    if (tierEl) tierEl.classList.add('active-tier');
+                                }
+                            } else {
+                                slot.className = 'ball-slot filled';
+                                gridTile.classList.add('drawn');
+                                soundBallDrop();
+                            }
+                        }, index * 380);
+                    });
+
+                    // Final Resolution (After all 8 balls roll out)
+                    setTimeout(() => {
+                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                        const msg = document.getElementById('result-msg');
+                        const sub = document.getElementById('result-sub');
+                        overlay.classList.remove('hidden');
+
+                        if (d.winnings > 0) {
+                            soundWin();
+                            spawnParticles();
+                            msg.innerText = `WIN: ₹${d.winnings.toFixed(2)}`;
+                            msg.className = "text-4xl md:text-6xl font-black italic uppercase tracking-widest text-emerald-400 glow-win";
+                            sub.innerText = `${d.matches} MATCHES HIT (${d.multiplier}x MULTIPLIER)`;
+                            sub.className = "text-lg md:text-2xl font-bold mt-1 font-mono text-emerald-300 drop-shadow-md";
+                        } else {
+                            soundLose();
+                            msg.innerText = "NO WIN";
+                            msg.className = "text-4xl md:text-6xl font-black italic uppercase tracking-widest text-gray-500 glow-lose";
+                            sub.innerText = `${d.matches} MATCHES (NEEDS 2+ TO WIN)`;
+                            sub.className = "text-base md:text-xl font-bold mt-1 font-mono text-gray-400 drop-shadow-md";
+                        }
+
+                        // Reset button
+                        setTimeout(() => {
+                            isDrawing = false;
+                            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+                            btn.innerHTML = 'DRAW BALLS <span id="draw-sub" class="text-[10px] text-blue-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none">Replay Same Picks</span>';
+                        }, 1200);
+
+                    }, (d.drawn.length * 380) + 400);
+
+                } else {
+                    alert(d.error || "Execution error");
+                    resetBtn();
+                }
+            } catch(e) {
+                alert("Network communication error");
+                resetBtn();
+            }
+        }
+
+        function resetBtn() {
+            isDrawing = false;
+            const btn = document.getElementById('draw-btn');
+            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'DRAW BALLS <span id="draw-sub" class="text-[10px] text-blue-200 font-bold tracking-widest uppercase mt-1 drop-shadow-none">Select 5 Numbers</span>';
+        }
+
+        // ----------------------------------------------------
+        // 5. CELEBRATION EFFECTS
+        // ----------------------------------------------------
+        function spawnParticles() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#38bdf8', '#34d399', '#fbbf24', '#a855f7'];
+
+            for (let i = 0; i < 45; i++) {
+                const p = document.createElement('div');
+                p.innerHTML = '<i class="fa-solid fa-star"></i>';
+                p.className = "absolute text-2xl drop-shadow-lg";
+                p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 25;
+                const tx = Math.cos(angle) * velocity * 18;
+                const ty = Math.sin(angle) * velocity * 18 - 180;
+
+                container.appendChild(p);
+
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(0.4) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.6) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration: 1000 + Math.random() * 800,
+                    easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+                    fill: 'forwards'
+                });
+
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+    </script>
+</body>
+</html>

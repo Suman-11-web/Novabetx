@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ro-Sham-Bo Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonCyan: '#06b6d4',
+                        neonPurple: '#a855f7'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+        
+        .arena-bg { background: radial-gradient(ellipse at center, #162032 0%, #05070c 100%); }
+        
+        .glow-cyan { filter: drop-shadow(0 0 20px rgba(6,182,212,0.6)); }
+        .glow-purple { filter: drop-shadow(0 0 20px rgba(168,85,247,0.6)); }
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+
+        /* Shaking Animation for 1, 2, 3, Shoot! */
+        @keyframes shake-p {
+            0%, 100% { transform: translateY(0) rotate(90deg); }
+            25% { transform: translateY(-30px) rotate(100deg); }
+            50% { transform: translateY(0) rotate(90deg); }
+        }
+        @keyframes shake-d {
+            0%, 100% { transform: translateY(0) rotate(-90deg) scaleX(-1); }
+            25% { transform: translateY(-30px) rotate(-100deg) scaleX(-1); }
+            50% { transform: translateY(0) rotate(-90deg) scaleX(-1); }
+        }
+        
+        .anim-shake-player { animation: shake-p 0.5s ease-in-out 3; }
+        .anim-shake-dealer { animation: shake-d 0.5s ease-in-out 3; }
+        
+        /* Clash Reveal Animation */
+        @keyframes clash {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; filter: brightness(1.5); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .anim-clash { animation: clash 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-neonCyan">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20">PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-cyan-500/10 text-cyan-400 font-bold rounded-xl border border-cyan-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-cyan-400 text-sm hover:text-cyan-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-neonCyan text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-hand-scissors"></i> RO-SHAM-BO</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-cyan-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-cyan-500 hover:bg-cyan-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- VS ARENA -->
+        <div class="flex-1 arena-bg relative flex flex-col items-center justify-center p-4 overflow-hidden border-b border-gray-800/80 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
+            
+            <div id="result-overlay" class="absolute top-10 left-1/2 -translate-x-1/2 z-30 text-center w-full hidden">
+                <div id="result-msg" class="text-4xl md:text-6xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-xl md:text-2xl font-bold mt-2 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- The Stage -->
+            <div class="w-full max-w-4xl flex flex-col md:flex-row items-center justify-between gap-10 md:gap-4 relative z-10">
+                
+                <!-- Player Side -->
+                <div class="flex-1 flex flex-col items-center w-full">
+                    <div class="bg-cyan-900/20 border border-cyan-500/30 text-cyan-400 text-xs font-black px-4 py-1 rounded-full uppercase tracking-widest mb-6">Player (You)</div>
+                    <div class="h-40 w-40 md:h-64 md:w-64 flex items-center justify-center relative">
+                        <i id="player-hand" class="fa-solid fa-user-ninja text-7xl md:text-[8rem] text-gray-600 transition-all duration-300"></i>
+                    </div>
+                </div>
+
+                <!-- VS Badge -->
+                <div class="shrink-0 relative z-20 flex flex-col items-center justify-center w-full md:w-auto h-0 md:h-auto my-[-40px] md:my-0">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-black border-4 border-gray-700 rounded-full flex items-center justify-center text-xl md:text-2xl font-black italic text-gray-500 shadow-[0_0_30px_rgba(0,0,0,0.8)]" id="vs-badge">VS</div>
+                </div>
+
+                <!-- Dealer Side -->
+                <div class="flex-1 flex flex-col items-center w-full">
+                    <div class="bg-purple-900/20 border border-purple-500/30 text-purple-400 text-xs font-black px-4 py-1 rounded-full uppercase tracking-widest mb-6 md:mb-6 mt-16 md:mt-0 order-last md:order-first">Dealer</div>
+                    <div class="h-40 w-40 md:h-64 md:w-64 flex items-center justify-center relative">
+                        <i id="dealer-hand" class="fa-solid fa-robot text-7xl md:text-[8rem] text-gray-600 transition-all duration-300"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-6 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/3 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stake Amount</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Pays 1.95x</span>
+                    </div>
+
+                    <div class="relative flex mb-4">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500 font-bold text-lg">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-cyan-500 outline-none transition shadow-inner">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700">+50</button>
+                        <button onclick="setStake(500)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700">+500</button>
+                    </div>
+                </div>
+
+                <!-- ACTION WEAPONS -->
+                <div class="w-full md:w-2/3 grid grid-cols-3 gap-3 md:gap-4">
+                    <!-- Rock -->
+                    <button id="btn-rock" onclick="triggerRPS('rock')" class="weapon-btn relative bg-[#0a0d15] border border-gray-700 hover:border-cyan-500 rounded-2xl p-4 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[120px]">
+                        <div class="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-hand-back-fist text-4xl md:text-5xl text-gray-400 group-hover:text-cyan-400 mb-3 transition-colors glow-cyan group-hover:scale-110"></i>
+                        <span class="text-xs md:text-sm font-black uppercase tracking-widest text-gray-300 group-hover:text-white relative z-10">ROCK</span>
+                    </button>
+
+                    <!-- Paper -->
+                    <button id="btn-paper" onclick="triggerRPS('paper')" class="weapon-btn relative bg-[#0a0d15] border border-gray-700 hover:border-cyan-500 rounded-2xl p-4 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[120px]">
+                        <div class="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-hand text-4xl md:text-5xl text-gray-400 group-hover:text-cyan-400 mb-3 transition-colors glow-cyan group-hover:scale-110"></i>
+                        <span class="text-xs md:text-sm font-black uppercase tracking-widest text-gray-300 group-hover:text-white relative z-10">PAPER</span>
+                    </button>
+
+                    <!-- Scissors -->
+                    <button id="btn-scissors" onclick="triggerRPS('scissors')" class="weapon-btn relative bg-[#0a0d15] border border-gray-700 hover:border-cyan-500 rounded-2xl p-4 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[120px]">
+                        <div class="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-hand-scissors text-4xl md:text-5xl text-gray-400 group-hover:text-cyan-400 mb-3 transition-colors glow-cyan group-hover:scale-110"></i>
+                        <span class="text-xs md:text-sm font-black uppercase tracking-widest text-gray-300 group-hover:text-white relative z-10">SCISSORS</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Particle Container -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. AUDIO SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        function soundSelect() { playTone(600, 'square', 0.1, 0.05); }
+        function soundTick() { playTone(800, 'sine', 0.05, 0.05); }
+        function soundClash() { playTone(150, 'sawtooth', 0.4, 0.2); playTone(80, 'square', 0.5, 0.2); }
+        function soundWin() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
+        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
+        function soundTie() { playTone(400, 'sine', 0.2, 0.1); setTimeout(() => playTone(400, 'sine', 0.3, 0.1), 250); }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. LOGIC & ANIMATION
+        // ----------------------------------------------------
+        const iconMap = { 'rock': 'fa-hand-back-fist', 'paper': 'fa-hand', 'scissors': 'fa-hand-scissors' };
+        const iconRotMap = { 'rock': 'rotate(90deg)', 'paper': 'rotate(90deg)', 'scissors': 'rotate(90deg)' };
+        let isPlaying = false;
+
+        function adjustStake(factor) {
+            if(isPlaying) return;
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+        function setStake(amount) {
+            if(isPlaying) return;
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        async function triggerRPS(choice) {
+            if (isPlaying) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) { alert("Minimum bet is ₹10"); return; }
+
+            isPlaying = true;
+            soundSelect();
+
+            // Setup UI for battle
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.add('opacity-50', 'pointer-events-none'));
+            document.getElementById('btn-' + choice).classList.remove('opacity-50');
+            document.getElementById('btn-' + choice).classList.add('border-cyan-500', 'bg-cyan-900/30');
+
+            const pHand = document.getElementById('player-hand');
+            const dHand = document.getElementById('dealer-hand');
+            const overlay = document.getElementById('result-overlay');
+            const vsBadge = document.getElementById('vs-badge');
+
+            overlay.classList.add('hidden');
+            vsBadge.classList.add('animate-pulse', 'border-red-500', 'text-white');
+            
+            // Transform hands to fists for the shake
+            pHand.className = `fa-solid fa-hand-back-fist text-7xl md:text-[8rem] text-cyan-400 glow-cyan anim-shake-player`;
+            dHand.className = `fa-solid fa-hand-back-fist text-7xl md:text-[8rem] text-purple-400 glow-purple anim-shake-dealer`;
+            
+            pHand.style.transform = ''; dHand.style.transform = '';
+
+            // Tick sounds during shake
+            setTimeout(soundTick, 0); setTimeout(soundTick, 500); setTimeout(soundTick, 1000);
+
+            try {
+                // Fetch outcome while shaking
+                const res = await fetch('/rps/play', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake, choice}) 
+                });
+                const d = await res.json();
+
+                if (d.success) {
+                    // Wait for 3-shake animation to finish (1500ms)
+                    setTimeout(() => {
+                        soundClash();
+                        vsBadge.classList.remove('animate-pulse');
+
+                        // Reveal Hands
+                        pHand.className = `fa-solid ${iconMap[choice]} text-7xl md:text-[8rem] text-cyan-400 anim-clash`;
+                        pHand.style.transform = `rotate(90deg)`;
+
+                        dHand.className = `fa-solid ${iconMap[d.dealer]} text-7xl md:text-[8rem] text-purple-400 anim-clash`;
+                        dHand.style.transform = `rotate(-90deg) scaleX(-1)`; // Flip dealer hand to face player
+
+                        const msg = document.getElementById('result-msg');
+                        const sub = document.getElementById('result-sub');
+
+                        // Handle Outcome
+                        setTimeout(() => {
+                            overlay.classList.remove('hidden');
+                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
+
+                            if (d.push) {
+                                soundTie();
+                                msg.innerText = "TIE MATCH";
+                                msg.className = "text-4xl md:text-6xl font-black italic uppercase tracking-widest text-gray-400";
+                                sub.innerText = "+₹" + stake.toFixed(2) + " (PUSH)";
+                                sub.className = "text-xl md:text-2xl font-bold mt-2 font-mono text-gray-500";
+                                pHand.classList.add('opacity-50'); dHand.classList.add('opacity-50');
+                            } else if (d.win) {
+                                soundWin();
+                                msg.innerText = "YOU WIN!";
+                                msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-green-400 glow-win";
+                                sub.innerText = "+₹" + d.winnings.toFixed(2);
+                                sub.className = "text-2xl md:text-3xl font-black mt-2 font-mono text-green-300";
+                                dHand.classList.add('opacity-20', 'grayscale');
+                                spawnParticles('green');
+                            } else {
+                                soundLose();
+                                msg.innerText = "DEALER WINS";
+                                msg.className = "text-4xl md:text-6xl font-black italic uppercase tracking-widest text-red-500 glow-lose";
+                                sub.innerText = "BET LOST";
+                                sub.className = "text-xl md:text-2xl font-bold mt-2 font-mono text-red-400";
+                                pHand.classList.add('opacity-20', 'grayscale');
+                            }
+
+                            // Reset UI for next round after delay
+                            setTimeout(() => {
+                                document.querySelectorAll('.weapon-btn').forEach(btn => {
+                                    btn.classList.remove('opacity-50', 'pointer-events-none', 'border-cyan-500', 'bg-cyan-900/30');
+                                });
+                                vsBadge.className = "w-16 h-16 md:w-20 md:h-20 bg-black border-4 border-gray-700 rounded-full flex items-center justify-center text-xl md:text-2xl font-black italic text-gray-500 shadow-[0_0_30px_rgba(0,0,0,0.8)]";
+                                isPlaying = false;
+                            }, 2000);
+
+                        }, 600); // Slight delay after reveal before showing text
+                    }, 1500); // 1.5s Shaking Wait Time
+
+                } else {
+                    alert(d.error); resetError();
+                }
+            } catch(e) { alert("Network Error"); resetError(); }
+        }
+
+        function resetError() {
+            isPlaying = false;
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.remove('opacity-50', 'pointer-events-none', 'border-cyan-500', 'bg-cyan-900/30'));
+            document.getElementById('player-hand').className = "fa-solid fa-user-ninja text-7xl md:text-[8rem] text-gray-600";
+            document.getElementById('dealer-hand').className = "fa-solid fa-robot text-7xl md:text-[8rem] text-gray-600";
+        }
+
+        function spawnParticles(colorType) {
+            const container = document.getElementById('particle-container');
+            const color = colorType === 'green' ? '#10b981' : '#ef4444';
+            
+            for(let i=0; i<40; i++) {
+                const p = document.createElement('div');
+                p.className = "absolute rounded-full shadow-lg";
+                p.style.backgroundColor = color;
+                p.style.width = (Math.random() * 8 + 4) + 'px';
+                p.style.height = p.style.width;
+                p.style.left = '50%'; p.style.top = '50%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 25;
+                const tx = Math.cos(angle) * velocity * 15;
+                const ty = Math.sin(angle) * velocity * 15;
+                
+                container.appendChild(p);
+                
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(1)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 800 + Math.random() * 600, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
+                
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Field - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .field-lane { transition: all 0.2s; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; font-size: 3rem; }
+        .field-lane:hover { background: rgba(16,185,129,0.1); border-color: #10b981; transform: translateY(-5px); }
+        .field-lane.safe { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; pointer-events: none; }
+        .field-lane.mine { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; pointer-events: none; }
+        .field-lane.locked { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
+
+    <header class="w-full max-w-xl flex justify-between items-center py-4 border-b border-gray-800 mb-6">
+        <a href="/games" class="text-emerald-500 font-bold text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
+        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    </header>
+
+    <div class="w-full max-w-xl flex flex-col items-center justify-center my-auto">
+        <div class="bg-[#0a0d14] border border-emerald-900/30 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(16,185,129,0.1)] w-full text-center relative overflow-hidden">
+            
+            <div class="flex justify-between items-end mb-6 pb-4 border-b border-gray-800">
+                <div class="text-left">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Step</div>
+                    <div id="step-counter" class="text-3xl font-black text-white">0</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Multiplier</div>
+                    <div id="current-mult" class="text-3xl font-black text-emerald-400">1.00x</div>
+                </div>
+            </div>
+
+            <div class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pick a Lane to Advance</div>
+
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div id="lane-0" onclick="stepLane(0)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
+                <div id="lane-1" onclick="stepLane(1)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
+                <div id="lane-2" onclick="stepLane(2)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
+            </div>
+            
+            <div id="current-win" class="text-lg font-bold text-emerald-400 h-6 mb-2"></div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-xl bg-[#0a0d14] p-4 rounded-2xl border border-gray-800 flex gap-3 mt-8">
+        <input type="number" id="stake" value="50" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white outline-none focus:border-emerald-500">
+        <button id="action-btn" onclick="startGame()" class="flex-1 py-4 bg-gradient-to-r from-emerald-600 to-emerald-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(16,185,129,0.4)]">START GAME</button>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isPlaying = false;
+        let currentWinnings = 0;
+
+        function resetLanes() {
+            [0,1,2].forEach(i => {
+                const el = document.getElementById(`lane-${i}`);
+                el.className = 'field-lane text-gray-400 hover:text-white';
+                el.innerHTML = '<i class="fa-solid fa-question"></i>';
+            });
+        }
+
+        function startGame() {
+            const stake = parseFloat(document.getElementById('stake').value);
+            if(stake < 10) return alert('Min bet 10');
+            isPlaying = true;
+            currentStep = 1;
+            currentWinnings = 0;
+            
+            document.getElementById('step-counter').innerText = currentStep;
+            document.getElementById('current-mult').innerText = "1.00x";
+            document.getElementById('current-win').innerText = "";
+            
+            resetLanes();
+            
+            const btn = document.getElementById('action-btn');
+            btn.innerText = "CASH OUT";
+            btn.className = "flex-1 py-4 bg-gray-700 text-gray-400 font-black text-xl rounded-xl uppercase cursor-not-allowed";
+            btn.onclick = cashout;
+            btn.disabled = true; 
+        }
+
+        async function stepLane(laneIdx) {
+            if(!isPlaying) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            // Lock briefly
+            [0,1,2].forEach(i => document.getElementById(`lane-${i}`).style.pointerEvents = 'none');
+
+            try {
+                const res = await fetch('/coin_field/step', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, lane: laneIdx, step: currentStep}) });
+                const d = await res.json();
+                
+                if(d.success) {
+                    if (currentStep === 1) document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    
+                    const el = document.getElementById(`lane-${laneIdx}`);
+                    const mineEl = document.getElementById(`lane-${d.mine_lane}`);
+                    
+                    if(d.safe) {
+                        el.classList.add('safe');
+                        el.innerHTML = '<i class="fa-solid fa-coins"></i>';
+                        mineEl.innerHTML = '<i class="fa-solid fa-bomb text-gray-700"></i>';
+                        
+                        currentWinnings = d.winnings;
+                        document.getElementById('current-mult').innerText = d.multiplier + 'x';
+                        document.getElementById('current-win').innerText = '+ ₹' + d.winnings.toFixed(2);
+                        
+                        const btn = document.getElementById('action-btn');
+                        btn.disabled = false;
+                        btn.className = "flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xl rounded-xl uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition cursor-pointer";
+                        
+                        currentStep++;
+                        setTimeout(() => {
+                            document.getElementById('step-counter').innerText = currentStep;
+                            resetLanes();
+                        }, 1000);
+                    } else {
+                        el.classList.add('mine');
+                        el.innerHTML = '<i class="fa-solid fa-explosion"></i>';
+                        endGameLoose();
+                    }
+                } else { alert(d.error); resetLanes(); }
+            } catch(e) { alert("Error"); resetLanes(); }
+        }
+
+        async function cashout() {
+            if(!isPlaying || currentWinnings === 0) return;
+            // Uses Tower Climb cashout logic since math is identical
+            try {
+                const res = await fetch('/tower/cashout', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({winnings: currentWinnings}) });
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    alert(`Successfully Cashed Out: ₹${currentWinnings.toFixed(2)}`);
+                    resetToStart();
+                }
+            } catch(e) {}
+        }
+
+        function endGameLoose() {
+            isPlaying = false;
+            document.getElementById('current-win').innerText = "MINE HIT! YOU LOSE.";
+            document.getElementById('current-win').className = "text-lg font-bold text-red-500 h-6 mb-2 uppercase";
+            setTimeout(resetToStart, 2000);
+        }
+
+        function resetToStart() {
+            isPlaying = false;
+            [0,1,2].forEach(i => document.getElementById(`lane-${i}`).classList.add('locked'));
+            document.getElementById('current-win').className = "text-lg font-bold text-emerald-400 h-6 mb-2";
+            const btn = document.getElementById('action-btn');
+            btn.innerText = "START GAME";
+            btn.className = "flex-1 py-4 bg-gradient-to-r from-emerald-600 to-emerald-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer";
+            btn.onclick = startGame;
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .wheel-container { position: relative; width: 200px; height: 200px; border-radius: 50%; border: 8px solid #374151; box-shadow: 0 0 30px rgba(239,68,68,0.3); transition: transform 3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #111827; border-radius: 50%; z-index: 10; border: 2px solid #4b5563; }
+        .bet-btn { transition: all 0.2s; } .bet-btn.active { box-shadow: 0 0 0 3px #fff inset; transform: scale(0.95); }
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0">
+        <div class="p-6 border-b border-gray-800"><div class="text-3xl font-black italic tracking-wider">Nova<span class="text-red-500">betx</span></div></div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="/games" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left"></i> Back to Games</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
+            <div class="text-xl font-black text-red-500 flex items-center gap-2"><i class="fa-solid fa-circle-notch"></i> European Roulette</div>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </header>
+
+        <div class="flex-1 flex flex-col items-center justify-center p-4">
+            
+            <!-- Spinning Wheel Animation -->
+            <div class="mb-10 relative">
+                <div id="wheel" class="wheel-container bg-[conic-gradient(#ef4444_0_180deg,#111827_180deg_360deg)] flex items-center justify-center">
+                    <div class="wheel-center"></div>
+                </div>
+                <div id="result-display" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-3xl font-black drop-shadow-md hidden"></div>
+            </div>
+
+            <!-- Betting Board -->
+            <div class="w-full max-w-2xl bg-[#0a0d14] p-4 rounded-2xl border border-gray-800 shadow-xl">
+                <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-3 text-center">Select Your Bet</div>
+                
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <button onclick="selectBet('red', null)" id="bet-red" class="bet-btn bg-red-600 py-3 rounded-lg font-black uppercase text-sm shadow-md">RED (2x)</button>
+                    <button onclick="selectBet('black', null)" id="bet-black" class="bet-btn bg-gray-900 border border-gray-700 py-3 rounded-lg font-black uppercase text-sm shadow-md">BLACK (2x)</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="selectBet('even', null)" id="bet-even" class="bet-btn bg-[#1C232E] py-3 rounded-lg font-black uppercase text-sm border border-gray-700 hover:bg-gray-700">EVEN (2x)</button>
+                    <button onclick="selectBet('odd', null)" id="bet-odd" class="bet-btn bg-[#1C232E] py-3 rounded-lg font-black uppercase text-sm border border-gray-700 hover:bg-gray-700">ODD (2x)</button>
+                </div>
+
+                <div class="relative">
+                    <input type="number" id="target-num" placeholder="Or type Exact Number (0-36)" min="0" max="36" oninput="selectBet('number', this.value)" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-center text-sm font-bold text-white focus:border-red-500 outline-none">
+                    <div class="absolute right-3 top-3 text-[10px] text-gray-500 font-black">Pays 36x</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
+            <div class="w-full max-w-2xl flex gap-3">
+                <input type="number" id="stake" value="50" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-red-500 outline-none shadow-inner">
+                <button id="spin-btn" onclick="spinWheel()" class="flex-1 py-4 bg-red-600 hover:bg-red-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(239,68,68,0.4)]">PLACE BET & SPIN</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentBetType = 'red';
+        let currentTarget = null;
+        let wheelRotation = 0;
+
+        function selectBet(type, target) {
+            document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('active'));
+            if(type !== 'number') {
+                document.getElementById('bet-' + type).classList.add('active');
+                document.getElementById('target-num').value = '';
+            }
+            currentBetType = type;
+            currentTarget = target;
+        }
+
+        async function spinWheel() {
+            if (currentBetType === 'number' && (currentTarget === null || currentTarget === '')) { alert('Enter a valid number'); return; }
+            
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true; btn.innerText = "SPINNING...";
+            document.getElementById('result-display').classList.add('hidden');
+            
+            const stake = parseFloat(document.getElementById('stake').value);
+            const res = await fetch('/roulette/spin', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake: stake, type: currentBetType, target: currentTarget}) });
+            const d = await res.json();
+            
+            if(d.success) {
+                // Visual Spin
+                wheelRotation += 1440 + Math.random() * 360; 
+                document.getElementById('wheel').style.transform = `rotate(${wheelRotation}deg)`;
+                
+                setTimeout(() => {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    const rd = document.getElementById('result-display');
+                    rd.innerText = d.number;
+                    rd.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl font-black drop-shadow-[0_0_10px_#000] ${d.color === 'red' ? 'text-red-500' : (d.color==='green'?'text-green-500':'text-white')}`;
+                    rd.classList.remove('hidden');
+                    
+                    if(d.win) { alert(`Winner! ₹${d.winnings.toFixed(2)}`); }
+                    btn.disabled = false; btn.innerText = "PLACE BET & SPIN";
+                }, 3000);
+            } else { alert(d.error); btn.disabled = false; btn.innerText = "PLACE BET & SPIN"; }
+        }
+        selectBet('red', null); // Default selection
+    </script>
+</body>
+</html>

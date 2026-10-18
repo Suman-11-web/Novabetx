@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teen Patti VIP - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        royalGold: '#fbbf24',
+                        royalRed: '#991b1b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 4px; }
+        
+        /* Royal VIP Table Felt */
+        .felt-bg { 
+            background: radial-gradient(ellipse at center, #7f1d1d 0%, #450a0a 60%, #1f0404 100%); 
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+        }
+        
+        .glow-gold { filter: drop-shadow(0 0 15px rgba(251,191,36,0.6)); }
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+
+        /* 3D Playing Card Styles */
+        .playing-card { 
+            width: 75px; 
+            height: 110px; 
+            background: white; 
+            border-radius: 8px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            padding: 6px; 
+            font-weight: 900; 
+            font-size: 1.5rem; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6); 
+            border: 1px solid #e5e7eb; 
+            position: relative; 
+        }
+        @media (min-width: 768px) {
+            .playing-card { width: 100px; height: 145px; font-size: 2rem; padding: 10px; }
+        }
+        
+        .card-back { 
+            background: repeating-linear-gradient(45deg, #b91c1c, #b91c1c 10px, #7f1d1d 10px, #7f1d1d 20px); 
+            border: 2px solid #fcd34d; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.6);
+        }
+        .card-red { color: #ef4444; } 
+        .card-black { color: #111827; }
+        .card-suit-large { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; opacity: 0.15; }
+        
+        /* Dealing Animations */
+        @keyframes dealIn { 
+            0% { transform: translateY(-200px) rotateY(180deg) scale(0.5); opacity: 0; } 
+            100% { transform: translateY(0) rotateY(0deg) scale(1); opacity: 1; } 
+        }
+        .anim-deal { animation: dealIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        /* Table Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15vw;
+            color: rgba(251, 191, 36, 0.03);
+            white-space: nowrap;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-royalGold">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded border border-yellow-500/20">VIP</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-yellow-500/10 text-yellow-400 font-bold rounded-xl border border-yellow-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-yellow-400 text-sm hover:text-yellow-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-royalGold text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-shield-halved"></i> TEEN PATTI</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-royalGold mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-yellow-500 hover:bg-yellow-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIP FELT TABLE -->
+        <div class="flex-1 felt-bg relative flex flex-col justify-between items-center py-10 px-4 overflow-hidden">
+            
+            <div class="watermark">TEEN PATTI</div>
+
+            <!-- RESULT OVERLAY -->
+            <div id="result-overlay" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-full hidden pointer-events-none">
+                <div id="result-msg" class="text-5xl md:text-7xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-2xl md:text-3xl font-bold mt-2 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- DEALER AREA -->
+            <div class="text-center w-full relative z-10 flex flex-col items-center">
+                <div class="text-royalGold font-black uppercase tracking-widest text-xs mb-4 bg-black/60 px-6 py-1.5 rounded-full border border-yellow-900/50 shadow-lg backdrop-blur-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-tie"></i> Dealer Hand
+                </div>
+                <div id="dealer-cards" class="flex justify-center gap-[-20px] md:gap-4 min-h-[110px] md:min-h-[145px] w-full max-w-sm perspective-1000">
+                    <!-- Default Placeholders -->
+                    <div class="playing-card card-back opacity-50"></div>
+                    <div class="playing-card card-back opacity-50 relative -left-4 md:left-0 z-10"></div>
+                    <div class="playing-card card-back opacity-50 relative -left-8 md:left-0 z-20"></div>
+                </div>
+            </div>
+
+            <!-- VS DIVIDER -->
+            <div class="w-full flex items-center justify-center relative z-10 opacity-30 my-4 md:my-0">
+                <div class="h-px bg-yellow-500/50 w-1/3"></div>
+                <div class="mx-4 font-black italic text-yellow-500">VS</div>
+                <div class="h-px bg-yellow-500/50 w-1/3"></div>
+            </div>
+
+            <!-- PLAYER AREA -->
+            <div class="text-center w-full relative z-10 flex flex-col items-center">
+                <div id="player-cards" class="flex justify-center gap-[-20px] md:gap-4 min-h-[110px] md:min-h-[145px] w-full max-w-sm mb-4 perspective-1000">
+                    <!-- Default Placeholders -->
+                    <div class="playing-card card-back opacity-50"></div>
+                    <div class="playing-card card-back opacity-50 relative -left-4 md:left-0 z-10"></div>
+                    <div class="playing-card card-back opacity-50 relative -left-8 md:left-0 z-20"></div>
+                </div>
+                <div class="text-white font-black uppercase tracking-widest text-xs bg-black/60 px-6 py-1.5 rounded-full border border-gray-700 shadow-lg backdrop-blur-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user"></i> Your Hand
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-6 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ante Amount</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Pays 1.95x</span>
+                    </div>
+
+                    <div class="relative flex mb-4">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-yellow-500 outline-none transition shadow-inner">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(500)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+500</button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTON -->
+                <div class="w-full md:w-1/2 flex flex-col justify-center">
+                    <button id="deal-btn" onclick="playGame()" class="w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-yellow-400 to-yellow-600 hover:from-yellow-300 hover:to-yellow-500 text-black font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(251,191,36,0.3)] border-b-4 border-yellow-700 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        ANTE & DEAL
+                        <span class="text-[10px] text-black/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Place Bet</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Particle Container -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. AUDIO SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundDeal() { playTone(300, 'square', 0.1, 0.05); setTimeout(()=>playTone(200, 'square', 0.08, 0.02), 50); }
+        function soundWin() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
+        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING LOGIC
+        // ----------------------------------------------------
+        function adjustStake(factor) {
+            if(isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+        function setStake(amount) {
+            if(isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        function getCardHTML(card, index, isDealer=false) {
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            const colorClass = isRed ? 'card-red' : 'card-black';
+            // Mobile overlapping logic
+            const zIndex = isDealer ? 30 - (index*10) : 10 + (index*10); 
+            const offset = window.innerWidth < 768 ? `relative ${isDealer ? '' : '-left-'+(index*4)}` : '';
+            
+            return `
+                <div class="playing-card ${colorClass} anim-deal ${offset}" style="z-index: ${zIndex}; opacity: 0; animation-delay: 0s;">
+                    <span>${card.rank}</span>
+                    <div class="card-suit-large">${card.suit}</div>
+                    <span class="text-right">${card.suit}</span>
+                </div>`;
+        }
+
+        // ----------------------------------------------------
+        // 3. GAME ENGINE
+        // ----------------------------------------------------
+        let isPlaying = false;
+
+        async function playGame() {
+            if (isPlaying) return;
+            const btn = document.getElementById('deal-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) { alert("Minimum bet is ₹10"); return; }
+
+            isPlaying = true;
+            btn.classList.add('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'DEALING... <span class="text-[10px] text-black/70 font-bold tracking-widest uppercase mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Please Wait</span>';
+            
+            const overlay = document.getElementById('result-overlay');
+            overlay.classList.add('hidden');
+            
+            const playerArea = document.getElementById('player-cards');
+            const dealerArea = document.getElementById('dealer-cards');
+            playerArea.innerHTML = '';
+            dealerArea.innerHTML = '';
+
+            try {
+                const res = await fetch('/teen_patti/play', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake}) 
+                });
+                const d = await res.json();
+                
+                if (d.success) {
+                    
+                    // Staggered Dealing Animation
+                    // Deal to Player
+                    d.player.forEach((c, i) => {
+                        setTimeout(() => {
+                            playerArea.innerHTML += getCardHTML(c, i, false);
+                            soundDeal();
+                        }, i * 300);
+                    });
+                    
+                    // Delay then deal to Dealer
+                    setTimeout(() => {
+                        d.dealer.forEach((c, i) => {
+                            setTimeout(() => {
+                                dealerArea.innerHTML += getCardHTML(c, i, true);
+                                soundDeal();
+                            }, i * 300);
+                        });
+                        
+                        // Reveal Result
+                        setTimeout(() => {
+                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                            const msgEl = document.getElementById('result-msg');
+                            const subEl = document.getElementById('result-sub');
+                            
+                            overlay.classList.remove('hidden');
+                            
+                            if (d.win) {
+                                soundWin();
+                                msgEl.innerText = "YOU WIN!";
+                                msgEl.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-green-400 glow-win";
+                                subEl.innerText = "+₹" + d.winnings.toFixed(2);
+                                subEl.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-green-300 drop-shadow-md";
+                                spawnChips();
+                                dealerArea.classList.add('opacity-50', 'grayscale');
+                            } else {
+                                soundLose();
+                                msgEl.innerText = "DEALER WINS";
+                                msgEl.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-red-500 glow-lose";
+                                subEl.innerText = "ANTE LOST";
+                                subEl.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-red-400 drop-shadow-md";
+                                playerArea.classList.add('opacity-50', 'grayscale');
+                            }
+
+                            // Reset Button
+                            setTimeout(() => {
+                                isPlaying = false;
+                                btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+                                btn.innerHTML = 'ANTE & DEAL <span class="text-[10px] text-black/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Place Bet</span>';
+                                playerArea.classList.remove('opacity-50', 'grayscale');
+                                dealerArea.classList.remove('opacity-50', 'grayscale');
+                            }, 2000);
+
+                        }, 1200); // Wait after dealer gets cards
+
+                    }, 1000); // Wait after player gets cards
+
+                } else {
+                    alert(d.error); resetBtn();
+                }
+            } catch(e) { alert("Network error"); resetBtn(); }
+        }
+
+        function resetBtn() {
+            isPlaying = false;
+            const btn = document.getElementById('deal-btn');
+            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
+            btn.innerHTML = 'ANTE & DEAL <span class="text-[10px] text-black/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-cards"></i> Place Bet</span>';
+        }
+
+        // ----------------------------------------------------
+        // 4. CELEBRATION EFFECTS
+        // ----------------------------------------------------
+        function spawnChips() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#f59e0b', '#fbbf24', '#fcd34d'];
+            
+            for(let i=0; i<40; i++) {
+                const chip = document.createElement('div');
+                chip.innerHTML = '<i class="fa-solid fa-circle-dollar-to-slot"></i>';
+                chip.className = "absolute text-3xl drop-shadow-lg";
+                chip.style.color = colors[Math.floor(Math.random() * colors.length)];
+                chip.style.left = '50%'; chip.style.top = '60%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 20;
+                const tx = Math.cos(angle) * velocity * 15;
+                const ty = Math.sin(angle) * velocity * 15 - 200;
+                
+                container.appendChild(chip);
+                
+                chip.animate([
+                    { transform: `translate(-50%, -50%) scale(0.5) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 1000 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
+                
+                setTimeout(() => chip.remove(), 2000);
+            }
+        }
+    </script>
+</body>
+</html>

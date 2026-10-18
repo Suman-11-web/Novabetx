@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baccarat Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',brand:'#3b82f6'}}}}</script>
+    <style>
+        .felt-bg { background: radial-gradient(circle at center, #1e3a8a 0%, #0f172a 100%); }
+        .bet-zone { transition: all 0.3s ease; cursor: pointer; }
+        .bet-zone:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
+        .bet-zone.active { background: rgba(59, 130, 246, 0.4); border-color: #60a5fa; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); transform: scale(1.02); }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0">
+        <div class="p-6 border-b border-gray-800"><div class="text-3xl font-black italic tracking-wider">Nova<span class="text-blue-500">betx</span></div></div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="/games" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left"></i> Back to Games</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
+            <div class="text-xl font-black text-blue-500 flex items-center gap-2"><i class="fa-solid fa-diamond"></i> Baccarat Pro</div>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        </header>
+
+        <div class="flex-1 felt-bg flex flex-col justify-center items-center p-4 relative shadow-inner">
+            
+            <div id="result-display" class="hidden absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-center w-full">
+                <div id="result-winner" class="text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-white"></div>
+                <div id="result-win-amount" class="text-2xl font-bold text-blue-400 mt-2 drop-shadow-md"></div>
+            </div>
+
+            <!-- Score Board -->
+            <div class="flex justify-between w-full max-w-lg mb-8 px-4">
+                <div class="text-center">
+                    <div class="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Player Score</div>
+                    <div id="player-score" class="text-4xl font-black text-white bg-black/40 w-16 h-16 rounded-xl flex items-center justify-center border border-blue-500/30">0</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-red-300 font-bold uppercase tracking-widest mb-1">Banker Score</div>
+                    <div id="banker-score" class="text-4xl font-black text-white bg-black/40 w-16 h-16 rounded-xl flex items-center justify-center border border-red-500/30">0</div>
+                </div>
+            </div>
+
+            <!-- Betting Board -->
+            <div class="grid grid-cols-3 gap-2 w-full max-w-lg">
+                <div onclick="selectZone('Player')" id="zone-Player" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
+                    <div class="text-blue-400 font-black text-lg md:text-2xl uppercase tracking-wider">PLAYER</div>
+                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 1:1</div>
+                </div>
+                <div onclick="selectZone('Tie')" id="zone-Tie" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
+                    <div class="text-emerald-400 font-black text-lg md:text-2xl uppercase tracking-wider">TIE</div>
+                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 8:1</div>
+                </div>
+                <div onclick="selectZone('Banker')" id="zone-Banker" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
+                    <div class="text-red-400 font-black text-lg md:text-2xl uppercase tracking-wider">BANKER</div>
+                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 0.95:1</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
+            <div class="w-full max-w-2xl flex gap-3">
+                <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-blue-500 outline-none shadow-inner">
+                <button id="deal-btn" onclick="dealCards()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(59,130,246,0.4)]">PLACE BET & DEAL</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentChoice = 'Player';
+        selectZone('Player');
+
+        function selectZone(choice) {
+            document.querySelectorAll('.bet-zone').forEach(el => el.classList.remove('active'));
+            document.getElementById('zone-' + choice).classList.add('active');
+            currentChoice = choice;
+        }
+
+        async function dealCards() {
+            const btn = document.getElementById('deal-btn');
+            const stake = parseFloat(document.getElementById('stake').value);
+            
+            btn.disabled = true; btn.innerText = "DEALING...";
+            document.getElementById('result-display').classList.add('hidden');
+            
+            try {
+                const res = await fetch('/baccarat/deal', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake: stake, choice: currentChoice}) });
+                const d = await res.json();
+                
+                if(d.success) {
+                    // Animation delay for suspense
+                    setTimeout(() => {
+                        document.getElementById('player-score').innerText = d.player_score;
+                        document.getElementById('banker-score').innerText = d.banker_score;
+                        
+                        setTimeout(() => {
+                            const resDisplay = document.getElementById('result-display');
+                            const resWinner = document.getElementById('result-winner');
+                            
+                            resWinner.innerText = d.winner + " WINS";
+                            resWinner.className = `text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest ${d.winner==='Player'?'text-blue-400':(d.winner==='Banker'?'text-red-400':'text-emerald-400')}`;
+                            
+                            if (d.win) {
+                                document.getElementById('result-win-amount').innerText = `+ ₹${d.winnings.toFixed(2)}`;
+                            } else {
+                                document.getElementById('result-win-amount').innerText = "BET LOST";
+                            }
+                            
+                            resDisplay.classList.remove('hidden');
+                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                            btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
+                        }, 500);
+                    }, 600);
+                } else {
+                    alert(d.error);
+                    btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
+                }
+            } catch(e) {
+                alert("Network error.");
+                btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
+            }
+        }
+    </script>
+</body>
+</html>

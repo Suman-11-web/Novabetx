@@ -3,86 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novabetx - All Games</title>
+    <title>Novabetx - Premium Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>tailwind.config={theme:{extend:{colors:{background:'#0a0d13',surface:'#121721',surfaceLight:'#1C232E',brand:'#1CDA3A'}}}}</script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        .filter-btn.active { background-color: #1CDA3A; color: #000; box-shadow: 0 0 15px rgba(28,218,58,0.4); }
+    </style>
 </head>
-<body class="bg-background text-white min-h-screen pb-20">
+<body class="bg-background text-white min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
 
-    <header class="bg-[#0f131a]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-50 shadow-sm">
-        <div class="flex items-center justify-between px-4 py-3">
-            <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
-            <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
-                <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)]"><i class="fa-solid fa-plus text-sm"></i></a>
+    <!-- 🖥️ DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800">
+            <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-2">Menu</div>
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/20 font-bold transition"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-6">Account</div>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-500/10 text-green-500 hover:text-green-400 font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-screen relative w-full overflow-x-hidden">
+        
+        <!-- MOBILE HEADER -->
+        <header class="md:hidden bg-[#0f131a]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-40 shadow-sm">
+            <div class="flex items-center justify-between px-4 py-3">
+                <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+                <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
+                    <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)]"><i class="fa-solid fa-plus text-sm"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- DESKTOP TOP BAR -->
+        <div class="hidden md:flex justify-end items-center p-4 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
+            <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
+                <div class="text-right">
+                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+                    <div class="text-lg font-black text-brand">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                </div>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
             </div>
         </div>
-    </header>
 
-    <div class="px-4 py-6 max-w-[1200px] mx-auto">
-        <h1 class="text-3xl font-black italic tracking-wide mb-6 uppercase border-l-4 border-brand pl-3">Live <span class="text-brand">Games</span></h1>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="px-4 py-6 md:p-8 max-w-[1400px] mx-auto w-full">
+            <h1 class="text-3xl md:text-5xl font-black italic tracking-wide mb-2 uppercase border-l-4 border-brand pl-3 drop-shadow-md">The <span class="text-brand">Vault</span></h1>
+            <p class="text-xs text-gray-400 mt-1 pl-4">{{ games_catalog|length }} Provably Fair Games with Instant Payouts</p>
             
-            <a href="{{ url_for('spin_game') }}" class="block bg-gradient-to-br from-indigo-900 to-black rounded-2xl border border-indigo-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-dharmachakra absolute right-[-20px] top-[-10px] text-8xl text-indigo-500 opacity-20 group-hover:opacity-40 group-hover:animate-spin transition-opacity"></i>
-                <div class="bg-indigo-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Free Bonus</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Daily Spin</h2>
-                <p class="text-sm text-gray-300 mt-2">Spin the 3D Wheel of Fortune once every 24 hours to win up to ₹500 Bonus Cash!</p>
-                <div class="mt-6 bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-
-            <a href="{{ url_for('aviator_game') }}" class="block bg-gradient-to-br from-red-900 to-black rounded-2xl border border-red-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-plane-up absolute right-[-20px] top-[-10px] text-8xl text-red-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Live Multiplier</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Aviator</h2>
-                <p class="text-sm text-gray-300 mt-2">Cash out before the plane flies away! High risk, huge rewards.</p>
-                <div class="mt-6 bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(231,76,60,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-
-            <a href="{{ url_for('dragon_tiger_game') }}" class="block bg-gradient-to-br from-yellow-900 via-orange-900 to-black rounded-2xl border border-yellow-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-dragon absolute right-[-20px] top-[-10px] text-8xl text-yellow-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-yellow-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Card Flip</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Dragon Tiger</h2>
-                <p class="text-sm text-gray-300 mt-2">The fastest 50/50 card game. Pick the winning side in 15 seconds.</p>
-                <div class="mt-6 bg-yellow-500 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-
-            <a href="{{ url_for('heads_tails_game') }}" class="block bg-gradient-to-br from-slate-800 to-black rounded-2xl border border-gray-600/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-coins absolute right-[-20px] top-[-10px] text-8xl text-gray-400 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-gray-200 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Coin Toss</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Heads <span class="text-gray-500">v</span> Tails</h2>
-                <p class="text-sm text-gray-300 mt-2">A classic 3D coin flip. Predict the landing side to double your money.</p>
-                <div class="mt-6 bg-gray-200 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-
-            <a href="{{ url_for('color_prediction_game') }}" class="block bg-gradient-to-br from-purple-900 to-black rounded-2xl border border-purple-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-palette absolute right-[-20px] top-[-10px] text-8xl text-purple-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-purple-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Fast Parity</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Color Predict</h2>
-                <p class="text-sm text-gray-300 mt-2">Bet on Green, Red, Violet, or exact numbers in this fast-paced 30s game.</p>
-                <div class="mt-6 bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
+            <!-- Dynamic Category Filter -->
+            <div class="flex gap-3 mb-8 mt-8 overflow-x-auto custom-scrollbar pb-2 pt-1 px-1">
+                <button onclick="filterGames('All')" class="filter-btn active shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">All Games ({{ games_catalog|length }})</button>
+                <button onclick="filterGames('Crash')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Crash Games</button>
+                <button onclick="filterGames('Cards')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Cards & Tables</button>
+                <button onclick="filterGames('Instant Win')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Instant Win</button>
+                <button onclick="filterGames('Numbers')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Dice & Numbers</button>
+            </div>
             
-            <a href="{{ url_for('mines_game') }}" class="block bg-gradient-to-br from-cyan-900 to-black rounded-2xl border border-cyan-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-bomb absolute right-[-20px] top-[-10px] text-8xl text-cyan-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-cyan-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest animate-pulse">Grid Logic</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Cyber Mines</h2>
-                <p class="text-sm text-gray-300 mt-2">Find diamonds to boost your multiplier, but beware the hidden bombs!</p>
-                <div class="mt-6 bg-cyan-500 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-            
-            <a href="{{ url_for('dice_game') }}" class="block bg-gradient-to-br from-pink-900 to-black rounded-2xl border border-pink-500/50 p-6 hover:-translate-y-1 transition-transform duration-300 shadow-lg relative overflow-hidden group">
-                <i class="fa-solid fa-dice-d20 absolute right-[-20px] top-[-10px] text-8xl text-pink-500 opacity-20 group-hover:opacity-40 transition-opacity"></i>
-                <div class="bg-pink-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-2 tracking-widest">Adjustable</div>
-                <h2 class="text-3xl font-black italic text-white uppercase">Digital Dice</h2>
-                <p class="text-sm text-gray-300 mt-2">Set your own risk and reward slider. Roll the digital dice instantly.</p>
-                <div class="mt-6 bg-pink-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.8)]"><i class="fa-solid fa-play ml-1"></i></div>
-            </a>
-
+            <!-- AUTOMATIC DYNAMIC GRID GENERATION -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="games-grid">
+                {% for game in games_catalog %}
+                <a href="{{ url_for(game.route) }}" class="game-card block bg-gradient-to-br from-{{ game.color }}-900/80 to-black rounded-2xl border border-{{ game.color }}-500/30 p-6 hover:-translate-y-1 transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group" data-category="{{ game.category }}">
+                    <i class="fa-solid {{ game.icon }} absolute -right-4 -top-4 text-8xl text-{{ game.color }}-500 opacity-10 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500"></i>
+                    
+                    <div class="bg-{{ game.color }}-500/20 text-{{ game.color }}-400 border border-{{ game.color }}-500/30 text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-3 tracking-widest">{{ game.category }}</div>
+                    
+                    <h2 class="text-2xl font-black italic text-white uppercase leading-none drop-shadow-md">{{ game.title }}</h2>
+                    <p class="text-xs text-gray-400 mt-2 font-mono font-bold">Min Bet: {% if game.min_bet == 0 %}FREE{% else %}₹{{ game.min_bet }}{% endif %}</p>
+                    
+                    <div class="mt-6 flex justify-between items-center relative z-10">
+                        <span class="text-[10px] font-black text-gray-500 group-hover:text-white transition-colors tracking-widest">PLAY NOW</span>
+                        <div class="bg-{{ game.color }}-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play ml-1 text-sm text-black"></i></div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
         </div>
-    </div>
+    </main>
 
     <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
         <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
@@ -90,5 +99,22 @@
         <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
         <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
     </nav>
+
+    <script>
+        function filterGames(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText.includes(category)) btn.classList.add('active');
+            });
+
+            document.querySelectorAll('.game-card').forEach(card => {
+                if (category === 'All' || card.getAttribute('data-category').includes(category)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>

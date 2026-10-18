@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Safes - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .safe { transition: all 0.3s; cursor: pointer; }
+        .safe:hover { filter: brightness(1.2); transform: translateY(-5px); }
+        .safe.open { pointer-events: none; }
+    </style>
+</head>
+<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
+    <header class="w-full max-w-lg flex justify-between items-center py-4 border-b border-gray-800 mb-6">
+        <a href="/games" class="text-yellow-500 font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
+        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    </header>
+
+    <div class="w-full max-w-lg flex flex-col items-center my-auto bg-[#0a0d14] p-8 border border-yellow-900/30 rounded-3xl shadow-[0_0_40px_rgba(234,179,8,0.1)]">
+        <h1 class="text-3xl font-black italic uppercase text-yellow-500 mb-2">Magic Safes</h1>
+        <p class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-10 text-center">Pick a safe. 2 have cash, 1 is empty. (Pays 1.45x)</p>
+        <div id="result-msg" class="text-3xl font-black italic drop-shadow-md uppercase tracking-widest text-center h-10 mb-6"></div>
+        <div class="grid grid-cols-3 gap-4 w-full mb-8">
+            <div id="safe-0" onclick="openSafe(0)" class="safe bg-black border border-gray-700 rounded-xl h-32 flex items-center justify-center text-5xl text-gray-600 shadow-inner"><i class="fa-solid fa-vault"></i></div>
+            <div id="safe-1" onclick="openSafe(1)" class="safe bg-black border border-gray-700 rounded-xl h-32 flex items-center justify-center text-5xl text-gray-600 shadow-inner"><i class="fa-solid fa-vault"></i></div>
+            <div id="safe-2" onclick="openSafe(2)" class="safe bg-black border border-gray-700 rounded-xl h-32 flex items-center justify-center text-5xl text-gray-600 shadow-inner"><i class="fa-solid fa-vault"></i></div>
+        </div>
+        <div class="flex gap-3 w-full">
+            <input type="number" id="stake" value="100" min="10" class="flex-1 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-yellow-500 outline-none py-4">
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        async function openSafe(safeIdx) {
+            if(isPlaying) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            if(stake < 10) return alert("Min bet 10");
+            isPlaying = true;
+            document.getElementById('result-msg').innerText = "";
+            [0,1,2].forEach(i => {
+                const s = document.getElementById(`safe-${i}`);
+                s.className = "safe bg-black border border-gray-700 rounded-xl h-32 flex items-center justify-center text-5xl text-gray-600 shadow-inner";
+                s.innerHTML = '<i class="fa-solid fa-vault"></i>';
+            });
+            try {
+                const res = await fetch('/safes/open', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, safe: safeIdx}) });
+                const d = await res.json();
+                if(d.success) {
+                    const pickedSafe = document.getElementById(`safe-${safeIdx}`);
+                    pickedSafe.classList.add('open');
+                    if (d.win) {
+                        pickedSafe.classList.add('border-green-500', 'bg-green-900/30', 'text-green-400');
+                        pickedSafe.innerHTML = '<i class="fa-solid fa-money-bill-wave"></i>';
+                        document.getElementById('result-msg').className = "text-3xl font-black italic uppercase tracking-widest text-center h-10 mb-6 text-green-400";
+                        document.getElementById('result-msg').innerText = `+₹${d.winnings.toFixed(2)}`;
+                    } else {
+                        pickedSafe.classList.add('border-red-500', 'bg-red-900/30', 'text-red-500');
+                        pickedSafe.innerHTML = '<i class="fa-solid fa-spider"></i>';
+                        document.getElementById('result-msg').className = "text-3xl font-black italic uppercase tracking-widest text-center h-10 mb-6 text-red-500";
+                        document.getElementById('result-msg').innerText = "EMPTY!";
+                    }
+                    [0,1,2].forEach(i => {
+                        if(i !== safeIdx) {
+                            const s = document.getElementById(`safe-${i}`);
+                            s.classList.add('open', 'opacity-50');
+                            s.innerHTML = (i === d.empty_safe) ? '<i class="fa-solid fa-spider"></i>' : '<i class="fa-solid fa-money-bill-wave"></i>';
+                        }
+                    });
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    setTimeout(() => isPlaying = false, 1000);
+                } else { alert(d.error); isPlaying = false; }
+            } catch(e) { isPlaying = false; }
+        }
+    </script>
+</body>
+</html>

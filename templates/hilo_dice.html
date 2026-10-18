@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hi-Lo Dice Pro - Novabetx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        neonPink: '#ec4899',
+                        neonPurple: '#a855f7'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ec4899; border-radius: 4px; }
+        
+        .arena-bg { background: radial-gradient(ellipse at center, #2e1065 0%, #05070c 100%); }
+
+        .glow-pink { filter: drop-shadow(0 0 20px rgba(236,72,153,0.6)); }
+        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
+        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+
+        /* 3D Dice CSS Mechanics */
+        .dice-scene {
+            width: 80px;
+            height: 80px;
+            perspective: 600px;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) { .dice-scene { width: 100px; height: 100px; } }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(-40px);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @media (min-width: 768px) { .cube { transform: translateZ(-50px); } }
+
+        .cube-face {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid #a855f7;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #fdf4ff, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.5);
+        }
+        @media (min-width: 768px) { .cube-face { width: 100px; height: 100px; } }
+
+        /* Dots */
+        .dot { display: block; width: 14px; height: 14px; border-radius: 50%; background-color: #be185d; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        @media (min-width: 768px) { .dot { width: 20px; height: 20px; } }
+
+        /* Layouts for 1-6 */
+        .face-1 { transform: rotateY(  0deg) translateZ(40px); }
+        .face-2 { transform: rotateY(180deg) translateZ(40px); }
+        .face-3 { transform: rotateY( 90deg) translateZ(40px); }
+        .face-4 { transform: rotateY(-90deg) translateZ(40px); }
+        .face-5 { transform: rotateX( 90deg) translateZ(40px); }
+        .face-6 { transform: rotateX(-90deg) translateZ(40px); }
+        
+        @media (min-width: 768px) {
+            .face-1 { transform: rotateY(  0deg) translateZ(50px); }
+            .face-2 { transform: rotateY(180deg) translateZ(50px); }
+            .face-3 { transform: rotateY( 90deg) translateZ(50px); }
+            .face-4 { transform: rotateY(-90deg) translateZ(50px); }
+            .face-5 { transform: rotateX( 90deg) translateZ(50px); }
+            .face-6 { transform: rotateX(-90deg) translateZ(50px); }
+        }
+
+        /* Dot Grids */
+        .face-1 { display: flex; justify-content: center; align-items: center; }
+        .face-2 { display: flex; justify-content: space-between; padding: 15px; }
+        .face-2 .dot:nth-child(2) { align-self: flex-end; }
+        .face-3 { display: flex; justify-content: space-between; padding: 15px; }
+        .face-3 .dot:nth-child(2) { align-self: center; }
+        .face-3 .dot:nth-child(3) { align-self: flex-end; }
+        .face-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; padding: 15px; align-items: center; justify-items: center; }
+        .face-5 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; padding: 15px; align-items: center; justify-items: center; }
+        .face-5 .dot:nth-child(3) { grid-column: 1 / span 2; }
+        .face-6 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; padding: 15px; align-items: center; justify-items: center; }
+
+        /* Rapid Rolling Animation */
+        @keyframes rollFast {
+            0%   { transform: translateZ(-40px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            25%  { transform: translateZ(-40px) rotateX(180deg) rotateY(90deg) rotateZ(45deg); }
+            50%  { transform: translateZ(-40px) rotateX(360deg) rotateY(180deg) rotateZ(90deg); }
+            75%  { transform: translateZ(-40px) rotateX(540deg) rotateY(270deg) rotateZ(135deg); }
+            100% { transform: translateZ(-40px) rotateX(720deg) rotateY(360deg) rotateZ(180deg); }
+        }
+        .anim-rolling { animation: rollFast 0.4s linear infinite; }
+    </style>
+</head>
+<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-neonPink">betx</span></div>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded border border-pink-500/20">PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-pink-500/10 text-pink-400 font-bold rounded-xl border border-pink-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Audio FX</span>
+                <button onclick="toggleAudio()" id="btn-audio" class="text-pink-400 text-sm hover:text-pink-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN GAME STAGE -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
+                <div class="flex items-center gap-2">
+                    <span class="text-neonPink text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-dice-two"></i> HI-LO DICE</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
+                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
+                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
+                    <span id="bal" class="text-sm font-black text-pink-400 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-pink-600 hover:bg-pink-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- GAME ARENA -->
+        <div class="flex-1 arena-bg relative flex flex-col justify-center items-center py-8 px-4 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
+            
+            <div id="result-overlay" class="absolute top-10 left-1/2 -translate-x-1/2 z-40 text-center w-full hidden pointer-events-none transition-all">
+                <div id="result-msg" class="text-5xl md:text-7xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
+                <div id="result-sub" class="text-xl md:text-2xl font-bold mt-2 font-mono drop-shadow-md"></div>
+            </div>
+
+            <!-- 3D DICE & HUD -->
+            <div class="text-center w-full max-w-lg relative z-10 my-auto">
+                <div class="bg-black/40 border border-purple-900/50 rounded-3xl p-8 shadow-[0_0_40px_rgba(168,85,247,0.15)] backdrop-blur-md">
+                    
+                    <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-6">Current Total Target</div>
+                    
+                    <!-- HUGE Central Number -->
+                    <div class="text-[6rem] md:text-[8rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-pink-300 to-purple-600 leading-none mb-6 drop-shadow-lg" id="current-tot">7</div>
+
+                    <!-- 3D CSS Dice Container -->
+                    <div class="flex justify-center gap-6 md:gap-10 perspective-1000">
+                        <div class="dice-scene">
+                            <div class="cube glow-pink" id="dice-1">
+                                <div class="cube-face face-1"><span class="dot"></span></div>
+                                <div class="cube-face face-2"><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-3"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-6"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            </div>
+                        </div>
+                        <div class="dice-scene">
+                            <div class="cube glow-pink" id="dice-2">
+                                <div class="cube-face face-1"><span class="dot"></span></div>
+                                <div class="cube-face face-2"><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-3"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                <div class="cube-face face-6"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-purple-400/50 font-bold tracking-widest uppercase text-center w-full pointer-events-none">
+                <i class="fa-solid fa-shield-halved"></i> Provably Fair 2d6 RNG Engine
+            </div>
+        </div>
+
+        <!-- CONTROLS COCKPIT -->
+        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] border-t border-gray-800/80">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-5 items-stretch">
+                
+                <!-- STAKE CONTROLS -->
+                <div class="w-full md:w-5/12 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Bet Amount</label>
+                        <span class="text-[10px] text-gray-500 font-mono">Min: ₹10</span>
+                    </div>
+
+                    <div class="relative flex mb-3">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-pink-500 font-bold text-xl">₹</span>
+                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-center text-2xl font-black text-white focus:border-pink-500 outline-none transition shadow-inner font-mono">
+                    </div>
+
+                    <!-- Quick Bets -->
+                    <div class="grid grid-cols-4 gap-2 mt-auto">
+                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700 active:scale-95">½</button>
+                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
+                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
+                        <button onclick="setStake(500)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-2 rounded-lg transition border border-gray-700 active:scale-95">+500</button>
+                    </div>
+                </div>
+
+                <!-- ACTION WEAPONS (HI / SAME / LO) -->
+                <div class="w-full md:w-7/12 grid grid-cols-3 gap-3 md:gap-4">
+                    
+                    <!-- LO -->
+                    <button id="btn-lo" onclick="playHilo('lo')" class="weapon-btn relative bg-[#0a0d15] border border-red-900/50 hover:border-red-500 rounded-2xl p-3 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[100px]">
+                        <div class="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-angles-down text-3xl md:text-4xl text-gray-500 group-hover:text-red-400 mb-2 transition-colors glow-lose group-hover:-translate-y-1"></i>
+                        <span class="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white relative z-10 mb-1">LOWER</span>
+                        <span class="text-red-400 font-mono text-[10px] font-bold">1.95x</span>
+                    </button>
+
+                    <!-- SAME -->
+                    <button id="btn-same" onclick="playHilo('same')" class="weapon-btn relative bg-[#0a0d15] border border-yellow-900/50 hover:border-yellow-400 rounded-2xl p-3 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[100px]">
+                        <div class="absolute inset-0 bg-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-equals text-3xl md:text-4xl text-gray-500 group-hover:text-yellow-400 mb-2 transition-colors glow-orange group-hover:scale-110"></i>
+                        <span class="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white relative z-10 mb-1">SAME</span>
+                        <span class="text-yellow-400 font-mono text-[10px] font-bold">5.00x</span>
+                    </button>
+
+                    <!-- HI -->
+                    <button id="btn-hi" onclick="playHilo('hi')" class="weapon-btn relative bg-[#0a0d15] border border-green-900/50 hover:border-green-500 rounded-2xl p-3 flex flex-col items-center justify-center transition-all group overflow-hidden shadow-lg active:scale-95 min-h-[100px]">
+                        <div class="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <i class="fa-solid fa-angles-up text-3xl md:text-4xl text-gray-500 group-hover:text-green-400 mb-2 transition-colors glow-win group-hover:-translate-y-1"></i>
+                        <span class="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white relative z-10 mb-1">HIGHER</span>
+                        <span class="text-green-400 font-mono text-[10px] font-bold">1.95x</span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Celebration Particle Canvas -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. AUDIO SYNTHESIZER
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(freq, type, duration, gainVal = 0.1) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        
+        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
+        function soundRollTick() { playTone(800, 'square', 0.03, 0.03); }
+        function soundWin() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
+        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+        }
+
+        // ----------------------------------------------------
+        // 2. BETTING CONTROLS
+        // ----------------------------------------------------
+        let isPlaying = false;
+        let currentTotal = 7;
+
+        function adjustStake(factor) {
+            if (isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+        }
+
+        function setStake(amount) {
+            if (isPlaying) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 0;
+            input.value = val + amount;
+        }
+
+        // ----------------------------------------------------
+        // 3. 3D DICE ENGINE
+        // ----------------------------------------------------
+        const Z_OFFSET = window.innerWidth >= 768 ? '50px' : '40px';
+        
+        // Maps a dice result (1-6) to the correct CSS 3D rotation
+        const rotations = {
+            1: `rotateY(0deg) translateZ(-${Z_OFFSET})`,
+            2: `rotateY(-180deg) translateZ(-${Z_OFFSET})`,
+            3: `rotateY(-90deg) translateZ(-${Z_OFFSET})`,
+            4: `rotateY(90deg) translateZ(-${Z_OFFSET})`,
+            5: `rotateX(-90deg) translateZ(-${Z_OFFSET})`,
+            6: `rotateX(90deg) translateZ(-${Z_OFFSET})`
+        };
+
+        // Determine raw dice values based on total sum
+        function splitTotalToDice(total) {
+            let d1 = Math.floor(Math.random() * 6) + 1;
+            let d2 = total - d1;
+            // Adjust if logic breaks 1-6 bounds
+            while (d2 < 1 || d2 > 6) {
+                d1 = Math.floor(Math.random() * 6) + 1;
+                d2 = total - d1;
+            }
+            // Add extra spins for visual effect (360 degrees = 1 full spin)
+            const extraX = (Math.floor(Math.random() * 2) + 2) * 360; 
+            const extraY = (Math.floor(Math.random() * 2) + 2) * 360;
+            return { d1, d2, extraX, extraY };
+        }
+
+        let rollAudioInterval;
+
+        async function playHilo(guess) {
+            if (isPlaying) return;
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) { alert("Minimum bet is ₹10"); return; }
+
+            isPlaying = true;
+            
+            // Highlight active weapon button
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.add('opacity-50', 'pointer-events-none'));
+            document.getElementById('btn-' + guess).classList.remove('opacity-50');
+
+            document.getElementById('result-overlay').classList.add('hidden');
+            const totEl = document.getElementById('current-tot');
+            totEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-pink-500"></i>';
+
+            // Start CSS Rolling Animation
+            const cube1 = document.getElementById('dice-1');
+            const cube2 = document.getElementById('dice-2');
+            cube1.style.transition = 'none'; cube2.style.transition = 'none';
+            cube1.classList.add('anim-rolling'); cube2.classList.add('anim-rolling');
+            cube2.style.animationDelay = '0.1s'; // Offset second dice slightly
+
+            // Start ticking audio
+            if (!isAudioMuted) rollAudioInterval = setInterval(soundRollTick, 60);
+
+            try {
+                const res = await fetch('/hilo_dice/play', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({stake, guess, current: currentTotal}) 
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    currentTotal = d.next;
+                    
+                    // Allow rolling for 800ms to build suspense
+                    setTimeout(() => {
+                        clearInterval(rollAudioInterval);
+                        
+                        // Stop rolling animation and apply final calculated transform
+                        cube1.classList.remove('anim-rolling');
+                        cube2.classList.remove('anim-rolling');
+                        cube1.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        cube2.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+                        const diceVals = splitTotalToDice(currentTotal);
+                        
+                        // Apply final rotations WITH extra spins built into the CSS string
+                        // Note: Because we removed anim-rolling, the CSS transition takes over
+                        const r1Base = rotations[diceVals.d1].replace(`translateZ(-${Z_OFFSET})`, '').trim();
+                        const r2Base = rotations[diceVals.d2].replace(`translateZ(-${Z_OFFSET})`, '').trim();
+                        
+                        cube1.style.transform = `translateZ(-${Z_OFFSET}) rotateX(${diceVals.extraX}deg) rotateY(${diceVals.extraY}deg) ${r1Base}`;
+                        cube2.style.transform = `translateZ(-${Z_OFFSET}) rotateX(${diceVals.extraX}deg) rotateY(${diceVals.extraY}deg) ${r2Base}`;
+
+                        // Wait for dice to physically snap into place (600ms)
+                        setTimeout(() => {
+                            totEl.innerText = currentTotal;
+                            const msg = document.getElementById('result-msg');
+                            const sub = document.getElementById('result-sub');
+                            
+                            document.getElementById('result-overlay').classList.remove('hidden');
+                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
+
+                            if (d.win) {
+                                soundWin();
+                                spawnParticles();
+                                msg.innerText = `WINNER!`;
+                                msg.className = "text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-emerald-400 glow-win";
+                                sub.innerText = `+₹${d.winnings.toFixed(2)}`;
+                                sub.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-emerald-300 drop-shadow-md";
+                            } else {
+                                soundLose();
+                                msg.innerText = "NO MATCH";
+                                msg.className = "text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-red-500 glow-lose";
+                                sub.innerText = "BET LOST";
+                                sub.className = "text-xl md:text-2xl font-bold mt-2 font-mono text-red-400 drop-shadow-md";
+                            }
+
+                            // Reset UI for next roll
+                            setTimeout(() => {
+                                document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.remove('opacity-50', 'pointer-events-none'));
+                                isPlaying = false;
+                            }, 1500);
+
+                        }, 600); // Wait for dice snap
+                    }, 800); // Initial roll duration
+
+                } else { 
+                    alert(d.error); resetError(); 
+                }
+            } catch(e) { 
+                alert("Network Error"); resetError(); 
+            }
+        }
+
+        function resetError() {
+            clearInterval(rollAudioInterval);
+            document.getElementById('dice-1').classList.remove('anim-rolling');
+            document.getElementById('dice-2').classList.remove('anim-rolling');
+            document.getElementById('current-tot').innerText = currentTotal;
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.remove('opacity-50', 'pointer-events-none'));
+            isPlaying = false;
+        }
+
+        // ----------------------------------------------------
+        // 4. CELEBRATION EFFECTS
+        // ----------------------------------------------------
+        function spawnParticles() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#ec4899', '#a855f7', '#fbbf24', '#10b981'];
+            
+            for(let i=0; i<45; i++) {
+                const p = document.createElement('div');
+                p.innerHTML = '<i class="fa-solid fa-gem"></i>';
+                p.className = "absolute text-2xl drop-shadow-lg";
+                p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '40%';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 15 + Math.random() * 25;
+                const tx = Math.cos(angle) * velocity * 15;
+                const ty = Math.sin(angle) * velocity * 15 - 150; // Bias upward
+                
+                container.appendChild(p);
+                
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(0.5) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: 1000 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
+                
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+
+        // Initialize dice on load to show total 7 (3 and 4)
+        document.addEventListener("DOMContentLoaded", () => {
+            const cube1 = document.getElementById('dice-1');
+            const cube2 = document.getElementById('dice-2');
+            const r1Base = rotations[3].replace(`translateZ(-${Z_OFFSET})`, '').trim();
+            const r2Base = rotations[4].replace(`translateZ(-${Z_OFFSET})`, '').trim();
+            cube1.style.transform = `translateZ(-${Z_OFFSET}) ${r1Base}`;
+            cube2.style.transform = `translateZ(-${Z_OFFSET}) ${r2Base}`;
+        });
+    </script>
+</body>
+</html>
