@@ -2,177 +2,1032 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thimbles - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Royal Thimbles 2.85x - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        royalGold: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .thimble-container { position: relative; width: 100%; height: 250px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; }
-        .cup { position: absolute; width: 80px; height: 100px; background: linear-gradient(to bottom, #d97706, #78350f); border-radius: 10px 10px 5px 5px; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); border: 2px solid #fbbf24; z-index: 20; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .cup:hover { filter: brightness(1.2); }
-        .cup.lifted { transform: translateY(-80px); }
-        .ball { position: absolute; bottom: 20px; width: 25px; height: 25px; background: radial-gradient(circle at 30% 30%, #fcd34d, #b45309); border-radius: 50%; z-index: 10; display: none; box-shadow: 0 0 10px #f59e0b; }
-        .pos-0 { left: calc(20% - 40px); } .pos-1 { left: calc(50% - 40px); } .pos-2 { left: calc(80% - 40px); }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(28, 218, 58, 0.06) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 3D Casino Velvet Table Stage */
+        .thimble-arena {
+            background:
+                radial-gradient(ellipse at 50% 78%, rgba(245, 158, 11, 0.18) 0%, rgba(15, 23, 42, 0.6) 50%, #05070c 92%);
+            box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.95);
+        }
+
+        .thimble-stage {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            height: 250px;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .thimble-stage { height: 290px; }
+        }
+
+        /* Glowing Holographic Pedestal Pads */
+        .slot-pad {
+            position: absolute;
+            bottom: 18px;
+            width: 96px;
+            height: 28px;
+            margin-left: -48px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0.04) 65%, transparent 80%);
+            border: 1.5px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+            transition: all 0.3s ease;
+            z-index: 5;
+            pointer-events: none;
+        }
+        @media (min-width: 768px) {
+            .slot-pad { width: 116px; height: 34px; margin-left: -58px; }
+        }
+        .slot-pad.pad-ready {
+            border-color: rgba(251, 191, 36, 0.75);
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.45);
+            animation: padPulse 1.2s infinite alternate;
+        }
+        .slot-pad.pad-win {
+            border-color: #1CDA3A;
+            background: radial-gradient(ellipse at center, rgba(28, 218, 58, 0.45) 0%, transparent 75%);
+            box-shadow: 0 0 35px rgba(28, 218, 58, 0.8);
+        }
+        .slot-pad.pad-lose {
+            border-color: #ef4444;
+            background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.35) 0%, transparent 75%);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+        }
+
+        @keyframes padPulse {
+            from { transform: scale(0.96); opacity: 0.7; }
+            to { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* 3D Engraved Royal Thimble Cup */
+        .cup {
+            position: absolute;
+            bottom: 26px;
+            width: 86px;
+            height: 112px;
+            margin-left: -43px;
+            cursor: pointer;
+            z-index: 20;
+            transition:
+                left 0.22s cubic-bezier(0.45, 0.05, 0.55, 0.95),
+                transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1),
+                filter 0.2s ease;
+            will-change: left, transform;
+        }
+        @media (min-width: 768px) {
+            .cup {
+                width: 104px;
+                height: 134px;
+                margin-left: -52px;
+            }
+        }
+
+        .cup-body {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 26px 26px 10px 10px;
+            background: linear-gradient(110deg, #78350f 0%, #d97706 25%, #fef08a 48%, #f59e0b 65%, #451a03 100%);
+            border: 2px solid #fde68a;
+            box-shadow:
+                inset 0 6px 14px rgba(255, 255, 255, 0.45),
+                inset -10px -10px 22px rgba(69, 26, 3, 0.85),
+                0 14px 25px rgba(0, 0, 0, 0.75);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0 10px;
+        }
+
+        /* Engraved Royal Stripes */
+        .cup-body::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #1e293b, #475569, #0f172a);
+            border-top: 1px solid #fde68a;
+            border-bottom: 1px solid #fde68a;
+        }
+
+        /* Bottom Flared Metallic Rim */
+        .cup-body::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -2px;
+            right: -2px;
+            height: 12px;
+            background: linear-gradient(90deg, #92400e, #fef08a, #b45309);
+            border-top: 2px solid #78350f;
+            border-radius: 4px;
+        }
+
+        .cup.pickable:hover {
+            filter: brightness(1.18) drop-shadow(0 0 18px rgba(251, 191, 36, 0.65));
+            transform: translateY(-8px) scale(1.03);
+        }
+
+        /* Lifted Reveal State */
+        .cup.lifted {
+            transform: translateY(-98px) rotate(-4deg) !important;
+            z-index: 30 !important;
+        }
+        @media (min-width: 768px) {
+            .cup.lifted {
+                transform: translateY(-115px) rotate(-4deg) !important;
+            }
+        }
+
+        /* 3D Depth Arc States During Shuffle */
+        .cup.arc-front {
+            transform: translateY(16px) scale(1.13);
+            z-index: 35 !important;
+            filter: brightness(1.12);
+        }
+        .cup.arc-back {
+            transform: translateY(-18px) scale(0.88);
+            z-index: 12 !important;
+            filter: brightness(0.82);
+        }
+
+        /* The Glowing Golden Dragon Orb */
+        .ball {
+            position: absolute;
+            bottom: 24px;
+            width: 36px;
+            height: 36px;
+            margin-left: -18px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 30%, #ffffff 0%, #fef08a 25%, #f59e0b 62%, #991b1b 100%);
+            box-shadow:
+                0 0 22px #fbbf24,
+                0 0 40px rgba(245, 158, 11, 0.8),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.6);
+            z-index: 15;
+            transition: left 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+        }
+        @media (min-width: 768px) {
+            .ball { width: 42px; height: 42px; margin-left: -21px; }
+        }
+
+        @keyframes orbWinBounce {
+            0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 25px #1CDA3A, 0 0 50px #fbbf24; }
+            50% { transform: translateY(-14px) scale(1.18); box-shadow: 0 0 40px #1CDA3A, 0 0 75px #fbbf24; }
+        }
+        .ball-win-anim {
+            animation: orbWinBounce 0.9s infinite ease-in-out;
+        }
+
+        /* 3 Horizontal Slot Coordinates */
+        .pos-0 { left: 19%; }
+        .pos-1 { left: 50%; }
+        .pos-2 { left: 81%; }
+
+        .speed-pill.active {
+            background: rgba(245, 158, 11, 0.22);
+            border-color: #f59e0b;
+            color: #fbbf24;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
-    <header class="w-full max-w-lg flex justify-between items-center py-4 border-b border-gray-800 mb-6">
-        <a href="/games" class="text-amber-500 font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
-        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-    </header>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <div class="w-full max-w-lg bg-[#0a0d14] border border-amber-900/30 rounded-[2rem] p-6 text-center shadow-[0_0_30px_rgba(245,158,11,0.1)] relative">
-        <h2 class="text-2xl font-black italic uppercase text-amber-500 mb-2">Thimbles</h2>
-        <p id="status-text" class="text-xs text-gray-400 uppercase tracking-widest font-bold h-4">Set stake and shuffle</p>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-        <div class="thimble-container mt-8 border-b-4 border-gray-800">
-            <div id="ball" class="ball pos-1"></div>
-            <div id="cup-0" onclick="pickCup(0)" class="cup pos-0"></div>
-            <div id="cup-1" onclick="pickCup(1)" class="cup pos-1"></div>
-            <div id="cup-2" onclick="pickCup(2)" class="cup pos-2"></div>
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-amber-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30">2.85X</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-400 font-bold rounded-xl border border-amber-500/20"><i class="fa-solid fa-cubes w-5 text-center"></i> Royal Thimbles</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-amber-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.45)]">
+                        <i class="fa-solid fa-cubes"></i> ROYAL THIMBLES
+                    </div>
+                    <span class="text-[10px] font-mono font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden sm:inline-block">PAYS 2.85X</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- RECENT ORB POSITIONS RIBBON -->
+        <div class="bg-[#080b12] px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-eye text-amber-400"></i> Orb Tracker:
+            </span>
+            <div id="recent-orbs-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <span class="text-[10px] font-mono text-gray-600 italic">Follow the Golden Dragon Orb and pick the winning cup...</span>
+            </div>
         </div>
 
-        <div class="bg-black/50 p-4 rounded-xl border border-gray-800 mt-8 flex gap-3">
-            <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-transparent text-center text-xl font-black text-white focus:text-amber-400 outline-none border-r border-gray-700">
-            <button id="play-btn" onclick="startShuffle()" class="flex-1 text-amber-500 hover:text-amber-400 font-black text-xl uppercase tracking-wider transition">SHUFFLE</button>
+        <!-- MAIN GAME STAGE & COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
+
+            <!-- LEFT / TOP: 3D ROYAL THIMBLES ARENA (7 Cols) -->
+            <div class="w-full lg:w-7/12 glass-panel thimble-arena rounded-[2rem] p-4 md:p-6 flex flex-col justify-between relative overflow-hidden">
+
+                <!-- Top Telemetry Strip -->
+                <div class="flex justify-between items-center z-20">
+                    <div class="bg-black/55 border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <span id="stage-led" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span id="status-text" class="text-[11px] md:text-xs font-black uppercase tracking-widest text-amber-400">
+                            SET STAKE & START SHUFFLE
+                        </span>
+                    </div>
+                    <div class="bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-xl text-right">
+                        <span class="text-[9px] font-bold text-amber-300 uppercase block leading-none">Multiplier</span>
+                        <span class="text-sm font-mono font-black text-white">2.85x</span>
+                    </div>
+                </div>
+
+                <!-- 3D CUPS & ORB STAGE -->
+                <div class="thimble-stage my-2">
+                    <!-- 3 Glowing Landing Pads -->
+                    <div id="pad-0" class="slot-pad pos-0"></div>
+                    <div id="pad-1" class="slot-pad pos-1"></div>
+                    <div id="pad-2" class="slot-pad pos-2"></div>
+
+                    <!-- The Golden Dragon Orb -->
+                    <div id="ball" class="ball pos-1"></div>
+
+                    <!-- Cup 0 -->
+                    <div id="cup-0" onclick="handleCupClick('cup-0')" class="cup pos-0">
+                        <div class="cup-body">
+                            <div class="w-5 h-5 rounded-full bg-amber-950/70 border border-amber-300/60 flex items-center justify-center text-[9px] font-black text-amber-200 shadow-inner">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-black/35 border border-amber-200/40 flex items-center justify-center text-amber-100 font-black font-mono text-xs mb-2">
+                                <i class="fa-solid fa-dragon text-amber-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cup 1 (Starts Lifted over the Orb) -->
+                    <div id="cup-1" onclick="handleCupClick('cup-1')" class="cup pos-1 lifted">
+                        <div class="cup-body">
+                            <div class="w-5 h-5 rounded-full bg-amber-950/70 border border-amber-300/60 flex items-center justify-center text-[9px] font-black text-amber-200 shadow-inner">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-black/35 border border-amber-200/40 flex items-center justify-center text-amber-100 font-black font-mono text-xs mb-2">
+                                <i class="fa-solid fa-dragon text-amber-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cup 2 -->
+                    <div id="cup-2" onclick="handleCupClick('cup-2')" class="cup pos-2">
+                        <div class="cup-body">
+                            <div class="w-5 h-5 rounded-full bg-amber-950/70 border border-amber-300/60 flex items-center justify-center text-[9px] font-black text-amber-200 shadow-inner">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-black/35 border border-amber-200/40 flex items-center justify-center text-amber-100 font-black font-mono text-xs mb-2">
+                                <i class="fa-solid fa-dragon text-amber-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direct Slot Selection Buttons (Left / Center / Right) -->
+                <div class="grid grid-cols-3 gap-2.5 pt-3 border-t border-gray-800/80 z-20">
+                    <button type="button" id="slot-btn-0" onclick="pickSlotPosition(0)" disabled class="slot-select-btn py-2.5 px-2 rounded-xl bg-black/50 border border-gray-800 text-gray-500 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 disabled:opacity-45 disabled:cursor-not-allowed">
+                        <span class="w-5 h-5 rounded-lg bg-white/5 font-mono text-[10px] flex items-center justify-center">1</span>
+                        <span>Left Cup</span>
+                    </button>
+                    <button type="button" id="slot-btn-1" onclick="pickSlotPosition(1)" disabled class="slot-select-btn py-2.5 px-2 rounded-xl bg-black/50 border border-gray-800 text-gray-500 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 disabled:opacity-45 disabled:cursor-not-allowed">
+                        <span class="w-5 h-5 rounded-lg bg-white/5 font-mono text-[10px] flex items-center justify-center">2</span>
+                        <span>Center Cup</span>
+                    </button>
+                    <button type="button" id="slot-btn-2" onclick="pickSlotPosition(2)" disabled class="slot-select-btn py-2.5 px-2 rounded-xl bg-black/50 border border-gray-800 text-gray-500 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 disabled:opacity-45 disabled:cursor-not-allowed">
+                        <span class="w-5 h-5 rounded-lg bg-white/5 font-mono text-[10px] flex items-center justify-center">3</span>
+                        <span>Right Cup</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- RIGHT / BOTTOM: BETTING COCKPIT (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Shuffle Speed Mode Selector -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Shuffle Speed</label>
+                            <span class="text-[10px] font-mono text-amber-400">All Modes Pay 2.85x</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="setShuffleSpeed('normal', this)" class="speed-pill active py-2 rounded-xl bg-black/50 border border-gray-800 text-xs font-black uppercase tracking-wider text-gray-400 transition">
+                                <i class="fa-solid fa-eye mr-1"></i> Classic
+                            </button>
+                            <button type="button" onclick="setShuffleSpeed('fast', this)" class="speed-pill py-2 rounded-xl bg-black/50 border border-gray-800 text-xs font-black uppercase tracking-wider text-gray-400 transition">
+                                <i class="fa-solid fa-gauge-high mr-1"></i> Fast
+                            </button>
+                            <button type="button" onclick="setShuffleSpeed('turbo', this)" class="speed-pill py-2 rounded-xl bg-black/50 border border-gray-800 text-xs font-black uppercase tracking-wider text-gray-400 transition">
+                                <i class="fa-solid fa-bolt mr-1"></i> Turbo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Bet Stake (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-amber-500 rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="100" min="10" step="10" oninput="updatePotentialReturn()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Stake Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="multiplyStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="multiplyStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Potential Payout Preview Box -->
+                    <div class="bg-gradient-to-r from-amber-500/15 via-black/60 to-black/60 border border-amber-500/30 rounded-2xl p-3.5 flex justify-between items-center shadow-inner">
+                        <div>
+                            <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">Winning Payout (2.85x)</span>
+                            <span class="text-[11px] font-mono text-gray-400">Net Profit: <strong class="text-brand" id="net-profit-preview">+₹185.00</strong></span>
+                        </div>
+                        <span id="payout-preview" class="text-xl font-mono font-black text-white">₹285.00</span>
+                    </div>
+
+                </div>
+
+                <!-- SHUFFLE ACTION BUTTON & SESSION STATS -->
+                <div class="mt-4">
+                    <button type="button" id="play-btn" onclick="startShuffle()" class="w-full h-16 md:h-20 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(245,158,11,0.4)] border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 flex flex-col items-center justify-center">
+                        <span id="play-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-shuffle"></i> SHUFFLE & PLAY</span>
+                        <span id="play-btn-sub" class="text-[10px] font-extrabold tracking-widest uppercase opacity-80">FIND THE GOLDEN ORB</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Rounds</div>
+                            <div id="stat-rounds" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Win Rate</div>
+                            <div id="stat-winrate" class="text-xs font-mono font-black text-amber-400 mt-0.5">0%</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-amber-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Royal Thimbles' : 'Table Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-amber-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            tick: () => Sound.play(820, 'sine', 0.04, 0.04),
+            cupDrop: () => Sound.play(180, 'triangle', 0.14, 0.12),
+            swoosh: (step) => Sound.play(260 + (step % 4) * 55, 'sine', 0.09, 0.06),
+            lift: () => Sound.play(580, 'triangle', 0.15, 0.09),
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 310);
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(210, 'sawtooth', 0.25, 0.07), 0);
+                setTimeout(() => Sound.play(150, 'sawtooth', 0.4, 0.08), 230);
+            }
+        };
+
+        // =====================================================
+        // 3. CUP SLOT MAPPING & STAKE CONTROLS
+        // =====================================================
         let isShuffling = false;
         let isPlaying = false;
-        let currentStake = 0;
+        let currentStake = 100;
+        let shuffleSpeed = 'normal'; // 'normal', 'fast', 'turbo'
+        let lastBallSlot = 1;
+
+        // Tracks which slot (0=Left, 1=Center, 2=Right) each cup DOM element currently occupies
+        const cupSlots = {
+            'cup-0': 0,
+            'cup-1': 1,
+            'cup-2': 2
+        };
+
+        let totalRounds = 0;
+        let totalWins = 0;
+        let sessionPnL = 0;
+
+        function getCupAtSlot(slotIndex) {
+            return Object.keys(cupSlots).find(cupId => cupSlots[cupId] === slotIndex);
+        }
+
+        function applyCupPositionClasses() {
+            Object.keys(cupSlots).forEach(cupId => {
+                const el = document.getElementById(cupId);
+                el.classList.remove('pos-0', 'pos-1', 'pos-2');
+                el.classList.add(`pos-${cupSlots[cupId]}`);
+            });
+        }
+
+        function setShuffleSpeed(mode, btnEl) {
+            initAudio();
+            Sound.tick();
+            if (isShuffling) return;
+            shuffleSpeed = mode;
+            document.querySelectorAll('.speed-pill').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+        }
+
+        function updatePotentialReturn() {
+            const s = parseFloat(document.getElementById('stake').value) || 0;
+            const totalRet = s * 2.85;
+            const profit = Math.max(0, totalRet - s);
+            document.getElementById('payout-preview').innerText = '₹' + totalRet.toFixed(2);
+            document.getElementById('net-profit-preview').innerText = '+₹' + profit.toFixed(2);
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            Sound.tick();
+            if (isShuffling || isPlaying) return;
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, val + delta);
+            updatePotentialReturn();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            Sound.tick();
+            if (isShuffling || isPlaying) return;
+            document.getElementById('stake').value = val;
+            updatePotentialReturn();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (isShuffling || isPlaying) return;
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, Math.round(val * factor));
+            updatePotentialReturn();
+        }
+
+        function setPickableState(enabled) {
+            for (let s = 0; s < 3; s++) {
+                const btn = document.getElementById(`slot-btn-${s}`);
+                const pad = document.getElementById(`pad-${s}`);
+                btn.disabled = !enabled;
+                if (enabled) {
+                    btn.className = "slot-select-btn py-2.5 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500 hover:text-black border border-amber-500/40 text-amber-300 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.2)]";
+                    pad.className = `slot-pad pos-${s} pad-ready`;
+                } else {
+                    btn.className = "slot-select-btn py-2.5 px-2 rounded-xl bg-black/50 border border-gray-800 text-gray-500 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 disabled:opacity-45 disabled:cursor-not-allowed";
+                    pad.className = `slot-pad pos-${s}`;
+                }
+            }
+
+            Object.keys(cupSlots).forEach(cupId => {
+                document.getElementById(cupId).classList.toggle('pickable', enabled);
+            });
+        }
+
+        // Keyboard support: 1, 2, 3 to pick cup; Space to shuffle
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT') return;
+            if (e.code === 'Space' && !isShuffling && !isPlaying) {
+                e.preventDefault();
+                startShuffle();
+            } else if (isPlaying && !isShuffling) {
+                if (e.key === '1') pickSlotPosition(0);
+                if (e.key === '2') pickSlotPosition(1);
+                if (e.key === '3') pickSlotPosition(2);
+            }
+        });
+
+        // =====================================================
+        // 4. 3D MULTI-STAGE SHUFFLE CHOREOGRAPHY
+        // =====================================================
+        const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 
         async function startShuffle() {
+            initAudio();
             if (isShuffling || isPlaying) return;
+
             const stake = parseFloat(document.getElementById('stake').value);
-            if (stake < 10) { alert("Min bet 10"); return; }
-            
-            document.getElementById('status-text').innerText = "SHUFFLING...";
-            document.getElementById('ball').style.display = 'none';
-            document.querySelectorAll('.cup').forEach(c => c.classList.remove('lifted'));
-            
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const currentBal = parseFloat(document.getElementById('bal').innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                return;
+            }
+
             isShuffling = true;
             currentStake = stake;
+            setPickableState(false);
 
-            // Simple visual shuffle loop
-            let shuffles = 0;
-            const interval = setInterval(() => {
-                const cups = [0, 1, 2].sort(() => Math.random() - 0.5);
-                document.getElementById('cup-0').className = `cup pos-${cups[0]}`;
-                document.getElementById('cup-1').className = `cup pos-${cups[1]}`;
-                document.getElementById('cup-2').className = `cup pos-${cups[2]}`;
-                shuffles++;
-                if (shuffles > 10) {
-                    clearInterval(interval);
-                    isShuffling = false;
-                    isPlaying = true;
-                    document.getElementById('status-text').innerText = "PICK A CUP! (Pays 2.85x)";
-                    document.getElementById('status-text').classList.add('text-amber-400');
-                }
-            }, 150);
+            const playBtn = document.getElementById('play-btn');
+            const playTitle = document.getElementById('play-btn-title');
+            const playSub = document.getElementById('play-btn-sub');
+            const statusText = document.getElementById('status-text');
+            const theBall = document.getElementById('ball');
+
+            playBtn.disabled = true;
+            playBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            playTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> SHUFFLING...`;
+            playSub.innerText = "WATCH THE GOLDEN ORB";
+
+            // Stage 1: Show the Orb clearly under the current cup, then lower all cups
+            theBall.className = `ball pos-${lastBallSlot}`;
+            theBall.style.opacity = '1';
+            theBall.style.display = 'block';
+
+            const startCupId = getCupAtSlot(lastBallSlot);
+            document.querySelectorAll('.cup').forEach(c => c.classList.remove('lifted'));
+            if (startCupId) document.getElementById(startCupId).classList.add('lifted');
+            statusText.innerText = "HIDING THE GOLDEN ORB...";
+            statusText.className = "text-[11px] md:text-xs font-black uppercase tracking-widest text-amber-300";
+
+            await sleep(420);
+
+            // Drop the cup over the orb
+            document.querySelectorAll('.cup').forEach(c => c.classList.remove('lifted'));
+            Sound.cupDrop();
+            await sleep(320);
+
+            // Hide ball DOM before cups start moving
+            theBall.style.opacity = '0';
+            theBall.style.display = 'none';
+            statusText.innerText = "SHUFFLING THIMBLES...";
+
+            // Stage 2: Execute Pairwise 3D Arc Swaps
+            const swapCount = shuffleSpeed === 'turbo' ? 7 : (shuffleSpeed === 'fast' ? 10 : 12);
+            const swapDuration = shuffleSpeed === 'turbo' ? 115 : (shuffleSpeed === 'fast' ? 160 : 220);
+
+            document.querySelectorAll('.cup').forEach(c => {
+                c.style.transition = `left ${swapDuration}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), transform ${swapDuration}ms ease`;
+            });
+
+            let prevPairKey = '';
+            for (let i = 0; i < swapCount; i++) {
+                const pairs = [[0, 1], [1, 2], [0, 2]].filter(p => p.join('-') !== prevPairKey);
+                const [slotA, slotB] = pairs[Math.floor(Math.random() * pairs.length)];
+                prevPairKey = `${slotA}-${slotB}`;
+
+                const cupA = getCupAtSlot(slotA);
+                const cupB = getCupAtSlot(slotB);
+                const elA = document.getElementById(cupA);
+                const elB = document.getElementById(cupB);
+
+                // Swap slot assignments
+                cupSlots[cupA] = slotB;
+                cupSlots[cupB] = slotA;
+
+                // Apply 3D foreground/background arc classes
+                elA.classList.add('arc-front');
+                elB.classList.add('arc-back');
+                applyCupPositionClasses();
+                Sound.swoosh(i);
+
+                await sleep(swapDuration);
+                elA.classList.remove('arc-front');
+                elB.classList.remove('arc-back');
+            }
+
+            // Restore normal lift transition
+            document.querySelectorAll('.cup').forEach(c => {
+                c.style.transition = '';
+            });
+
+            isShuffling = false;
+            isPlaying = true;
+            setPickableState(true);
+
+            statusText.innerText = "SELECT A THIMBLE! (PAYS ₹" + (currentStake * 2.85).toFixed(2) + ")";
+            statusText.className = "text-[11px] md:text-xs font-black uppercase tracking-widest text-brand animate-pulse";
+            playTitle.innerHTML = `<i class="fa-solid fa-hand-pointer"></i> PICK A CUP ABOVE`;
+            playSub.innerText = "CLICK CUP OR PRESS 1, 2, 3";
         }
 
-        async function pickCup(pickedIdx) {
+        // =====================================================
+        // 5. PICK CUP & BACKEND VERIFICATION (/thimbles/play)
+        // =====================================================
+        function handleCupClick(cupElementId) {
+            if (!isPlaying || isShuffling) return;
+            const slotIdx = cupSlots[cupElementId];
+            pickSlotPosition(slotIdx);
+        }
+
+        async function pickSlotPosition(pickedSlotIdx) {
+            initAudio();
             if (!isPlaying || isShuffling) return;
             isPlaying = false;
-            document.getElementById('status-text').innerText = "REVEALING...";
-            
+            setPickableState(false);
+
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = "LIFTING THIMBLE...";
+            statusText.className = "text-[11px] md:text-xs font-black uppercase tracking-widest text-white";
+
             try {
-                const res = await fetch('/thimbles/play', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake: currentStake, cup: pickedIdx}) });
+                const res = await fetch('/thimbles/play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake: currentStake, cup: pickedSlotIdx })
+                });
                 const d = await res.json();
-                
-                if(d.success) {
-                    const theBall = document.getElementById('ball');
-                    // Find which cup element is currently at the ball's position
-                    let winCupElId = "";
-                    [0,1,2].forEach(id => {
-                        if (document.getElementById(`cup-${id}`).classList.contains(`pos-${d.ball_cup}`)) {
-                            winCupElId = `cup-${id}`;
-                        }
-                    });
 
-                    theBall.className = `ball pos-${d.ball_cup}`;
-                    theBall.style.display = 'block';
-                    
-                    document.getElementById(winCupElId).classList.add('lifted'); // Lift the winning cup
-                    
-                    // If user picked wrong cup, lift theirs too so they see it's empty
-                    let userCupElId = "";
-                    [0,1,2].forEach(id => {
-                        if (document.getElementById(`cup-${id}`).classList.contains(`pos-${pickedIdx}`)) {
-                            userCupElId = `cup-${id}`;
-                        }
-                    });
-                    if (userCupElId !== winCupElId) document.getElementById(userCupElId).classList.add('lifted');
+                if (!d.success) {
+                    showToast(d.error || 'Could not complete round', 'error');
+                    resetPlayButton();
+                    return;
+                }
 
+                const winSlot = d.ball_cup; // 0, 1, or 2
+                lastBallSlot = winSlot;
+
+                const theBall = document.getElementById('ball');
+                theBall.className = `ball pos-${winSlot} ${d.win ? 'ball-win-anim' : ''}`;
+                theBall.style.display = 'block';
+                theBall.style.opacity = '1';
+
+                const pickedCupId = getCupAtSlot(pickedSlotIdx);
+                const winningCupId = getCupAtSlot(winSlot);
+
+                // Lift the player's chosen cup first
+                Sound.lift();
+                if (pickedCupId) document.getElementById(pickedCupId).classList.add('lifted');
+
+                // If the player missed, lift the winning cup 380ms later so they see where the orb was
+                if (pickedSlotIdx !== winSlot && winningCupId) {
                     setTimeout(() => {
-                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                        const status = document.getElementById('status-text');
-                        status.innerText = d.win ? `WINNER! +₹${d.winnings.toFixed(2)}` : "WRONG CUP. YOU LOSE.";
-                        status.className = `text-lg uppercase tracking-widest font-black h-6 ${d.win ? 'text-green-400' : 'text-red-500'}`;
-                    }, 500);
+                        Sound.lift();
+                        document.getElementById(winningCupId).classList.add('lifted');
+                    }, 380);
+                }
 
-                } else { alert(d.error); isPlaying = true; }
-            } catch(e) { alert("Error"); isPlaying = true; }
+                setTimeout(() => {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+
+                    if (d.win) {
+                        document.getElementById(`pad-${winSlot}`).className = `slot-pad pos-${winSlot} pad-win`;
+                        statusText.innerText = `FOUND IT! WON ₹${d.winnings.toFixed(2)} (2.85X)`;
+                        statusText.className = "text-xs md:text-sm font-black uppercase tracking-widest text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]";
+                        triggerFloatingWin(d.winnings);
+                        spawnConfetti();
+                        showToast(`You found the Golden Orb! +₹${d.winnings.toFixed(2)}`, 'success');
+                    } else {
+                        document.getElementById(`pad-${pickedSlotIdx}`).className = `slot-pad pos-${pickedSlotIdx} pad-lose`;
+                        document.getElementById(`pad-${winSlot}`).className = `slot-pad pos-${winSlot} pad-win`;
+                        Sound.lose();
+                        statusText.innerText = `EMPTY CUP! ORB WAS UNDER ${['LEFT (#1)', 'CENTER (#2)', 'RIGHT (#3)'][winSlot]}`;
+                        statusText.className = "text-xs md:text-sm font-black uppercase tracking-widest text-red-400";
+                    }
+
+                    updateSessionTelemetry(currentStake, d.winnings, d.win, winSlot);
+                    resetPlayButton();
+                }, 480);
+
+            } catch (e) {
+                showToast('Network Error', 'error');
+                resetPlayButton();
+            }
         }
 
+        function resetPlayButton() {
+            const playBtn = document.getElementById('play-btn');
+            const playTitle = document.getElementById('play-btn-title');
+            const playSub = document.getElementById('play-btn-sub');
+            playBtn.disabled = false;
+            playBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+            playTitle.innerHTML = `<i class="fa-solid fa-shuffle"></i> SHUFFLE AGAIN`;
+            playSub.innerText = "PLAY NEXT ROUND (2.85X)";
+        }
 
+        // =====================================================
+        // 6. TELEMETRY, FLOATING WIN & CONFETTI FX
+        // =====================================================
+        function updateSessionTelemetry(stake, winnings, isWin, winSlot) {
+            totalRounds++;
+            if (isWin) totalWins++;
+            sessionPnL += (winnings - stake);
+
+            document.getElementById('stat-rounds').innerText = totalRounds;
+            document.getElementById('stat-winrate').innerText = Math.round((totalWins / totalRounds) * 100) + '%';
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+
+            // Add badge to top ribbon
+            const ribbon = document.getElementById('recent-orbs-ribbon');
+            if (totalRounds === 1) ribbon.innerHTML = '';
+
+            const slotNames = ['LEFT #1', 'CENTER #2', 'RIGHT #3'];
+            const pill = document.createElement('span');
+            pill.className = `px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black border shrink-0 ${isWin ? 'bg-emerald-950/90 text-brand border-brand/40' : 'bg-gray-900 text-gray-400 border-gray-800'}`;
+            pill.innerHTML = `<i class="fa-solid fa-circle text-[7px] text-amber-400 mr-1"></i>${slotNames[winSlot]}`;
+            ribbon.prepend(pill);
+
+            while (ribbon.children.length > 14) {
+                ribbon.lastChild.remove();
+            }
+        }
+
+        function triggerFloatingWin(winnings) {
+            Sound.win();
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#fbbf24', '#1CDA3A', '#f59e0b', '#38bdf8', '#ffffff'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        updatePotentialReturn();
+
+        // =====================================================
+        // 7. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>

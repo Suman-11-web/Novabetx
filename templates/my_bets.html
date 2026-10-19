@@ -2,175 +2,561 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bets - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Bets & Ticket Ledger - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config = { theme: { extend: { colors: { background: '#0B0E14', surface: '#151A22', surfaceLight: '#1C232E', brand: '#1CDA3A' } } } }</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#06090e',
+                        surface: '#0f141d',
+                        surfaceLight: '#171f2e',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #06090e;
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(28, 218, 58, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(15, 20, 29, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Perforated VIP Bet Ticket Card */
+        .bet-ticket {
+            position: relative;
+            background: linear-gradient(155deg, rgba(18, 25, 38, 0.92) 0%, rgba(10, 14, 22, 0.96) 100%);
+            backdrop-filter: blur(16px);
+            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        .bet-ticket:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Ticket Side Punch Notches */
+        .ticket-divider {
+            position: relative;
+            border-top: 1px dashed rgba(255, 255, 255, 0.12);
+        }
+        .ticket-divider::before,
+        .ticket-divider::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #06090e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .ticket-divider::before { left: -28px; }
+        .ticket-divider::after { right: -28px; }
+
+        /* Filter Pill Active State */
+        .bet-filter-btn {
+            background: rgba(15, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+        .bet-filter-btn:hover {
+            color: #ffffff;
+            border-color: rgba(28, 218, 58, 0.4);
+        }
+        .bet-filter-btn.active {
+            background: #1CDA3A;
+            color: #000000;
+            border-color: #1CDA3A;
+            box-shadow: 0 0 18px rgba(28, 218, 58, 0.4);
+            font-weight: 900;
+        }
+
+        /* 🌟 FLOATING GLASS BOTTOM NAVIGATION BAR */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: floatNavUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes floatNavUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .nav-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-item:active {
+            transform: scale(0.88);
+        }
     </style>
 </head>
-<body class="bg-background text-white min-h-screen flex flex-col md:flex-row pb-20 md:pb-0 font-sans">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-28 md:pb-0 font-sans" onclick="initAudio()">
+
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- JINJA PORTFOLIO ANALYTICS CALCULATIONS -->
+    {% set total_bets_count = bets | length %}
+    {% set open_bets = bets | selectattr('match_status', 'equalto', 'Open') | list %}
+    {% set won_bets = bets | selectattr('match_status', 'equalto', 'Win') | list %}
+    {% set lost_bets = bets | selectattr('match_status', 'equalto', 'Loss') | list %}
+    {% set void_bets = bets | selectattr('match_status', 'equalto', 'Void') | list %}
+
+    {% set total_staked = bets | sum(attribute='stake') %}
+    {% set open_exposure = open_bets | sum(attribute='stake') %}
+    {% set won_profit = won_bets | sum(attribute='profit') %}
+    {% set won_stake = won_bets | sum(attribute='stake') %}
+    {% set total_won_payout = won_profit + won_stake %}
+    {% set settled_count = (won_bets | length) + (lost_bets | length) %}
+    {% set win_rate = ((won_bets | length) / settled_count * 100) if settled_count > 0 else 0 %}
 
     <!-- 🖥️ DESKTOP SIDEBAR -->
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 z-50 shrink-0 sticky top-0">
-        <div class="p-6 border-b border-gray-800">
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 z-50 shrink-0 sticky top-0">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
             <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+            <span class="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_10px_#1CDA3A] animate-pulse" title="Server Online"></span>
         </div>
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-2">Menu</div>
-            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
-            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</a>
-            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/20 font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
-            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-6">Account</div>
-            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
-            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-500/10 text-green-500 hover:text-green-400 font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-1">Main Lobby</div>
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-house w-5 text-center"></i> Home & Sports
+            </a>
+            <a href="{{ url_for('games') }}" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-gamepad w-5 text-center text-purple-400"></i> Casino Games</span>
+                <span class="text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">37</span>
+            </a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center justify-between p-3 rounded-xl bg-brand/10 text-brand border border-brand/25 font-bold transition shadow-[0_0_15px_rgba(28,218,58,0.1)]">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</span>
+                <span class="text-[9px] font-mono font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full">{{ total_bets_count }}</span>
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Instant Originals</div>
+            <a href="{{ url_for('aviator_game') }}" class="flex items-center justify-between p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-plane-up w-5 text-center text-red-500"></i> Aviator</span>
+                <span class="text-[9px] font-black text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">HOT</span>
+            </a>
+            <a href="{{ url_for('jetx_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-rocket w-5 text-center text-amber-400"></i> JetX Rocket
+            </a>
+            <a href="{{ url_for('dragon_tiger_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-dragon w-5 text-center text-yellow-400"></i> Dragon Tiger
+            </a>
+            <a href="{{ url_for('mines_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-bomb w-5 text-center text-cyan-400"></i> Cyber Mines
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Account & Vault</div>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-user-shield w-5 text-center text-cyan-400"></i> VIP Profile
+            </a>
+            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-brand/10 text-brand font-bold transition">
+                <i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw
+            </a>
         </nav>
-        <div class="p-4 border-t border-gray-800">
-            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+
+        <div class="p-4 border-t border-gray-800/80">
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/25 text-sm">
+                <i class="fa-solid fa-power-off"></i> Logout
+            </a>
         </div>
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col min-h-screen w-full relative">
+    <main class="flex-1 flex flex-col min-h-screen w-full relative overflow-x-hidden">
         
-        <!-- MOBILE HEADER -->
-        <header class="md:hidden bg-surface border-b border-gray-800 sticky top-0 z-50">
+        <!-- MOBILE STICKY HEADER -->
+        <header class="md:hidden bg-[#090c14]/95 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 shadow-md">
             <div class="flex items-center justify-between px-4 py-3">
-                <div class="text-xl font-black italic tracking-wider">Nova<span class="text-brand">betx</span></div>
-                <div class="flex items-center space-x-3 bg-surfaceLight pl-4 pr-1 py-1 rounded-full border border-gray-700">
-                    <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
-                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand text-black w-7 h-7 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_10px_rgba(28,218,58,0.6)]">
-                        <i class="fa-solid fa-plus text-sm"></i>
+                <div class="text-2xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+                <div class="flex items-center bg-black/70 pl-3.5 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] font-bold text-gray-400 mr-1">₹</span>
+                    <div class="text-sm font-black text-brand mr-2.5 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-500 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(28,218,58,0.5)] active:scale-95 transition-transform">
+                        <i class="fa-solid fa-plus text-xs font-black"></i>
                     </a>
                 </div>
             </div>
         </header>
 
-        <!-- DESKTOP TOP BAR -->
-        <div class="hidden md:flex justify-end items-center p-4 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
-            <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
+        <!-- DESKTOP STICKY HEADER -->
+        <div class="hidden md:flex justify-between items-center px-8 py-3.5 border-b border-gray-800/80 bg-[#090c14]/95 backdrop-blur-md sticky top-0 z-40 shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-ticket text-brand"></i> Official Sportsbook Ticket Ledger
+                </span>
+            </div>
+            <div class="flex items-center gap-4 bg-surface px-4 py-1.5 rounded-2xl border border-gray-800 shadow-inner">
                 <div class="text-right">
-                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                    <div class="text-lg font-black text-brand">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                    <div class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Available Wallet</div>
+                    <div class="text-base font-black text-brand font-mono">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
                 </div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-400 text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider transition shadow-[0_0_15px_rgba(28,218,58,0.3)] flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-bolt"></i> Deposit
+                </a>
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto w-full px-4 py-8 md:p-8">
-            <h2 class="text-2xl md:text-3xl font-black italic uppercase tracking-wider mb-6 flex items-center gap-3 drop-shadow-md border-l-4 border-brand pl-3">
-                <i class="fa-solid fa-file-invoice-dollar text-brand"></i> Betting History
-            </h2>
+        <div class="max-w-6xl mx-auto w-full px-4 py-6 md:p-8 space-y-6">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- PAGE TITLE & QUICK ACTION -->
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-4xl font-black italic uppercase tracking-wider flex items-center gap-3 drop-shadow-md border-l-4 border-brand pl-3">
+                        <span>My Betting <span class="text-brand">Ledger</span></span>
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-1 pl-4 font-medium">Real-time settlement tracking & verified sportsbook receipts</p>
+                </div>
+                <a href="{{ url_for('home') }}#sportsbook-section" class="bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl flex items-center gap-2 transition active:scale-95">
+                    <i class="fa-solid fa-trophy text-brand"></i> Place New Bet
+                </a>
+            </div>
+
+            <!-- 4 PORTFOLIO TELEMETRY KPI CARDS -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div class="glass-panel p-4 rounded-2xl border-t-2 border-t-blue-500 relative overflow-hidden">
+                    <i class="fa-solid fa-layer-group absolute -right-2 -bottom-2 text-5xl text-blue-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Tickets</div>
+                    <div class="text-2xl font-black text-white font-mono mt-1">{{ total_bets_count }}</div>
+                    <div class="text-[10px] text-blue-400 font-bold mt-1">{{ open_bets|length }} Active Open</div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-t-2 border-t-amber-500 relative overflow-hidden">
+                    <i class="fa-solid fa-coins absolute -right-2 -bottom-2 text-5xl text-amber-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Staked</div>
+                    <div class="text-2xl font-black text-amber-400 font-mono mt-1">₹{{ "%.2f"|format(total_staked) }}</div>
+                    <div class="text-[10px] text-gray-400 font-mono mt-1">In-Play: ₹{{ "%.0f"|format(open_exposure) }}</div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-t-2 border-t-brand relative overflow-hidden">
+                    <i class="fa-solid fa-sack-dollar absolute -right-2 -bottom-2 text-5xl text-brand/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Won Payouts</div>
+                    <div class="text-2xl font-black text-brand font-mono mt-1">₹{{ "%.2f"|format(total_won_payout) }}</div>
+                    <div class="text-[10px] text-emerald-400 font-mono mt-1">+₹{{ "%.2f"|format(won_profit) }} Net Profit</div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border-t-2 border-t-purple-500 relative overflow-hidden">
+                    <i class="fa-solid fa-chart-Simple absolute -right-2 -bottom-2 text-5xl text-purple-500/10"></i>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Win Strike Rate</div>
+                    <div class="text-2xl font-black text-purple-400 font-mono mt-1">{{ "%.0f"|format(win_rate) }}%</div>
+                    <div class="text-[10px] text-gray-400 font-mono mt-1">{{ won_bets|length }}W - {{ lost_bets|length }}L ({{ void_bets|length }} Void)</div>
+                </div>
+            </div>
+
+            <!-- FILTER PILLS & SEARCH BAR -->
+            <div class="glass-panel rounded-2xl p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
+                    <button type="button" onclick="filterBets('ALL', this)" class="bet-filter-btn active px-4 py-2 rounded-xl text-xs uppercase tracking-wider shrink-0">
+                        All ({{ total_bets_count }})
+                    </button>
+                    <button type="button" onclick="filterBets('Open', this)" class="bet-filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> Open ({{ open_bets|length }})
+                    </button>
+                    <button type="button" onclick="filterBets('Win', this)" class="bet-filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0">
+                        Won ({{ won_bets|length }})
+                    </button>
+                    <button type="button" onclick="filterBets('Loss', this)" class="bet-filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0">
+                        Lost ({{ lost_bets|length }})
+                    </button>
+                    {% if (void_bets|length) > 0 %}
+                    <button type="button" onclick="filterBets('Void', this)" class="bet-filter-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0">
+                        Void ({{ void_bets|length }})
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="relative md:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                    <input type="text" id="bet-search" oninput="applyBetFilters()" placeholder="Search match, team, or ticket #..." class="w-full bg-black/60 border border-gray-700/80 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand transition">
+                </div>
+            </div>
+
+            <!-- BET TICKETS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="bets-grid">
                 {% for bet in bets %}
-                <div class="bg-surface p-5 rounded-2xl border border-gray-800 shadow-lg hover:border-gray-600 transition duration-300">
-                    <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                        <div class="text-xs text-gray-400 font-mono">{{ bet.date }}</div>
-                        
-                        {% if bet.match_status == 'Win' %}
-                            <div class="text-xs font-black text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded shadow-inner uppercase tracking-widest">Win</div>
-                        {% elif bet.match_status == 'Loss' %}
-                            <div class="text-xs font-black text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded shadow-inner uppercase tracking-widest">Loss</div>
-                        {% elif bet.match_status == 'Void' %}
-                            <div class="text-xs font-black text-gray-400 bg-gray-500/10 border border-gray-500/20 px-3 py-1 rounded shadow-inner uppercase tracking-widest">Void</div>
+                {% set st = bet.match_status %}
+                <div class="bet-ticket rounded-2xl p-5 border {{ 'border-brand/40 shadow-[0_10px_30px_rgba(28,218,58,0.1)]' if st == 'Win' else ('border-red-500/30' if st == 'Loss' else ('border-amber-500/35 shadow-[0_10px_30px_rgba(245,158,11,0.08)]' if st == 'Open' else 'border-gray-800')) }}"
+                     data-status="{{ st }}"
+                     data-search="{{ bet.match_name|lower }} {{ bet.team|lower }} #nvx-{{ bet.id }} {{ st|lower }}">
+
+                    <!-- Top Status Accent Bar -->
+                    <div class="absolute top-0 left-0 right-0 h-1 {{ 'bg-gradient-to-r from-brand via-emerald-400 to-green-500' if st == 'Win' else ('bg-gradient-to-r from-red-600 to-rose-500' if st == 'Loss' else ('bg-gradient-to-r from-amber-500 to-yellow-400' if st == 'Open' else 'bg-gray-700')) }}"></div>
+
+                    <!-- Ticket Header: Receipt ID, Timestamp & Status Badge -->
+                    <div class="flex justify-between items-center mb-3.5">
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="copyTicketId('NVX-{{ '%05d'|format(bet.id) }}')" class="bg-black/60 hover:bg-white/10 border border-white/10 px-2.5 py-1 rounded-lg text-[11px] font-mono font-black text-gray-300 flex items-center gap-1.5 transition" title="Copy Ticket ID">
+                                <i class="fa-solid fa-hashtag text-[9px] text-brand"></i>NVX-{{ "%05d"|format(bet.id) }}
+                                <i class="fa-regular fa-copy text-[9px] text-gray-500"></i>
+                            </button>
+                            <span class="text-[11px] text-gray-500 font-mono flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-[10px]"></i> {{ bet.date }}
+                            </span>
+                        </div>
+
+                        {% if st == 'Win' %}
+                            <span class="text-[10px] font-black text-black bg-brand px-3 py-1 rounded-full uppercase tracking-widest shadow-[0_0_15px_rgba(28,218,58,0.5)] flex items-center gap-1">
+                                <i class="fa-solid fa-trophy text-[9px]"></i> WON
+                            </span>
+                        {% elif st == 'Loss' %}
+                            <span class="text-[10px] font-black text-red-400 bg-red-500/15 border border-red-500/30 px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+                                <i class="fa-solid fa-circle-xmark text-[9px]"></i> LOST
+                            </span>
+                        {% elif st == 'Void' %}
+                            <span class="text-[10px] font-black text-gray-400 bg-gray-800 border border-gray-700 px-3 py-1 rounded-full uppercase tracking-widest">
+                                VOID / REFUND
+                            </span>
                         {% else %}
-                            <div class="text-xs font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded shadow-inner uppercase tracking-widest animate-pulse">Open</div>
+                            <span class="text-[10px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/35 px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> IN-PLAY OPEN
+                            </span>
                         {% endif %}
                     </div>
-                    
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{{ bet.match_name }}</div>
-                            <div class="font-black text-xl text-white mb-1">{{ bet.team }}</div>
-                            <div class="text-sm font-bold text-gray-400">Odds: <span class="font-black text-blue-400">{{ bet.odds }}</span></div>
+
+                    <!-- Match & Pick Info -->
+                    <div class="mb-4">
+                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-medal text-orange-400"></i> {{ bet.match_name }}
                         </div>
-                        <div class="text-right bg-black/40 p-3 rounded-xl border border-gray-800 shadow-inner">
-                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Stake</div>
-                            <div class="font-black text-white text-lg mb-2 leading-none">₹{{ "%.2f"|format(bet.stake) }}</div>
-                            <div class="text-[10px] font-bold text-brand uppercase tracking-widest">Payout</div>
-                            <div class="font-black text-brand text-xl leading-none drop-shadow-md">₹{{ "%.2f"|format(bet.profit + bet.stake) }}</div>
+                        <div class="flex items-baseline justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400 font-semibold">Pick:</span>
+                                <span class="font-black text-lg md:text-xl text-white tracking-tight">{{ bet.team }}</span>
+                            </div>
+                            <div class="bg-blue-500/10 border border-blue-500/30 px-2.5 py-0.5 rounded-lg">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase mr-1">Odds</span>
+                                <span class="font-mono font-black text-blue-400 text-sm">{{ "%.2f"|format(bet.odds) }}x</span>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Perforated Ticket Divider -->
+                    <div class="ticket-divider pt-3.5 mt-2 grid grid-cols-3 gap-2 text-center bg-black/35 -mx-5 -mb-5 px-5 py-3.5">
+                        <div class="text-left">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Wager Stake</div>
+                            <div class="font-mono font-black text-white text-sm md:text-base mt-0.5">₹{{ "%.2f"|format(bet.stake) }}</div>
+                        </div>
+
+                        <div class="border-x border-white/5 px-2">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Net Profit</div>
+                            <div class="font-mono font-black text-sm md:text-base mt-0.5 {{ 'text-emerald-400' if st != 'Loss' else 'text-gray-600 line-through' }}">
+                                +₹{{ "%.2f"|format(bet.profit) }}
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <div class="text-[9px] font-bold uppercase tracking-widest {{ 'text-brand' if st == 'Win' else 'text-gray-400' }}">
+                                {{ 'Credited Return' if st == 'Win' else 'Est. Payout' }}
+                            </div>
+                            <div class="font-mono font-black text-base md:text-lg mt-0.5 {{ 'text-brand drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]' if st == 'Win' else ('text-gray-500 line-through' if st == 'Loss' else 'text-amber-400') }}">
+                                ₹{{ "%.2f"|format(bet.profit + bet.stake) }}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 {% else %}
-                <div class="col-span-full bg-surface/50 p-16 rounded-2xl border border-dashed border-gray-700 text-center text-gray-400 mt-8">
-                    <i class="fa-solid fa-folder-open text-6xl mb-4 opacity-50"></i>
-                    <p class="text-lg font-bold">You have not placed any bets yet.</p>
-                    <a href="{{ url_for('home') }}" class="inline-block mt-6 bg-brand text-black px-8 py-3 rounded-lg font-black uppercase tracking-wider hover:bg-green-500 shadow-[0_0_15px_rgba(28,218,58,0.4)] transition">Go to Sports</a>
+                <div class="col-span-full glass-panel p-12 md:p-16 rounded-3xl border border-dashed border-gray-700/80 text-center text-gray-400 mt-4">
+                    <div class="w-20 h-20 rounded-3xl bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-4 text-brand text-4xl shadow-inner">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-white uppercase tracking-wider mb-1">No Active Bet Slips Found</h3>
+                    <p class="text-xs text-gray-400 max-w-sm mx-auto mb-6">Explore live cricket, football, and tennis markets or jump into our 37 Provably Fair Casino Originals.</p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <a href="{{ url_for('home') }}" class="bg-brand text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-green-400 shadow-[0_0_20px_rgba(28,218,58,0.4)] transition active:scale-95">
+                            <i class="fa-solid fa-trophy mr-1.5"></i> Explore Sportsbook
+                        </a>
+                        <a href="{{ url_for('games') }}" class="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition active:scale-95">
+                            <i class="fa-solid fa-gamepad text-purple-400 mr-1.5"></i> 37 Casino Games
+                        </a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- Empty Filter State Notice -->
+            <div id="empty-filter-state" class="hidden glass-panel p-10 rounded-3xl text-center text-gray-400">
+                <i class="fa-solid fa-filter-circle-xmark text-3xl text-gray-600 mb-2 block"></i>
+                <div class="text-sm font-bold text-white">No tickets match your current filter</div>
+                <p class="text-xs text-gray-500 mt-1">Try switching tabs or clearing your search query.</p>
+            </div>
+
         </div>
     </main>
 
-    <!-- MOBILE BOTTOM NAV -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)]">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-gamepad text-xl mb-1"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-brand transition-transform"><i class="fa-solid fa-file-lines text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    <!-- 🌟 UPGRADED FLOATING GLASS BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white">
+            <i class="fa-solid fa-gamepad text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="nav-item flex flex-col items-center text-brand">
+            <i class="fa-solid fa-file-lines text-lg mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
     </nav>
-<script>
-    (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
-
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+    <script>
+        // 1. Subtle Web Audio Synthesizer
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playTapSound(freq = 820) {
+            if (!audioCtx) return;
+            try {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'sine';
+                o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.045);
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.start();
+                o.stop(audioCtx.currentTime + 0.045);
+            } catch (e) {}
         }
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+        // 2. Non-Shifting Top Toast Notification
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+            const t = document.createElement('div');
+            t.className = 'bg-[#0f291e]/95 border border-brand/60 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 pointer-events-auto';
+            t.innerHTML = `<i class="fa-solid fa-circle-check text-brand text-base"></i> <span>${msg}</span>`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 2200);
         }
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+        function copyTicketId(ticketId) {
+            initAudio();
+            playTapSound(920);
+            navigator.clipboard.writeText(ticketId);
+            showToast(`Copied Ticket #${ticketId}`);
         }
 
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
+        // 3. Status Filter Tabs & Instant Search
+        let selectedStatus = 'ALL';
 
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+        function filterBets(status, btnEl) {
+            initAudio();
+            playTapSound(780);
+            selectedStatus = status;
+            document.querySelectorAll('.bet-filter-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            applyBetFilters();
         }
-    }, 1500);
-})();
-</script>
+
+        function applyBetFilters() {
+            const query = (document.getElementById('bet-search').value || '').toLowerCase().trim();
+            const cards = document.querySelectorAll('.bet-ticket');
+            if (cards.length === 0) return;
+
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const cStatus = card.getAttribute('data-status') || '';
+                const cSearch = card.getAttribute('data-search') || '';
+                const statusMatch = (selectedStatus === 'ALL') || (cStatus === selectedStatus);
+                const searchMatch = !query || cSearch.includes(query);
+
+                if (statusMatch && searchMatch) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const emptyState = document.getElementById('empty-filter-state');
+            if (emptyState) {
+                emptyState.classList.toggle('hidden', visibleCount > 0);
+            }
+        }
+
+        // 4. Anti-Inspect & DevTools Shield (Mac + Windows)
+        (function() {
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
+
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
+
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
+
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
+    </script>
 </body>
 </html>

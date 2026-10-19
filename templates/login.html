@@ -3,366 +3,805 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login - Novabetx Premium</title>
+    <title>Login - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { bgDark: '#06090E', surface: '#121721', brand: '#1CDA3A' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0e131f',
+                        surfaceLight: '#171f32',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #06090E; }
-        
-        /* Premium Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
-        @keyframes float-delayed { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
-        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
-        @keyframes scale-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes pulse-glow { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.05); } }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #05070c;
+            overscroll-behavior-y: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float 7s ease-in-out 3s infinite; }
-        .animate-fade-up { animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        /* Glassmorphism & Effects */
-        .glass-card { background: rgba(18, 23, 33, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glass-input { background: rgba(6, 9, 14, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.3s ease; }
-        .glass-input:focus-within { background: rgba(0, 0, 0, 0.8); border-color: #1CDA3A; box-shadow: 0 0 0 4px rgba(28, 218, 58, 0.1); }
-        
-        .ambient-glow { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; animation: pulse-glow 8s ease-in-out infinite; pointer-events: none; }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        /* Keyframe Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-14px) rotate(1deg); }
+        }
+        @keyframes floatDelayed {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-16px) rotate(-1deg); }
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            0% { opacity: 0; transform: scale(0.94); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.25; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.08); }
+        }
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes shimmerSweep {
+            0% { transform: translateX(-120%) skewX(-15deg); }
+            100% { transform: translateX(220%) skewX(-15deg); }
+        }
+
+        .animate-float { animation: floatSlow 5.5s ease-in-out infinite; }
+        .animate-float-delayed { animation: floatDelayed 6.5s ease-in-out 2s infinite; }
+        .animate-fade-up { animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-scale-in { animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            animation: tickerScroll 34s linear infinite;
+        }
+
+        /* Dark Glassmorphism Panels */
+        .glass-card {
+            background: rgba(14, 19, 31, 0.78);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(5, 7, 12, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-input:focus-within {
+            background: rgba(0, 0, 0, 0.92);
+            border-color: #1CDA3A;
+            box-shadow: 0 0 0 3px rgba(28, 218, 58, 0.15), 0 0 20px rgba(28, 218, 58, 0.12);
+        }
+
+        /* Shimmer CTA Button */
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            animation: shimmerSweep 3.2s infinite;
+        }
+
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(110px);
+            z-index: 0;
+            animation: pulseGlow 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
     </style>
 </head>
-<body class="text-white m-0 p-0 antialiased overflow-x-hidden relative min-h-screen flex">
+<body class="text-white m-0 p-0 antialiased overflow-x-hidden relative min-h-[100dvh] flex flex-col" onclick="initAudio()">
 
-    <!-- 🌟 DESKTOP HERO SECTION (Left Side - Hidden on Mobile) -->
-    <div class="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-center items-center border-r border-white/5 z-0">
-        <!-- Deep Space Glows -->
-        <div class="ambient-glow bg-brand/20 w-[600px] h-[600px] -top-20 -left-20"></div>
-        <div class="ambient-glow bg-blue-600/20 w-[500px] h-[500px] bottom-0 right-0 animate-float-delayed"></div>
-        
-        <!-- Grid Pattern Overlay -->
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwem0yMCAyMGMxLjEgMCAyLS45IDItMnMtLjktMi0yLTItMiAuOS0yIDIgLjkgMiAyIDJ6IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDIiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==')] opacity-50 z-0 pointer-events-none"></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-12 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-        <div class="relative z-10 w-full max-w-lg px-8 text-center animate-fade-up">
-            <div class="text-7xl font-black italic tracking-wider mb-6 drop-shadow-[0_0_30px_rgba(28,218,58,0.4)]">Nova<span class="text-brand">betx</span></div>
-            <p class="text-lg text-gray-400 font-medium mb-12 leading-relaxed">Experience the next generation of premium <span class="text-white font-bold">Sports Betting</span> & <span class="text-white font-bold">Provably Fair Casino</span> games.</p>
-            
-            <!-- Floating Feature Cards -->
-            <div class="grid grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-3xl animate-float shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-t border-t-white/10">
-                    <div class="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-4 border border-brand/20">
-                        <i class="fa-solid fa-bolt text-2xl text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]"></i>
-                    </div>
-                    <h3 class="font-black text-white text-lg mb-1">Instant Payouts</h3>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Zero Delays</p>
-                </div>
-                <div class="glass-card p-6 rounded-3xl animate-float-delayed shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-t border-t-white/10 mt-8">
-                    <div class="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
-                        <i class="fa-solid fa-shield-halved text-2xl text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"></i>
-                    </div>
-                    <h3 class="font-black text-white text-lg mb-1">Provably Fair</h3>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">100% Transparent</p>
-                </div>
+    <!-- INTERACTIVE NEON PARTICLE CANVAS -->
+    <canvas id="bg-particles" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-60"></canvas>
+
+    <!-- TOP LIVE PAYOUTS TICKER BAR -->
+    <div class="w-full bg-[#04060a]/90 backdrop-blur-md border-b border-white/5 py-1.5 px-3 overflow-hidden flex items-center relative z-30 shrink-0">
+        <div class="bg-brand/15 border border-brand/30 text-brand text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded flex items-center gap-1.5 shrink-0 mr-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand animate-ping"></span> LIVE PAYOUTS
+        </div>
+        <div class="overflow-hidden flex-1">
+            <div class="ticker-track gap-6 text-[11px] font-mono text-gray-400 items-center">
+                <span><strong class="text-white">rohan***</strong> cashed out <strong class="text-brand">₹14,200</strong> in <span class="text-red-400">Aviator (14.2x)</span></span>
+                <span>•</span>
+                <span><strong class="text-white">karthik***</strong> won <strong class="text-brand">₹8,000</strong> in <span class="text-pink-400">Plinko (16.0x)</span></span>
+                <span>•</span>
+                <span><strong class="text-white">deepak***</strong> won <strong class="text-brand">₹3,900</strong> in <span class="text-yellow-400">Dragon Tiger</span></span>
+                <span>•</span>
+                <span><strong class="text-white">naveen***</strong> won <strong class="text-brand">₹10,000</strong> in <span class="text-purple-400">Neon 777 Slots (100x)</span></span>
+                <span>•</span>
+                <span><strong class="text-white">akash***</strong> cashed out <strong class="text-brand">₹6,450</strong> in <span class="text-cyan-400">Cyber Mines</span></span>
+                <span>•</span>
+                <span><strong class="text-white">rohan***</strong> cashed out <strong class="text-brand">₹14,200</strong> in <span class="text-red-400">Aviator (14.2x)</span></span>
+                <span>•</span>
+                <span><strong class="text-white">karthik***</strong> won <strong class="text-brand">₹8,000</strong> in <span class="text-pink-400">Plinko (16.0x)</span></span>
             </div>
         </div>
     </div>
 
-    <!-- 🌟 LOGIN FORM SECTION (Right Side on Desktop, Full Screen on Mobile) -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative min-h-screen z-10">
-        
-        <!-- Mobile Background Glow (Hidden on Desktop since Desktop has its own) -->
-        <div class="lg:hidden ambient-glow bg-brand/15 w-[300px] h-[300px] top-10 right-[-50px]"></div>
-        <div class="lg:hidden ambient-glow bg-purple-600/15 w-[300px] h-[300px] bottom-10 left-[-50px]"></div>
+    <!-- MAIN SPLIT VIEWPORT -->
+    <div class="flex-1 flex flex-col lg:flex-row relative z-10">
 
-        <div class="glass-card rounded-[2rem] p-8 sm:p-12 w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 animate-scale-in">
-            
-            <div class="text-center mb-10">
-                <!-- Logo only shows on Mobile, Desktop has the massive one -->
-                <div class="lg:hidden text-5xl font-black italic tracking-wider mb-3 drop-shadow-lg">Nova<span class="text-brand">betx</span></div>
-                <h1 class="hidden lg:block text-3xl font-black text-white mb-2">Welcome Back</h1>
-                <p class="text-sm text-gray-400 font-medium">Securely sign in to your VIP account.</p>
+        <!-- ======================================================= -->
+        <!-- DESKTOP LEFT HERO SHOWCASE (Hidden on Mobile/Tablet)    -->
+        <!-- ======================================================= -->
+        <div class="hidden lg:flex lg:w-7/12 relative overflow-hidden flex-col justify-between p-12 xl:p-16 border-r border-white/5">
+            <!-- Deep Space Ambient Glows -->
+            <div class="ambient-glow bg-brand/20 w-[550px] h-[550px] -top-24 -left-24"></div>
+            <div class="ambient-glow bg-purple-600/20 w-[500px] h-[500px] bottom-0 right-0"></div>
+
+            <!-- Top Brand Badge -->
+            <div class="relative z-10 flex items-center justify-between">
+                <div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-300 backdrop-blur-md">
+                    <span class="w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_#1CDA3A]"></span>
+                    <span>Novabetx Official Gaming Ecosystem</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-mono text-gray-400">
+                    <span><i class="fa-solid fa-bolt text-brand mr-1"></i>24/7 Instant UPI</span>
+                    <span><i class="fa-solid fa-lock text-cyan-400 mr-1"></i>SHA-256 Fair</span>
+                </div>
             </div>
 
-            <!-- Flashed Messages Container (Unchanged Backend Logic) -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        {% if category != 'fast_track' %}
-                        <div class="mb-8 p-4 rounded-xl text-sm font-bold flex items-center gap-3 shadow-inner {{ 'bg-red-500/10 text-red-400 border border-red-500/20' if category == 'error' else 'bg-green-500/10 text-brand border border-brand/20' }}">
-                            <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} text-lg"></i>
-                            {{ message }}
-                        </div>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <form method="POST" class="space-y-6">
-                <!-- Username Field -->
-                <div>
-                    <label class="block text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-widest pl-1">Player ID</label>
-                    <div class="relative glass-input rounded-xl overflow-hidden group">
-                        <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand transition-colors"><i class="fa-solid fa-user text-sm"></i></div>
-                        <input type="text" name="username" placeholder="Enter your username" class="w-full bg-transparent py-4 pl-12 pr-4 text-white font-medium focus:outline-none placeholder-gray-600" required>
-                    </div>
-                </div>
-                
-                <!-- Password Field -->
-                <div>
-                    <div class="flex justify-between items-center mb-2 pl-1">
-                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest">Password</label>
-                    </div>
-                    <div class="relative glass-input rounded-xl overflow-hidden group">
-                        <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand transition-colors"><i class="fa-solid fa-lock text-sm"></i></div>
-                        <input type="password" name="password" placeholder="••••••••" class="w-full bg-transparent py-4 pl-12 pr-4 text-white font-medium focus:outline-none placeholder-gray-600 tracking-widest" required>
-                    </div>
+            <!-- Center Hero Content & 3D Floating Cards -->
+            <div class="relative z-10 my-auto py-8 max-w-2xl animate-fade-up" id="hero-tilt-zone">
+                <div class="inline-flex items-center gap-2 bg-brand/15 border border-brand/30 text-brand text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                    <i class="fa-solid fa-crown"></i> 37 Provably Fair Originals + Live Sportsbook
                 </div>
 
-                <!-- Terms & Conditions Checkbox -->
-                <div class="flex items-start gap-3 pt-2">
-                    <div class="relative flex items-center justify-center mt-0.5">
-                        <input type="checkbox" required id="tc_check" class="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded bg-bgDark checked:bg-brand checked:border-brand cursor-pointer transition-all">
-                        <i class="fa-solid fa-check absolute text-black text-[10px] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity"></i>
-                    </div>
-                    <label for="tc_check" class="text-xs text-gray-400 leading-relaxed cursor-pointer select-none">
-                        I confirm I am <span class="text-white font-bold">18+ years old</span> and accept the 
-                        <button type="button" onclick="document.getElementById('tcModal').classList.remove('hidden')" class="text-brand font-bold hover:underline transition-all">Terms & Conditions</button>.
-                    </label>
+                <div class="text-6xl xl:text-7xl font-black italic tracking-wider mb-4 drop-shadow-[0_0_35px_rgba(28,218,58,0.35)]">
+                    Nova<span class="text-brand">betx</span>
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="w-full bg-gradient-to-r from-brand to-green-600 text-black font-black text-lg py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(28,218,58,0.3)] hover:shadow-[0_0_30px_rgba(28,218,58,0.5)] uppercase tracking-wider mt-2">
-                    Sign In to Vault
-                </button>
-            </form>
-
-            <div class="text-center mt-8 pt-6 border-t border-white/5">
-                <p class="text-sm text-gray-400 font-medium">
-                    New to Novabetx? 
-                    <button onclick="document.getElementById('registerModal').classList.remove('hidden')" class="text-white font-bold hover:text-brand transition-colors underline decoration-brand underline-offset-4 decoration-2">Create Account</button>
+                <p class="text-base xl:text-lg text-gray-300 font-medium mb-10 leading-relaxed max-w-xl">
+                    Enter the high-roller arena. Experience real-time <span class="text-white font-black">Crash Multipliers</span>, live <span class="text-white font-black">Indian Card Tables</span>, and championship <span class="text-brand font-black">Sports Odds</span> with zero-delay withdrawals.
                 </p>
+
+                <!-- 3 Interactive Floating Feature Cards -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="glass-card p-5 rounded-3xl animate-float border-t border-t-brand/30 hover:border-brand/60 transition group">
+                        <div class="w-12 h-12 rounded-2xl bg-brand/15 flex items-center justify-center mb-3 border border-brand/30 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-bolt text-xl text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]"></i>
+                        </div>
+                        <div class="text-xl font-black text-white font-mono">Instant</div>
+                        <div class="text-xs font-bold text-gray-300 mt-0.5">UPI & Bank Payouts</div>
+                        <div class="text-[10px] text-brand font-bold uppercase tracking-widest mt-2">Zero Fees</div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-3xl animate-float-delayed border-t border-t-purple-500/30 hover:border-purple-500/60 transition group">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center mb-3 border border-purple-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-gamepad text-xl text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]"></i>
+                        </div>
+                        <div class="text-xl font-black text-white font-mono">37 Games</div>
+                        <div class="text-xs font-bold text-gray-300 mt-0.5">Crash, Slots & Cards</div>
+                        <div class="text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-2">Up to 1000x</div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-3xl animate-float border-t border-t-amber-500/30 hover:border-amber-500/60 transition group">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center mb-3 border border-amber-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-gift text-xl text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"></i>
+                        </div>
+                        <div class="text-xl font-black text-white font-mono">₹500 Free</div>
+                        <div class="text-xs font-bold text-gray-300 mt-0.5">Daily Spin & VIP Bonus</div>
+                        <div class="text-[10px] text-amber-400 font-bold uppercase tracking-widest mt-2">+₹50 Referral</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Trust Bar -->
+            <div class="relative z-10 flex items-center justify-between text-xs text-gray-500 border-t border-white/5 pt-4">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-1.5 text-gray-400 font-semibold"><i class="fa-solid fa-shield-check text-brand"></i> 256-Bit SSL Encrypted</span>
+                    <span class="flex items-center gap-1.5 text-gray-400 font-semibold"><i class="fa-solid fa-circle-check text-blue-400"></i> 18+ Responsible Gaming</span>
+                </div>
+                <span class="font-mono text-[11px]">NOVABETX VAULT v3.0</span>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- RIGHT SIDE / MOBILE FULL-SCREEN AUTH PORTAL             -->
+        <!-- ======================================================= -->
+        <div class="w-full lg:w-5/12 flex flex-col items-center justify-center p-4 sm:p-8 relative flex-1">
+
+            <!-- Mobile Ambient Glows -->
+            <div class="lg:hidden ambient-glow bg-brand/15 w-[280px] h-[280px] top-6 right-[-40px]"></div>
+            <div class="lg:hidden ambient-glow bg-purple-600/15 w-[280px] h-[280px] bottom-6 left-[-40px]"></div>
+
+            <div class="glass-card rounded-[2rem] p-6 sm:p-10 w-full max-w-md relative z-10 animate-scale-in">
+
+                <!-- Top glowing accent line -->
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] bg-gradient-to-r from-transparent via-brand to-transparent"></div>
+
+                <!-- Header / Mobile Logo -->
+                <div class="text-center mb-6">
+                    <div class="lg:hidden inline-flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-2">
+                        <i class="fa-solid fa-bolt"></i> Official VIP App
+                    </div>
+                    <div class="lg:hidden text-4xl sm:text-5xl font-black italic tracking-wider mb-1.5 drop-shadow-[0_0_20px_rgba(28,218,58,0.3)]">
+                        Nova<span class="text-brand">betx</span>
+                    </div>
+                    <h1 class="hidden lg:block text-2xl sm:text-3xl font-black text-white tracking-tight">Welcome Back</h1>
+                    <p class="text-xs sm:text-sm text-gray-400 font-medium mt-1">Sign in to access your sportsbook & casino vault.</p>
+                </div>
+
+                <!-- Quick Action Switcher Pill (Sign In / Create Account) -->
+                <div class="grid grid-cols-2 bg-black/60 p-1 rounded-2xl border border-white/5 mb-6">
+                    <button type="button" class="py-2.5 rounded-xl bg-brand text-black font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(28,218,58,0.35)] transition">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Sign In
+                    </button>
+                    <button type="button" onclick="openRegisterModal()" class="py-2.5 rounded-xl text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition">
+                        <i class="fa-solid fa-user-plus mr-1 text-brand"></i> Register
+                    </button>
+                </div>
+
+                <!-- Flashed Messages Container (Backend Logic Preserved) -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            {% if category != 'fast_track' %}
+                            <div class="mb-6 p-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-lg {{ 'bg-red-500/15 text-red-400 border border-red-500/30' if category == 'error' else 'bg-emerald-500/15 text-brand border border-brand/30' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} text-base shrink-0"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                                <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- SIGN IN FORM -->
+                <form method="POST" class="space-y-5">
+                    <!-- Username Field -->
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Player ID / Username</label>
+                        <div class="relative glass-input rounded-2xl overflow-hidden group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand transition-colors">
+                                <i class="fa-solid fa-user text-sm"></i>
+                            </div>
+                            <input type="text" name="username" placeholder="Enter your username" autocomplete="username" class="w-full bg-transparent py-3.5 pl-11 pr-4 text-white text-sm font-semibold focus:outline-none placeholder-gray-600" required>
+                        </div>
+                    </div>
+
+                    <!-- Password Field with Show/Hide Toggle -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5 pl-1">
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Vault Password</label>
+                            <span class="text-[10px] text-brand/80 font-mono"><i class="fa-solid fa-shield-halved mr-0.5"></i>Encrypted</span>
+                        </div>
+                        <div class="relative glass-input rounded-2xl overflow-hidden group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-brand transition-colors">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" class="w-full bg-transparent py-3.5 pl-11 pr-11 text-white text-sm font-semibold focus:outline-none placeholder-gray-600" required>
+                            <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-white transition-colors" tabindex="-1">
+                                <i class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 18+ Terms & Conditions Checkbox -->
+                    <div class="flex items-start gap-3 pt-1">
+                        <div class="relative flex items-center justify-center mt-0.5 shrink-0">
+                            <input type="checkbox" required id="tc_check" checked class="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded-lg bg-black/70 checked:bg-brand checked:border-brand cursor-pointer transition-all">
+                            <i class="fa-solid fa-check absolute text-black text-[10px] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                        </div>
+                        <label for="tc_check" class="text-xs text-gray-400 leading-relaxed cursor-pointer">
+                            I confirm I am <span class="text-white font-bold">18+ years old</span> and accept the
+                            <button type="button" onclick="document.getElementById('tcModal').classList.remove('hidden')" class="text-brand font-bold hover:underline">Terms & Conditions</button>.
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-shimmer w-full bg-gradient-to-r from-brand via-emerald-400 to-green-500 text-black font-black text-base sm:text-lg py-4 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(28,218,58,0.35)] uppercase tracking-wider flex items-center justify-center gap-2">
+                        <span>Sign In to Vault</span>
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </form>
+
+                <!-- Create Account Callout -->
+                <div class="text-center mt-6 pt-5 border-t border-white/5">
+                    <p class="text-xs sm:text-sm text-gray-400 font-medium">
+                        New to Novabetx?
+                        <button type="button" onclick="openRegisterModal()" class="text-white font-black hover:text-brand transition-colors underline decoration-brand underline-offset-4 decoration-2 ml-1">
+                            Create VIP Account
+                        </button>
+                    </p>
+                </div>
+
+                <!-- Mobile Feature Pills -->
+                <div class="lg:hidden grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-white/5 text-center">
+                    <div class="bg-black/40 rounded-xl p-2 border border-white/5">
+                        <i class="fa-solid fa-bolt text-brand text-xs mb-0.5 block"></i>
+                        <span class="text-[9px] font-bold text-gray-300 uppercase">Instant UPI</span>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-2 border border-white/5">
+                        <i class="fa-solid fa-gamepad text-purple-400 text-xs mb-0.5 block"></i>
+                        <span class="text-[9px] font-bold text-gray-300 uppercase">37 Originals</span>
+                    </div>
+                    <div class="bg-black/40 rounded-xl p-2 border border-white/5">
+                        <i class="fa-solid fa-gift text-amber-400 text-xs mb-0.5 block"></i>
+                        <span class="text-[9px] font-bold text-gray-300 uppercase">₹50 Bonus</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- 🚀 MODALS (Backend connections identical) -->
-    <!-- ========================================= -->
-
-    <!-- FAST TRACK DEPOSIT MODAL -->
+    <!-- ========================================================= -->
+    <!-- 🚀 1. FAST TRACK FIRST DEPOSIT MODAL                      -->
+    <!-- ========================================================= -->
     {% with fast_tracks = get_flashed_messages(category_filter=['fast_track']) %}
         {% if fast_tracks %}
         {% set new_user_id = fast_tracks[0] %}
-        <div id="fastTrackModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div id="fastTrackModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
             <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity"></div>
-            
-            <div class="glass-card border border-brand/30 rounded-3xl w-full max-w-lg shadow-[0_0_50px_rgba(28,218,58,0.15)] relative z-10 flex flex-col max-h-[90vh] overflow-hidden animate-scale-in">
-                
-                <div class="p-6 text-center border-b border-white/5 shrink-0 bg-gradient-to-b from-brand/5 to-transparent relative">
+
+            <div class="glass-card border border-brand/40 rounded-3xl w-full max-w-lg shadow-[0_0_60px_rgba(28,218,58,0.2)] relative z-10 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
+
+                <!-- Modal Header -->
+                <div class="p-5 sm:p-6 text-center border-b border-white/10 shrink-0 bg-gradient-to-b from-brand/15 to-transparent relative">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent"></div>
-                    <div class="w-16 h-16 bg-green-500/10 border border-green-500/20 text-brand rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-[inset_0_0_20px_rgba(28,218,58,0.2)]">
-                        <i class="fa-solid fa-rocket"></i>
+                    <div class="w-14 h-14 bg-brand/15 border border-brand/30 text-brand rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-[0_0_25px_rgba(28,218,58,0.3)]">
+                        <i class="fa-solid fa-rocket animate-bounce"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-1 uppercase tracking-wide">Fast Track Verification</h3>
-                    <p class="text-xs text-gray-400 font-medium">Make your first deposit to instantly activate your account!</p>
+                    <div class="inline-flex items-center gap-1.5 bg-brand/20 text-brand text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">
+                        Account Created • ID #{{ new_user_id }}
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black text-white uppercase tracking-wide">Fast-Track Activation</h3>
+                    <p class="text-xs text-gray-300 font-medium mt-0.5">Complete your first deposit now for priority instant approval!</p>
                 </div>
 
-                <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-                    <!-- DYNAMIC PAYMENT DETAILS FROM ADMIN -->
-                    <div class="bg-black/40 p-4 rounded-2xl border border-gray-800 text-xs font-mono text-gray-300 space-y-3 shadow-inner">
-                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition">
-                            <div><span class="text-brand font-bold uppercase text-[10px] tracking-widest block mb-0.5">UPI ID</span><span class="text-sm text-white">{{ site_settings.upi_id }}</span></div>
-                            <button type="button" onclick="copyText('{{ site_settings.upi_id }}', this)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-black/50 text-gray-400 hover:text-white hover:bg-brand/20 transition-all border border-gray-700 shadow-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Scrollable Body -->
+                <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+
+                    <!-- DYNAMIC ADMIN PAYMENT DETAILS -->
+                    <div class="bg-black/60 p-4 rounded-2xl border border-gray-800 text-xs font-mono text-gray-300 space-y-2.5 shadow-inner">
+                        <div class="text-[10px] font-sans font-black uppercase tracking-widest text-gray-400 mb-1 flex items-center justify-between">
+                            <span>Step 1: Transfer to Official Vault</span>
+                            <span class="text-brand"><i class="fa-solid fa-shield-check"></i> Verified Merchant</span>
                         </div>
-                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition">
-                            <div><span class="text-brand font-bold uppercase text-[10px] tracking-widest block mb-0.5">Bank A/c</span><span class="text-sm text-white">{{ site_settings.bank_account }}</span></div>
-                            <button type="button" onclick="copyText('{{ site_settings.bank_account }}', this)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-black/50 text-gray-400 hover:text-white hover:bg-brand/20 transition-all border border-gray-700 shadow-sm"><i class="fa-solid fa-copy"></i></button>
+
+                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-brand/30 transition">
+                            <div class="min-w-0 pr-2">
+                                <span class="text-brand font-bold uppercase text-[9px] tracking-widest block">Official UPI ID</span>
+                                <span class="text-sm text-white font-bold truncate block">{{ site_settings.upi_id }}</span>
+                            </div>
+                            <button type="button" onclick="copyText('{{ site_settings.upi_id }}', this)" class="px-3 py-2 flex items-center gap-1.5 rounded-xl bg-brand/15 text-brand hover:bg-brand hover:text-black font-sans font-black text-[10px] uppercase transition shrink-0">
+                                <i class="fa-solid fa-copy"></i> Copy
+                            </button>
                         </div>
-                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:border-white/10 transition">
-                            <div><span class="text-brand font-bold uppercase text-[10px] tracking-widest block mb-0.5">IFSC Code</span><span class="text-sm text-white">{{ site_settings.ifsc_code }}</span></div>
-                            <button type="button" onclick="copyText('{{ site_settings.ifsc_code }}', this)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-black/50 text-gray-400 hover:text-white hover:bg-brand/20 transition-all border border-gray-700 shadow-sm"><i class="fa-solid fa-copy"></i></button>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                                <div class="min-w-0 pr-2">
+                                    <span class="text-gray-400 font-bold uppercase text-[9px] tracking-widest block">Bank Account</span>
+                                    <span class="text-xs text-white font-bold truncate block">{{ site_settings.bank_account }}</span>
+                                </div>
+                                <button type="button" onclick="copyText('{{ site_settings.bank_account }}', this)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-black/60 text-gray-300 hover:text-brand border border-gray-700 shrink-0"><i class="fa-solid fa-copy"></i></button>
+                            </div>
+
+                            <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                                <div class="min-w-0 pr-2">
+                                    <span class="text-gray-400 font-bold uppercase text-[9px] tracking-widest block">IFSC Code</span>
+                                    <span class="text-xs text-white font-bold truncate block">{{ site_settings.ifsc_code }}</span>
+                                </div>
+                                <button type="button" onclick="copyText('{{ site_settings.ifsc_code }}', this)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-black/60 text-gray-300 hover:text-brand border border-gray-700 shrink-0"><i class="fa-solid fa-copy"></i></button>
+                            </div>
                         </div>
+
                         <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                            <div><span class="text-brand font-bold uppercase text-[10px] tracking-widest block mb-0.5">QR Code</span><span class="text-sm text-white">Scan to Pay</span></div>
-                            <button type="button" onclick="document.getElementById('fastQR').classList.toggle('hidden')" class="bg-brand text-black px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:scale-105 transition-transform">Show QR</button>
+                            <div>
+                                <span class="text-amber-400 font-bold uppercase text-[9px] tracking-widest block">Instant UPI QR Scanner</span>
+                                <span class="text-xs text-white font-sans font-semibold">Scan with GPay, PhonePe, or Paytm</span>
+                            </div>
+                            <button type="button" onclick="document.getElementById('fastQR').classList.toggle('hidden')" class="bg-brand text-black px-3.5 py-2 rounded-xl font-sans font-black uppercase text-[10px] tracking-wider shadow-[0_0_15px_rgba(28,218,58,0.4)] hover:brightness-110 transition">
+                                <i class="fa-solid fa-qrcode mr-1"></i> Show QR
+                            </button>
                         </div>
-                        <div id="fastQR" class="hidden pt-2 flex justify-center animate-fade-up">
-                            <div class="bg-white p-3 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                                <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black font-bold>qr.png missing in static folder</p>')" alt="QR Code" class="w-40 h-40 object-contain">
+
+                        <div id="fastQR" class="hidden pt-2 flex flex-col items-center animate-fade-up">
+                            <div class="bg-white p-3 rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.2)]">
+                                <img src="/static/qr.png" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<p class=text-black font-bold p-4>qr.png missing in static folder</p>')" alt="QR Code" class="w-40 h-40 object-contain">
                             </div>
                         </div>
                     </div>
 
-                    <!-- UPLOAD FORM -->
+                    <!-- STEP 2: UPLOAD PROOF FORM -->
                     <form method="POST" action="{{ url_for('fast_track_deposit') }}" enctype="multipart/form-data" class="space-y-4">
                         <input type="hidden" name="user_id" value="{{ new_user_id }}">
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Amount (₹)</label>
-                                <input type="number" step="0.01" min="100" name="amount" placeholder="Min ₹100" class="glass-input w-full rounded-xl p-3.5 text-white font-black text-lg focus:outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">12-Digit UTR</label>
-                                <input type="text" name="utr" placeholder="Transaction Ref" class="glass-input w-full rounded-xl p-3.5 text-white font-mono text-sm focus:outline-none" required>
-                            </div>
-                        </div>
-                        
+
                         <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Payment Screenshot</label>
-                            <input type="file" name="screenshot" accept="image/*" class="glass-input w-full rounded-xl p-2.5 text-white text-xs focus:outline-none file:bg-white/10 file:border-0 file:text-white file:px-4 file:py-2 file:rounded-lg file:font-bold file:text-xs file:mr-4 file:cursor-pointer hover:file:bg-white/20 transition-all cursor-pointer" required>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Step 2: Deposit Amount (₹)</label>
+                                <span class="text-[10px] font-mono text-brand">Min ₹100</span>
+                            </div>
+                            <input type="number" step="0.01" min="100" id="fast-amt-input" name="amount" value="500" placeholder="Min ₹100" class="glass-input w-full rounded-xl p-3 text-white font-black font-mono text-lg focus:outline-none mb-2" required>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button type="button" onclick="document.getElementById('fast-amt-input').value=100" class="bg-white/5 hover:bg-brand/20 border border-white/10 hover:border-brand/40 rounded-lg py-1.5 text-xs font-mono font-bold text-gray-300 hover:text-white transition">₹100</button>
+                                <button type="button" onclick="document.getElementById('fast-amt-input').value=500" class="bg-white/5 hover:bg-brand/20 border border-white/10 hover:border-brand/40 rounded-lg py-1.5 text-xs font-mono font-bold text-gray-300 hover:text-white transition">₹500</button>
+                                <button type="button" onclick="document.getElementById('fast-amt-input').value=1000" class="bg-white/5 hover:bg-brand/20 border border-white/10 hover:border-brand/40 rounded-lg py-1.5 text-xs font-mono font-bold text-gray-300 hover:text-white transition">₹1,000</button>
+                                <button type="button" onclick="document.getElementById('fast-amt-input').value=5000" class="bg-white/5 hover:bg-brand/20 border border-white/10 hover:border-brand/40 rounded-lg py-1.5 text-xs font-mono font-bold text-gray-300 hover:text-white transition">₹5,000</button>
+                            </div>
                         </div>
 
-                        <div class="pt-6 flex gap-4">
-                            <button type="button" onclick="document.getElementById('fastTrackModal').classList.add('hidden')" class="w-1/3 bg-black/50 border border-gray-700 text-gray-400 font-black text-xs py-4 rounded-xl hover:bg-gray-800 hover:text-white transition uppercase tracking-wider">Skip</button>
-                            <button type="submit" class="w-2/3 bg-gradient-to-r from-brand to-green-600 text-black font-black text-sm py-4 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.3)] hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider">Submit Proof</button>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">12-Digit UTR / Reference Number</label>
+                            <input type="text" name="utr" placeholder="Enter 12-digit UPI UTR number" class="glass-input w-full rounded-xl p-3 text-white font-mono text-sm focus:outline-none" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Upload Payment Screenshot</label>
+                            <input type="file" name="screenshot" accept="image/*" onchange="previewFastTrackImage(this)" class="glass-input w-full rounded-xl p-2.5 text-white text-xs focus:outline-none file:bg-brand file:border-0 file:text-black file:px-3.5 file:py-1.5 file:rounded-lg file:font-black file:text-xs file:mr-3 file:cursor-pointer cursor-pointer" required>
+                            <div id="fast-img-preview-box" class="hidden mt-2.5 bg-black/50 p-2 rounded-xl border border-gray-800 flex items-center gap-3">
+                                <img id="fast-img-preview" src="" alt="Preview" class="w-12 h-12 rounded-lg object-cover border border-brand/40">
+                                <span class="text-[11px] text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Screenshot attached & ready</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 flex gap-3">
+                            <button type="button" onclick="document.getElementById('fastTrackModal').classList.add('hidden')" class="w-1/3 bg-black/60 border border-gray-700 text-gray-400 font-black text-xs py-3.5 rounded-xl hover:bg-gray-800 hover:text-white transition uppercase tracking-wider">Later</button>
+                            <button type="submit" class="btn-shimmer w-2/3 bg-gradient-to-r from-brand to-green-500 text-black font-black text-xs sm:text-sm py-3.5 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.35)] hover:brightness-110 active:scale-95 transition-all uppercase tracking-wider">
+                                <i class="fa-solid fa-bolt mr-1"></i> Submit & Activate
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        <script> document.getElementById('fastTrackModal').classList.remove('hidden'); </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById('fastTrackModal').classList.remove('hidden');
+            });
+        </script>
         {% endif %}
     {% endwith %}
 
-    <!-- REGISTER MODAL -->
-    <div id="registerModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity"></div>
-        
-        <div class="glass-card border border-gray-700 rounded-3xl w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 flex flex-col max-h-[90vh] overflow-hidden animate-scale-in">
-            
-            <div class="p-6 md:p-8 flex justify-between items-center border-b border-white/5 shrink-0 bg-black/20">
-                <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3"><i class="fa-solid fa-user-plus text-brand"></i> Create Account</h3>
-                <button type="button" onclick="document.getElementById('registerModal').classList.add('hidden')" class="text-gray-500 hover:text-white bg-white/5 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- ========================================================= -->
+    <!-- 👤 2. CREATE VIP ACCOUNT MODAL                            -->
+    <!-- ========================================================= -->
+    <div id="registerModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity" onclick="document.getElementById('registerModal').classList.add('hidden')"></div>
+
+        <div class="glass-card border border-gray-700/80 rounded-3xl w-full max-w-lg shadow-[0_0_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
+
+            <div class="p-5 sm:p-6 flex justify-between items-center border-b border-white/10 shrink-0 bg-black/30">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
+                        <i class="fa-solid fa-user-plus text-brand"></i> Create VIP Account
+                    </h3>
+                    <p class="text-[11px] text-gray-400 mt-0.5">Instant access to 37 Casino Originals & Live Sportsbook</p>
+                </div>
+                <button type="button" onclick="document.getElementById('registerModal').classList.add('hidden')" class="text-gray-400 hover:text-white bg-white/5 w-9 h-9 rounded-full flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            
-            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
-                <form method="POST" action="{{ url_for('register') }}" class="space-y-5">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
+                <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Player ID</label>
-                            <input type="text" name="username" placeholder="e.g. rohan12" class="glass-input w-full rounded-xl p-4 text-white text-sm focus:outline-none placeholder-gray-600 font-medium" required>
+                            <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Choose Player ID</label>
+                            <div class="relative glass-input rounded-xl overflow-hidden">
+                                <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                                <input type="text" name="username" placeholder="e.g. rohan777" class="w-full bg-transparent py-3 pl-9 pr-3 text-white text-sm font-semibold focus:outline-none placeholder-gray-600" required>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Mobile Number</label>
-                            <input type="text" name="mobile" placeholder="10-digit number" class="glass-input w-full rounded-xl p-4 text-white text-sm focus:outline-none placeholder-gray-600 font-medium" required>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Password</label>
-                            <input type="password" name="password" placeholder="••••••••" class="glass-input w-full rounded-xl p-4 text-white text-sm focus:outline-none placeholder-gray-600 tracking-widest" required>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Confirm Pass</label>
-                            <input type="password" name="confirm_password" placeholder="••••••••" class="glass-input w-full rounded-xl p-4 text-white text-sm focus:outline-none placeholder-gray-600 tracking-widest" required>
+                            <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Mobile Number</label>
+                            <div class="relative glass-input rounded-xl overflow-hidden">
+                                <i class="fa-solid fa-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                                <input type="tel" name="mobile" pattern="[0-9]{10,15}" placeholder="10-digit mobile" class="w-full bg-transparent py-3 pl-9 pr-3 text-white text-sm font-mono font-semibold focus:outline-none placeholder-gray-600" required>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="pt-4 border-t border-white/5">
-                        <label class="block text-[11px] font-black text-brand mb-1 uppercase tracking-widest pl-1"><i class="fa-solid fa-gift mr-1"></i> VIP Invite Code (Optional)</label>
-                        <p class="text-[10px] text-gray-500 mb-3 pl-1 font-medium">Enter a friend's username to unlock a ₹50 Welcome Bonus!</p>
-                        <input type="text" name="referral_code" placeholder="Enter invite code" class="glass-input w-full rounded-xl p-4 text-white text-sm focus:outline-none border-brand/30 focus:border-brand placeholder-gray-600 font-mono">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Password</label>
+                            <div class="relative glass-input rounded-xl overflow-hidden">
+                                <input type="password" id="reg-pass" name="password" oninput="checkPasswordMatch()" placeholder="••••••••" class="w-full bg-transparent py-3 pl-3.5 pr-9 text-white text-sm font-semibold focus:outline-none placeholder-gray-600" required>
+                                <button type="button" onclick="togglePasswordVisibility('reg-pass', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white" tabindex="-1">
+                                    <i class="fa-solid fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5 pl-1">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Confirm Password</label>
+                                <span id="pass-match-badge" class="text-[9px] font-mono font-bold text-gray-500"></span>
+                            </div>
+                            <div class="relative glass-input rounded-xl overflow-hidden">
+                                <input type="password" id="reg-confirm-pass" name="confirm_password" oninput="checkPasswordMatch()" placeholder="••••••••" class="w-full bg-transparent py-3 pl-3.5 pr-9 text-white text-sm font-semibold focus:outline-none placeholder-gray-600" required>
+                                <button type="button" onclick="togglePasswordVisibility('reg-confirm-pass', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white" tabindex="-1">
+                                    <i class="fa-solid fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="pt-6">
-                        <button type="submit" class="w-full bg-gradient-to-r from-brand to-green-600 text-black font-black text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(28,218,58,0.3)] hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider">Complete Registration</button>
+
+                    <div class="pt-3 border-t border-white/10">
+                        <div class="flex items-center justify-between mb-1 pl-1">
+                            <label class="text-[10px] font-black text-brand uppercase tracking-widest">
+                                <i class="fa-solid fa-gift mr-1"></i> VIP Invite / Referral Code (Optional)
+                            </label>
+                            <span class="bg-brand/15 text-brand text-[9px] font-black px-2 py-0.5 rounded-full border border-brand/30">+₹50 BONUS</span>
+                        </div>
+                        <input type="text" name="referral_code" placeholder="Enter friend's Player ID for ₹50 Bonus" class="glass-input w-full rounded-xl p-3 text-white text-sm focus:outline-none border-brand/30 placeholder-gray-600 font-mono">
+                    </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn-shimmer w-full bg-gradient-to-r from-brand via-emerald-400 to-green-500 text-black font-black text-base py-4 rounded-2xl shadow-[0_0_25px_rgba(28,218,58,0.35)] hover:brightness-110 active:scale-[0.98] transition-all uppercase tracking-wider">
+                            <i class="fa-solid fa-bolt mr-1"></i> Complete VIP Registration
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- T&C MODAL -->
+    <!-- ========================================================= -->
+    <!-- ⚖️ 3. TERMS & CONDITIONS MODAL                            -->
+    <!-- ========================================================= -->
     <div id="tcModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity"></div>
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-opacity" onclick="document.getElementById('tcModal').classList.add('hidden')"></div>
         <div class="glass-card border border-gray-700 rounded-3xl w-full max-w-lg shadow-2xl relative z-10 flex flex-col max-h-[85vh] animate-scale-in overflow-hidden">
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-black/20 shrink-0">
-                <h3 class="text-xl font-black text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-brand"></i> Terms & Conditions</h3>
-                <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="text-gray-500 hover:text-white bg-white/5 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <div class="p-5 sm:p-6 border-b border-white/10 flex justify-between items-center bg-black/30 shrink-0">
+                <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-brand"></i> Terms & Conditions</h3>
+                <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="text-gray-400 hover:text-white bg-white/5 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar text-sm text-gray-300 space-y-6 flex-1">
-                <div><p class="font-black text-white text-base mb-1">1. Age Requirement and Eligibility</p><p class="text-gray-400 leading-relaxed">You must be at least 18 years of age to use Novabetx. By accessing this platform, you legally declare that you meet this requirement.</p></div>
-                <div><p class="font-black text-white text-base mb-1">2. Financial Risk Acknowledgment</p><p class="text-gray-400 leading-relaxed">Sports betting and casino games involve financial risk. You acknowledge that you are using this platform at your own risk and that Novabetx is not liable for any financial losses incurred.</p></div>
-                <div><p class="font-black text-white text-base mb-1">3. Account Security</p><p class="text-gray-400 leading-relaxed">You are solely responsible for maintaining the confidentiality of your login credentials.</p></div>
-                <div><p class="font-black text-white text-base mb-1">4. Deposits and Withdrawals</p><p class="text-gray-400 leading-relaxed">All deposits must be made using payment methods registered in your own name. Withdrawals will only be processed to bank accounts matching the verified user details.</p></div>
+            <div class="p-6 overflow-y-auto custom-scrollbar text-xs sm:text-sm text-gray-300 space-y-5 flex-1 leading-relaxed">
+                <div><p class="font-black text-white text-sm sm:text-base mb-1">1. Age Requirement and Eligibility</p><p class="text-gray-400">You must be at least 18 years of age to register and participate on Novabetx. By signing in, you confirm that you meet the legal age requirement in your jurisdiction.</p></div>
+                <div><p class="font-black text-white text-sm sm:text-base mb-1">2. Provably Fair Gaming & Risk</p><p class="text-gray-400">Sports betting and multiplier casino games involve financial risk. Never wager funds you cannot afford to lose. All original games operate on verifiable cryptographic fairness.</p></div>
+                <div><p class="font-black text-white text-sm sm:text-base mb-1">3. Vault & Account Security</p><p class="text-gray-400">Each player is permitted a single verified account. Keep your password confidential at all times.</p></div>
+                <div><p class="font-black text-white text-sm sm:text-base mb-1">4. Deposits & Instant Withdrawals</p><p class="text-gray-400">Deposits must include a valid 12-digit UTR number and payment screenshot. Withdrawals are processed directly to your verified bank or UPI account.</p></div>
             </div>
-            <div class="p-6 border-t border-white/5 bg-black/40 shrink-0">
-                <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="w-full bg-white/10 text-white border border-white/20 font-black py-4 rounded-xl hover:bg-white/20 transition uppercase tracking-wider text-sm active:scale-95">I Understand</button>
+            <div class="p-5 border-t border-white/10 bg-black/40 shrink-0">
+                <button type="button" onclick="document.getElementById('tcModal').classList.add('hidden')" class="w-full bg-brand text-black font-black py-3.5 rounded-xl hover:brightness-110 transition uppercase tracking-wider text-xs active:scale-95">I Understand & Agree</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- ========================================================= -->
+    <!-- SCRIPTS: AUDIO, PARTICLES, UI HELPERS & ANTI-INSPECT      -->
+    <!-- ========================================================= -->
     <script>
+        // 1. Web Audio Subtle Feedback
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playClickTone(freq = 780) {
+            if (!audioCtx) return;
+            try {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'sine';
+                o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.start();
+                o.stop(audioCtx.currentTime + 0.05);
+            } catch (e) {}
+        }
+
+        // 2. Non-Shifting Toast Notification
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+            const t = document.createElement('div');
+            t.className = 'bg-[#0f291e]/95 border border-brand/60 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 pointer-events-auto';
+            t.innerHTML = `<i class="fa-solid fa-circle-check text-brand text-base"></i> <span>${msg}</span>`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 2400);
+        }
+
+        // 3. Copy Helper
         function copyText(text, btn) {
+            initAudio();
+            playClickTone(920);
             navigator.clipboard.writeText(text);
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check text-green-500 scale-125 transition-transform"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-check text-brand scale-125 transition-transform"></i>';
+            showToast(`Copied: ${text}`);
             setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
         }
 
+        // 4. Open Register Modal
+        function openRegisterModal() {
+            initAudio();
+            playClickTone(840);
+            document.getElementById('registerModal').classList.remove('hidden');
+        }
+
+        // 5. Toggle Password Eye Visibility
+        function togglePasswordVisibility(inputId, btn) {
+            initAudio();
+            playClickTone(700);
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-xs text-brand';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+
+        // 6. Live Password Match Indicator
+        function checkPasswordMatch() {
+            const p1 = document.getElementById('reg-pass').value;
+            const p2 = document.getElementById('reg-confirm-pass').value;
+            const badge = document.getElementById('pass-match-badge');
+            if (!p2) {
+                badge.innerText = '';
+                return;
+            }
+            if (p1 === p2) {
+                badge.innerText = '✓ MATCH';
+                badge.className = 'text-[9px] font-mono font-black text-brand';
+            } else {
+                badge.innerText = '✗ MISMATCH';
+                badge.className = 'text-[9px] font-mono font-black text-red-400';
+            }
+        }
+
+        // 7. Fast-Track Screenshot Thumbnail Preview
+        function previewFastTrackImage(input) {
+            const box = document.getElementById('fast-img-preview-box');
+            const img = document.getElementById('fast-img-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    box.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 8. Interactive Background Constellation Canvas
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            const canvas = document.getElementById('bg-particles');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            window.addEventListener('resize', () => {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            });
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            const count = window.innerWidth < 768 ? 28 : 55;
+            const nodes = Array.from({ length: count }, () => ({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.45,
+                vy: (Math.random() - 0.5) * 0.45,
+                r: 1 + Math.random() * 1.8
+            }));
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            function drawParticles() {
+                ctx.clearRect(0, 0, w, h);
+                for (let i = 0; i < nodes.length; i++) {
+                    const n = nodes[i];
+                    n.x += n.vx;
+                    n.y += n.vy;
+                    if (n.x < 0 || n.x > w) n.vx *= -1;
+                    if (n.y < 0 || n.y > h) n.vy *= -1;
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(28, 218, 58, 0.55)';
+                    ctx.fill();
 
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const m = nodes[j];
+                        const dx = n.x - m.x;
+                        const dy = n.y - m.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 130) {
+                            ctx.beginPath();
+                            ctx.moveTo(n.x, n.y);
+                            ctx.lineTo(m.x, m.y);
+                            ctx.strokeStyle = `rgba(28, 218, 58, ${(1 - dist / 130) * 0.14})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(drawParticles);
+            }
+            requestAnimationFrame(drawParticles);
+        })();
 
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
+        // 9. Lock Down DevTools & Inspect Shortcuts (Mac + Windows)
+        (function() {
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
+
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
+
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>

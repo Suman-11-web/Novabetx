@@ -2,164 +2,707 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Racing - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Virtual Racing Pro - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        turfGreen: '#15803d'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .track-bg { background: repeating-linear-gradient(90deg, #166534, #166534 50px, #14532d 50px, #14532d 100px); }
-        .horse-track { border-bottom: 2px dashed rgba(255,255,255,0.2); position: relative; height: 60px; display: flex; align-items: center; }
-        .horse { font-size: 2.5rem; position: absolute; left: 0; transition: left 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
-        .finish-line { position: absolute; right: 10%; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(to bottom, #fff 0, #fff 10px, #000 10px, #000 20px); z-index: 10; }
-        .horse-btn { transition: all 0.2s; border: 2px solid transparent; }
-        .horse-btn.active { border-color: #f59e0b; background: rgba(245, 158, 11, 0.2); transform: scale(1.05); box-shadow: 0 0 15px rgba(245,158,11,0.5); }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(217, 119, 6, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(28, 218, 58, 0.06) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 3D Cinematic Racetrack Arena */
+        .racetrack-stadium {
+            background:
+                linear-gradient(180deg, #022c22 0%, #166534 30%, #14532d 70%, #064e3b 100%);
+            box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(251, 191, 36, 0.35);
+        }
+
+        .track-lane {
+            position: relative;
+            height: 68px;
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .track-lane { height: 76px; }
+        }
+
+        .lane-number {
+            position: absolute;
+            left: 10px;
+            font-size: 11px;
+            font-mono: monospace;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 5;
+        }
+
+        /* Galloping Horse Racer */
+        .horse-racer {
+            position: absolute;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: left 3.2s cubic-bezier(0.15, 0.85, 0.25, 1);
+            will-change: left;
+            z-index: 20;
+        }
+
+        @keyframes gallopBob {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-5px) rotate(2deg); }
+        }
+        .galloping {
+            animation: gallopBob 0.35s infinite ease-in-out;
+        }
+
+        /* Checkered Neon Finish Line */
+        .finish-line {
+            position: absolute;
+            right: 12%;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: repeating-linear-gradient(to bottom, #ffffff 0, #ffffff 12px, #000000 12px, #000000 24px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            z-index: 30;
+        }
+
+        .horse-card-btn {
+            background: rgba(10, 15, 25, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .horse-card-btn:hover {
+            border-color: rgba(245, 158, 11, 0.6);
+            transform: translateY(-2px);
+        }
+        .horse-card-btn.active {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(15, 23, 42, 0.9));
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.45);
+            transform: translateY(-3px);
+        }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
-    <header class="w-full max-w-3xl flex justify-between items-center py-4 border-b border-gray-800 mb-6">
-        <a href="/games" class="text-amber-500 font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
-        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-    </header>
+<body class="text-white min-h-[100dvh] flex flex-col md:flex-row pb-28 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <div class="w-full max-w-3xl my-auto">
-        <div class="track-bg border-4 border-gray-800 rounded-2xl overflow-hidden relative mb-8 shadow-2xl p-4">
-            <div class="finish-line"></div>
-            <div id="result-overlay" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex flex-col items-center justify-center">
-                <div id="result-msg" class="text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-amber-400"></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-amber-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30">3.8X</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-400 font-bold rounded-xl border border-amber-500/20"><i class="fa-solid fa-horse w-5 text-center"></i> Virtual Racing</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-amber-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.45)]">
+                        <i class="fa-solid fa-horse"></i> VIRTUAL RACING
+                    </div>
+                    <span class="text-[10px] font-mono font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden sm:inline-block">PAYS 3.80X</span>
+                </div>
             </div>
 
-            <div class="horse-track"><span class="w-8 font-black text-gray-400">1</span><i id="h-1" class="fa-solid fa-horse-head horse text-red-500"></i></div>
-            <div class="horse-track"><span class="w-8 font-black text-gray-400">2</span><i id="h-2" class="fa-solid fa-horse-head horse text-blue-500"></i></div>
-            <div class="horse-track"><span class="w-8 font-black text-gray-400">3</span><i id="h-3" class="fa-solid fa-horse-head horse text-green-500"></i></div>
-            <div class="horse-track border-none"><span class="w-8 font-black text-gray-400">4</span><i id="h-4" class="fa-solid fa-horse-head horse text-yellow-500"></i></div>
-        </div>
-
-        <div class="bg-[#121721] p-4 rounded-2xl border border-gray-800 mb-6">
-            <div class="text-[10px] text-amber-500 font-bold uppercase tracking-widest mb-3 text-center">Pick Your Horse (Pays 3.8x)</div>
-            <div class="grid grid-cols-4 gap-2">
-                <button onclick="pickHorse(1)" id="btn-1" class="horse-btn active bg-black py-4 rounded-xl text-3xl text-red-500"><i class="fa-solid fa-horse-head"></i></button>
-                <button onclick="pickHorse(2)" id="btn-2" class="horse-btn bg-black py-4 rounded-xl text-3xl text-blue-500"><i class="fa-solid fa-horse-head"></i></button>
-                <button onclick="pickHorse(3)" id="btn-3" class="horse-btn bg-black py-4 rounded-xl text-3xl text-green-500"><i class="fa-solid fa-horse-head"></i></button>
-                <button onclick="pickHorse(4)" id="btn-4" class="horse-btn bg-black py-4 rounded-xl text-3xl text-yellow-500"><i class="fa-solid fa-horse-head"></i></button>
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
             </div>
-        </div>
+        </header>
 
-        <div class="bg-[#0a0d14] p-4 rounded-2xl border border-gray-800 flex gap-3">
-            <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-amber-500 outline-none">
-            <button id="race-btn" onclick="startRace()" class="flex-1 py-4 bg-amber-600 hover:bg-amber-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(217,119,6,0.4)]">START RACE</button>
+        <!-- STADIUM ARENA & RACETRACK -->
+        <div class="max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col gap-5">
+
+            <!-- THE RACETRACK STADIUM -->
+            <div class="glass-panel racetrack-stadium rounded-3xl p-4 md:p-6 relative overflow-hidden shadow-2xl">
+                
+                <!-- Stadium Lights Glow Bar -->
+                <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_20px_#fbbf24]"></div>
+
+                <!-- Finish Line -->
+                <div class="finish-line"></div>
+
+                <!-- Result Overlay Banner -->
+                <div id="result-overlay" class="hidden absolute inset-0 bg-black/80 backdrop-blur-md z-40 flex flex-col items-center justify-center animate-fade-up">
+                    <div id="result-msg" class="text-3xl md:text-5xl font-black italic drop-shadow-[0_0_25px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-amber-400 mb-2">
+                        HORSE 1 WINS!
+                    </div>
+                    <div id="result-sub" class="text-sm font-mono font-bold text-gray-300">
+                        Payout Credited: +₹0.00
+                    </div>
+                </div>
+
+                <!-- 4 Racing Lanes -->
+                <div class="space-y-2.5 my-2">
+                    <!-- Lane 1: Ruby Flash -->
+                    <div class="track-lane rounded-2xl bg-black/40 px-3 border border-red-500/20">
+                        <span class="lane-number">#1</span>
+                        <div id="h-1" class="horse-racer">
+                            <div class="w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 text-2xl shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-red-300 hidden sm:inline bg-black/60 px-2 py-1 rounded">Ruby Flash</span>
+                        </div>
+                    </div>
+
+                    <!-- Lane 2: Cobalt Storm -->
+                    <div class="track-lane rounded-2xl bg-black/40 px-3 border border-blue-500/20">
+                        <span class="lane-number">#2</span>
+                        <div id="h-2" class="horse-racer">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-2xl shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-blue-300 hidden sm:inline bg-black/60 px-2 py-1 rounded">Cobalt Storm</span>
+                        </div>
+                    </div>
+
+                    <!-- Lane 3: Emerald Lightning -->
+                    <div class="track-lane rounded-2xl bg-black/40 px-3 border border-green-500/20">
+                        <span class="lane-number">#3</span>
+                        <div id="h-3" class="horse-racer">
+                            <div class="w-10 h-10 rounded-xl bg-green-600/20 border border-green-500/40 flex items-center justify-center text-green-400 text-2xl shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-green-300 hidden sm:inline bg-black/60 px-2 py-1 rounded">Emerald Lightning</span>
+                        </div>
+                    </div>
+
+                    <!-- Lane 4: Gold Sovereign -->
+                    <div class="track-lane rounded-2xl bg-black/40 px-3 border border-amber-500/20">
+                        <span class="lane-number">#4</span>
+                        <div id="h-4" class="horse-racer">
+                            <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-amber-300 hidden sm:inline bg-black/60 px-2 py-1 rounded">Gold Sovereign</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BETTING & HORSE SELECTION COCKPIT -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                
+                <!-- HORSE SELECTION CARDS (7 Cols) -->
+                <div class="lg:col-span-7 glass-panel rounded-3xl p-5 flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-crown text-amber-400"></i> Select Your Contender (Pays 3.8x)
+                        </span>
+                        <span class="text-[10px] font-mono text-gray-400">Fixed Odds</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+                        <!-- Horse 1 -->
+                        <button type="button" onclick="pickHorse(1)" id="btn-1" class="horse-card-btn active rounded-2xl p-3.5 flex flex-col items-center justify-center text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-500 text-2xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="font-black text-white text-xs uppercase">Ruby Flash</span>
+                            <span class="text-[10px] font-mono font-bold text-amber-400 mt-1">3.80x</span>
+                        </button>
+
+                        <!-- Horse 2 -->
+                        <button type="button" onclick="pickHorse(2)" id="btn-2" class="horse-card-btn rounded-2xl p-3.5 flex flex-col items-center justify-center text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-2xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="font-black text-white text-xs uppercase">Cobalt Storm</span>
+                            <span class="text-[10px] font-mono font-bold text-amber-400 mt-1">3.80x</span>
+                        </button>
+
+                        <!-- Horse 3 -->
+                        <button type="button" onclick="pickHorse(3)" id="btn-3" class="horse-card-btn rounded-2xl p-3.5 flex flex-col items-center justify-center text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-green-500/20 border border-green-500/40 flex items-center justify-center text-green-400 text-2xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="font-black text-white text-xs uppercase">Emerald Lightning</span>
+                            <span class="text-[10px] font-mono font-bold text-amber-400 mt-1">3.80x</span>
+                        </button>
+
+                        <!-- Horse 4 -->
+                        <button type="button" onclick="pickHorse(4)" id="btn-4" class="horse-card-btn rounded-2xl p-3.5 flex flex-col items-center justify-center text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-horse-head"></i>
+                            </div>
+                            <span class="font-black text-white text-xs uppercase">Gold Sovereign</span>
+                            <span class="text-[10px] font-mono font-bold text-amber-400 mt-1">3.80x</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STAKE & RACE START COCKPIT (5 Cols) -->
+                <div class="lg:col-span-5 glass-panel rounded-3xl p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Bet Stake (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-amber-500 rounded-2xl p-1.5 mb-3 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="100" min="10" step="10" oninput="updatePotentialReturn()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Chips -->
+                        <div class="grid grid-cols-6 gap-1.5 mb-4">
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="setExactStake(1000)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">1K</button>
+                            <button type="button" onclick="multiplyStake(0.5)" class="bg-purple-500/15 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="multiplyStake(2)" class="bg-amber-500/15 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- START RACE BUTTON -->
+                    <div>
+                        <button type="button" id="race-btn" onclick="startRace()" class="w-full h-16 md:h-20 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(245,158,11,0.4)] border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 flex flex-col items-center justify-center">
+                            <span id="race-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-flag-checkered"></i> START VIRTUAL RACE</span>
+                            <span id="race-btn-sub" class="text-[10px] font-extrabold tracking-widest uppercase opacity-80">EST. PAYOUT: <span id="payout-preview">₹380.00</span></span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-amber-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Virtual Racing' : 'Race Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action failed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-amber-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            tick: () => Sound.play(820, 'sine', 0.04, 0.04),
+            gate: () => {
+                Sound.play(220, 'square', 0.2, 0.15);
+                setTimeout(() => Sound.play(110, 'sawtooth', 0.4, 0.2), 150);
+            },
+            gallop: () => Sound.play(110 + Math.random() * 40, 'triangle', 0.08, 0.05),
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 310);
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(210, 'sawtooth', 0.25, 0.07), 0);
+                setTimeout(() => Sound.play(150, 'sawtooth', 0.4, 0.08), 230);
+            }
+        };
+
+        // =====================================================
+        // 3. STAKE & HORSE SELECTION
+        // =====================================================
         let chosenHorse = 1;
         let isRacing = false;
 
+        function updatePotentialReturn() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            document.getElementById('payout-preview').innerText = '₹' + (stake * 3.8).toFixed(2);
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            Sound.tick();
+            if (isRacing) return;
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, val + delta);
+            updatePotentialReturn();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            Sound.tick();
+            if (isRacing) return;
+            document.getElementById('stake').value = val;
+            updatePotentialReturn();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (isRacing) return;
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, Math.round(val * factor));
+            updatePotentialReturn();
+        }
+
         function pickHorse(h) {
-            if(isRacing) return;
-            document.querySelectorAll('.horse-btn').forEach(b => b.classList.remove('active'));
+            initAudio();
+            Sound.tick();
+            if (isRacing) return;
+            document.querySelectorAll('.horse-card-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + h).classList.add('active');
             chosenHorse = h;
         }
 
+        // =====================================================
+        // 4. RACE ENGINE & BACKEND DISPATCH (/horse_racing/race)
+        // =====================================================
         async function startRace() {
-            if(isRacing) return;
-            const btn = document.getElementById('race-btn');
+            initAudio();
+            if (isRacing) return;
+
             const stake = parseFloat(document.getElementById('stake').value);
-            
-            btn.disabled = true; btn.innerText = "RACING...";
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const currentBal = parseFloat(document.getElementById('bal').innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient balance!', 'error');
+                return;
+            }
+
             isRacing = true;
+            const btn = document.getElementById('race-btn');
+            const btnTitle = document.getElementById('race-btn-title');
+            const btnSub = document.getElementById('race-btn-sub');
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> RACE IN PROGRESS...`;
+            btnSub.innerText = "HORSES APPROACHING FINISH LINE";
+
             document.getElementById('result-overlay').classList.add('hidden');
-            
-            // Reset horses
-            [1,2,3,4].forEach(i => document.getElementById(`h-${i}`).style.left = '0');
+
+            // Deduct stake visually right away
+            document.getElementById('bal').innerText = Math.max(0, currentBal - stake).toFixed(2);
+
+            // Reset horse positions to 2%
+            [1, 2, 3, 4].forEach(i => {
+                const el = document.getElementById(`h-${i}`);
+                el.style.left = '2%';
+                el.classList.add('galloping');
+            });
+
+            Sound.gate();
 
             try {
-                const res = await fetch('/horse_racing/race', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, horse: chosenHorse}) });
+                const res = await fetch('/horse_racing/race', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake: Number(stake), horse: Number(chosenHorse) })
+                });
+
+                if (!res.ok) throw new Error("Server Error");
                 const d = await res.json();
-                
-                if(d.success) {
-                    // Animate horses
-                    [1,2,3,4].forEach(i => {
+
+                if (!d.success) {
+                    showToast(d.error || 'Could not start race', 'error');
+                    resetRaceButton();
+                    return;
+                }
+
+                // Galloping audio ticks
+                let gallopTicks = setInterval(() => Sound.gallop(), 320);
+
+                // Smooth staggered motion towards finish line (84% for winner, 60-78% for others)
+                setTimeout(() => {
+                    [1, 2, 3, 4].forEach(i => {
                         const hEl = document.getElementById(`h-${i}`);
-                        // The winner goes to 90% (finish line), others randomize between 50% and 85%
-                        const distance = (i === d.winner) ? '90%' : `${50 + Math.random() * 35}%`;
-                        hEl.style.left = distance;
+                        const targetPos = (i === d.winner) ? 84 : (48 + Math.random() * 26);
+                        hEl.style.left = `${targetPos}%`;
                     });
+                }, 150);
 
-                    setTimeout(() => {
-                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                        const msg = document.getElementById('result-msg');
-                        if (d.win) {
-                            msg.innerText = `HORSE ${d.winner} WINS!\n+₹${d.winnings.toFixed(2)}`;
-                            msg.className = "text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-green-400";
-                        } else {
-                            msg.innerText = `HORSE ${d.winner} WINS`;
-                            msg.className = "text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-red-500";
-                        }
-                        document.getElementById('result-overlay').classList.remove('hidden');
-                        btn.disabled = false; btn.innerText = "START RACE";
-                        isRacing = false;
-                    }, 3200);
+                // Finish celebration
+                setTimeout(() => {
+                    clearInterval(gallopTicks);
+                    [1, 2, 3, 4].forEach(i => document.getElementById(`h-${i}`).classList.remove('galloping'));
 
-                } else { alert(d.error); btn.disabled = false; btn.innerText = "START RACE"; isRacing = false; }
-            } catch(e) { alert("Error"); btn.disabled = false; btn.innerText = "START RACE"; isRacing = false; }
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    const msg = document.getElementById('result-msg');
+                    const sub = document.getElementById('result-sub');
+
+                    const horseNames = {1: 'Ruby Flash', 2: 'Cobalt Storm', 3: 'Emerald Lightning', 4: 'Gold Sovereign'};
+
+                    if (d.win) {
+                        Sound.win();
+                        spawnConfetti();
+                        msg.innerText = `${horseNames[d.winner]} WINS!`;
+                        msg.className = "text-3xl md:text-5xl font-black italic drop-shadow-[0_0_25px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-brand mb-2";
+                        sub.innerText = `YOU CHOSE #%d (${horseNames[chosenHorse]}) • WON: +₹${d.winnings.toFixed(2)}`.replace('%d', chosenHorse);
+                        showToast(`Victory! Horse #${d.winner} (${horseNames[d.winner]}) won +₹${d.winnings.toFixed(2)}`, 'success');
+                    } else {
+                        Sound.lose();
+                        msg.innerText = `${horseNames[d.winner]} WINS`;
+                        msg.className = "text-3xl md:text-5xl font-black italic drop-shadow-[0_0_25px_rgba(0,0,0,1)] uppercase tracking-widest text-center text-red-400 mb-2";
+                        sub.innerText = `You chose Horse #${chosenHorse}. Better luck next race!`;
+                        showToast(`Horse #${d.winner} won the race. Try again!`, 'error');
+                    }
+
+                    document.getElementById('result-overlay').classList.remove('hidden');
+                    resetRaceButton();
+                }, 3100);
+
+            } catch (e) {
+                showToast('Network Error during race', 'error');
+                resetRaceButton();
+            }
         }
 
+        function resetRaceButton() {
+            isRacing = false;
+            const btn = document.getElementById('race-btn');
+            const btnTitle = document.getElementById('race-btn-title');
+            const btnSub = document.getElementById('race-btn-sub');
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> START VIRTUAL RACE`;
+            const stake = parseFloat(document.getElementById('stake').value) || 100;
+            btnSub.innerHTML = `EST. PAYOUT: ₹${(stake * 3.8).toFixed(2)}`;
+            [1, 2, 3, 4].forEach(i => document.getElementById(`h-${i}`).classList.remove('galloping'));
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#f59e0b', '#1CDA3A', '#fbbf24', '#38bdf8', '#ffffff'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '40%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        updatePotentialReturn();
+
+        // =====================================================
+        // 7. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>
