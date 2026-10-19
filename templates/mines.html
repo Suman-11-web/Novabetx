@@ -6,322 +6,1043 @@
     <title>Cyber Mines - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#060b12',brand:'#06b6d4'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#050811',
+                        surface: '#0c121e',
+                        surfaceLight: '#151f33',
+                        brand: '#06b6d4',
+                        neonGreen: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
-        .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; width: 100%; }
-        @media (min-width: 1024px) { .grid-container { max-width: 500px; gap: 12px; } }
-        .tile { aspect-ratio: 1; background: #1e293b; border: 2px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
-        .tile:hover { background: #334155; border-color: #475569; } .tile:active { transform: scale(0.95); } .tile.revealed { transform: rotateY(180deg); cursor: default; }
-        .tile-front, .tile-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
-        .tile-back { transform: rotateY(180deg); }
-        .tile-diamond .tile-back { background: radial-gradient(circle, #22c55e 0%, #14532d 100%); border: 2px solid #4ade80; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(34,197,94,0.6); }
-        .tile-bomb .tile-back { background: radial-gradient(circle, #ef4444 0%, #7f1d1d 100%); border: 2px solid #f87171; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(239,68,68,0.6); }
-        .bomb-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-        .glass-panel { background: rgba(15, 20, 30, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #050811;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(12, 18, 30, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 5x5 Cyber Vault Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+        @media (min-width: 768px) {
+            .grid-container { max-width: 470px; gap: 11px; }
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+        }
+
+        .tile:not(.revealed):hover {
+            transform: translateY(-3px) scale(1.03);
+        }
+        .tile:not(.revealed):active {
+            transform: scale(0.93);
+        }
+        .tile.revealed {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+
+        .tile-front, .tile-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Unopened Vault Door */
+        .tile-front {
+            background: linear-gradient(145deg, #162235 0%, #0d1524 100%);
+            border: 1.5px solid rgba(56, 189, 248, 0.18);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .tile:not(.revealed):hover .tile-front {
+            border-color: rgba(6, 182, 212, 0.75);
+            box-shadow: 0 0 18px rgba(6, 182, 212, 0.3), inset 0 0 12px rgba(6, 182, 212, 0.15);
+        }
+
+        .tile-front::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.18);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+            transition: all 0.2s ease;
+        }
+        .tile:not(.revealed):hover .tile-front::after {
+            background: #06b6d4;
+            transform: scale(1.35);
+            box-shadow: 0 0 14px #06b6d4;
+        }
+
+        /* Scanner Highlight Pulse */
+        @keyframes scanPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.8); }
+            50% { box-shadow: 0 0 25px 6px rgba(6, 182, 212, 0.9); }
+        }
+        .tile-scanning .tile-front {
+            border-color: #22d3ee !important;
+            animation: scanPulse 0.35s ease-in-out infinite;
+        }
+
+        .tile-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Revealed Diamond Tile */
+        .tile-diamond .tile-back {
+            background: radial-gradient(circle at 35% 30%, #10b981 0%, #065f46 65%, #022c22 100%);
+            border: 2px solid #34d399;
+            box-shadow:
+                0 0 25px rgba(16, 185, 129, 0.55),
+                inset 0 0 15px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Revealed Bomb Tile */
+        .tile-bomb .tile-back {
+            background: radial-gradient(circle at 35% 30%, #ef4444 0%, #991b1b 65%, #450a0a 100%);
+            border: 2px solid #f87171;
+            box-shadow:
+                0 0 30px rgba(239, 68, 68, 0.75),
+                inset 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Post-Game Uncovered Dimmed Tiles */
+        .tile-missed {
+            opacity: 0.42;
+            filter: saturate(0.65);
+        }
+
+        @keyframes gemPop {
+            0% { transform: scale(0.3) rotate(-15deg); }
+            70% { transform: scale(1.22) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .anim-gem { animation: gemPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        /* Screen Shake on Detonation */
+        .bomb-shake { animation: shake 0.48s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(4px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 3px, 0); }
+            40%, 60% { transform: translate3d(6px, -3px, 0); }
+        }
+
+        .mine-preset-btn.active {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(59, 130, 246, 0.25));
+            border-color: #06b6d4;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+        }
+
+        .step-pill.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #000000;
+            border-color: #34d399;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            transform: scale(1.06);
+        }
+
+        /* Floating Glass Bottom Navigation Bar */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-16 md:pb-0" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0" onclick="initAudio()">
 
-    <div id="toast-container"></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0 z-50">
-        <div class="p-6 border-b border-gray-800">
+    <!-- PARTICLE / CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d16] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
             <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-cyan-500/15 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30">MINES</span>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-2">Menu</div>
             <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
-            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/20 font-bold transition"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/20 font-bold transition"><i class="fa-solid fa-bomb w-5 text-center"></i> Cyber Mines</a>
             <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-6">Account</div>
             <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
             <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-500/10 text-green-500 hover:text-green-400 font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
         </nav>
-        <div class="p-4 border-t border-gray-800">
-            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-brand text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
         </div>
     </aside>
 
+    <!-- MAIN WORKSPACE -->
     <main class="flex-1 flex flex-col min-h-screen relative w-full overflow-x-hidden">
         
-        <header class="md:hidden flex justify-between items-center bg-[#03060a] px-4 py-3 border-b border-gray-800 shadow-md sticky top-0 z-40">
-            <div class="flex gap-2">
-                <div class="bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full text-[10px] font-black tracking-widest border border-cyan-500/30 flex items-center gap-2">
+        <!-- MOBILE HEADER -->
+        <header class="md:hidden flex justify-between items-center bg-[#070b14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 shadow-md sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('games') }}" class="text-gray-400 hover:text-white mr-1"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="bg-cyan-500/20 text-cyan-400 px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider border border-cyan-500/30 flex items-center gap-1.5 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
                     <i class="fa-solid fa-bomb"></i> MINES
                 </div>
-                <button onclick="document.getElementById('fairModal').classList.remove('hidden')" class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-[10px] font-bold border border-blue-500/30 flex items-center gap-1 hover:bg-blue-500/40">
+                <button onclick="document.getElementById('fairModal').classList.remove('hidden')" class="bg-blue-500/15 text-blue-400 px-2.5 py-0.5 rounded-lg text-[10px] font-black border border-blue-500/30 flex items-center gap-1">
                     <i class="fa-solid fa-shield-halved"></i> FAIR
                 </button>
             </div>
-            <div class="text-right">
-                <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-7 h-7 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 text-xs">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-2.5 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] text-gray-400 font-bold mr-1">₹</span>
+                    <div class="font-black text-brand text-sm font-mono transition-transform duration-300" id="balance-wrapper">
+                        <span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <div class="hidden md:flex justify-between items-center p-4 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
-            <button onclick="document.getElementById('fairModal').classList.remove('hidden')" class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider border border-blue-500/30 flex items-center gap-2 hover:bg-blue-500/40 transition">
-                <i class="fa-solid fa-shield-halved"></i> Provably Fair
-            </button>
-            <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
-                <div class="text-right">
-                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                    <div class="text-lg font-black text-brand">₹<span id="desktop-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+        <!-- DESKTOP TOP BAR -->
+        <div class="hidden md:flex justify-between items-center px-6 py-3 border-b border-gray-800/80 bg-[#090d16]/95 backdrop-blur-md sticky top-0 z-40 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="bg-cyan-500/15 text-cyan-400 px-3 py-1 rounded-xl text-xs font-black italic tracking-wider border border-cyan-500/30 flex items-center gap-2">
+                    <i class="fa-solid fa-bomb"></i> CYBER MINES 5×5
                 </div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
+                <button onclick="document.getElementById('fairModal').classList.remove('hidden')" class="bg-blue-500/15 text-blue-400 px-3.5 py-1.5 rounded-xl font-black uppercase text-[11px] tracking-wider border border-blue-500/30 flex items-center gap-1.5 hover:bg-blue-500/30 transition">
+                    <i class="fa-solid fa-shield-halved"></i> Provably Fair SHA-256
+                </button>
+            </div>
+            <div class="flex items-center gap-4 bg-surface px-4 py-1.5 rounded-2xl border border-gray-700/80 shadow-inner">
+                <div class="text-right">
+                    <div class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Available Wallet</div>
+                    <div class="text-base font-black text-brand font-mono">₹<span id="desktop-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+                </div>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-cyan-400 text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider transition shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Deposit</a>
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row flex-1 p-4 md:p-8 gap-8 items-center justify-center max-w-7xl mx-auto w-full">
+        <!--MULTIPLIER LADDER RIBBON -->
+        <div class="bg-[#070b13] px-4 py-2 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-stairs text-brand"></i> Multiplier Ladder:
+            </span>
+            <div id="multiplier-ladder" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5"></div>
+        </div>
+
+        <!-- MAIN STAGE: 5x5 VAULT GRID + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row p-3.5 md:p-6 gap-6 items-center lg:items-stretch justify-center max-w-6xl mx-auto w-full">
             
-            <div class="flex-1 flex flex-col items-center justify-center w-full min-h-[350px] lg:min-h-0">
-                <div id="multiplier-display" class="text-4xl md:text-6xl font-black text-cyan-400 mb-6 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] opacity-50 transition-opacity">1.00x</div>
-                <div class="grid-container w-full" id="mines-grid"></div>
+            <!-- LEFT / TOP: 5x5 CYBER VAULT ARENA -->
+            <div id="board-arena" class="flex-1 glass-panel rounded-3xl p-4 md:p-6 flex flex-col items-center justify-between w-full relative overflow-hidden">
+                
+                <!-- Top Telemetry HUD Bar -->
+                <div class="w-full grid grid-cols-3 gap-2.5 mb-4">
+                    <div class="bg-black/50 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Current Mult</div>
+                        <div id="multiplier-display" class="text-lg md:text-2xl font-black font-mono text-brand drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">1.00x</div>
+                    </div>
+                    <div class="bg-black/50 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Diamonds Left</div>
+                        <div class="text-lg md:text-2xl font-black font-mono text-emerald-400 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-gem text-xs"></i> <span id="hud-gems-left">22</span>
+                        </div>
+                    </div>
+                    <div class="bg-black/50 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Next Tile</div>
+                        <div id="hud-next-mult" class="text-lg md:text-2xl font-black font-mono text-amber-400">1.15x</div>
+                    </div>
+                </div>
+
+                <!-- 5x5 Vault Grid -->
+                <div class="grid-container my-auto py-1" id="mines-grid"></div>
+
+                <!-- Bottom Arena Status Strip -->
+                <div class="w-full mt-4 pt-3 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
+                    <span id="arena-status-text" class="font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-brand animate-ping"></span> Configure stake & mines to arm grid
+                    </span>
+                    <button type="button" onclick="document.getElementById('fairModal').classList.remove('hidden')" class="text-[11px] font-mono text-cyan-400 hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-[10px]"></i> SHA-256 Verified
+                    </button>
+                </div>
             </div>
 
-            <div class="w-full lg:w-[420px] shrink-0">
-                <div class="glass-panel rounded-3xl p-5 md:p-8 w-full shadow-2xl border border-gray-700 bg-[#0c131d]">
-                    <div id="setup-controls">
-                        <div class="flex flex-col gap-5 mb-8">
+            <!-- RIGHT / BOTTOM: CONTROL COCKPIT -->
+            <div class="w-full lg:w-[390px] shrink-0 flex flex-col">
+                <div class="glass-panel rounded-3xl p-5 md:p-6 w-full h-full flex flex-col justify-between">
+
+                    <!-- 1. SETUP CONTROLS (When Game Not Active) -->
+                    <div id="setup-controls" class="flex flex-col justify-between h-full space-y-5">
+                        <div class="space-y-5">
+                            <!-- Stake Input -->
                             <div>
-                                <label class="block text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Stake Amount (₹)</label>
-                                <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-2 py-1 shadow-inner">
-                                    <button onclick="adjustStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-2xl transition">-</button>
-                                    <input type="number" id="stake-amount" value="50" class="w-full bg-transparent text-center text-white font-black text-2xl py-2 focus:outline-none focus:border-cyan-500 transition-colors">
-                                    <button onclick="adjustStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-2xl transition">+</button>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label class="text-[11px] text-gray-400 font-black uppercase tracking-wider">Bet Stake (₹)</label>
+                                    <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-black/75 border border-gray-700 focus-within:border-brand rounded-2xl p-1.5 shadow-inner mb-2.5">
+                                    <button type="button" onclick="adjustStake(-50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                                    <div class="relative flex-1">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brand font-black text-sm">₹</span>
+                                        <input type="number" id="stake-amount" value="50" min="10" oninput="refreshPreviewHUD()" class="w-full bg-transparent text-center text-white font-black font-mono text-xl py-1.5 pl-4 focus:outline-none">
+                                    </div>
+                                    <button type="button" onclick="adjustStake(50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                                </div>
+
+                                <!-- Quick Stake Chips -->
+                                <div class="grid grid-cols-6 gap-1.5">
+                                    <button type="button" onclick="setExactStake(10)" class="bg-surfaceLight hover:bg-gray-700 border border-gray-700/80 rounded-xl py-1.5 text-xs font-extrabold text-gray-200 transition active:scale-95">10</button>
+                                    <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 border border-gray-700/80 rounded-xl py-1.5 text-xs font-extrabold text-gray-200 transition active:scale-95">50</button>
+                                    <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 border border-gray-700/80 rounded-xl py-1.5 text-xs font-extrabold text-gray-200 transition active:scale-95">100</button>
+                                    <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 border border-gray-700/80 rounded-xl py-1.5 text-xs font-extrabold text-gray-200 transition active:scale-95">500</button>
+                                    <button type="button" onclick="multiplyStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 rounded-xl py-1.5 text-xs font-black text-purple-300 transition active:scale-95">½</button>
+                                    <button type="button" onclick="multiplyStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 rounded-xl py-1.5 text-xs font-black text-amber-300 transition active:scale-95">2×</button>
                                 </div>
                             </div>
+
+                            <!-- Mine Count Selector (Synced with hidden #mines-count select) -->
                             <div>
-                                <label class="block text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Number of Mines</label>
-                                <select id="mines-count" class="w-full bg-black/60 border border-gray-700 rounded-xl text-center text-white font-black text-xl p-4 focus:outline-none focus:border-cyan-500 shadow-inner">
-                                    <option value="3">3 Mines</option>
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[11px] text-gray-400 font-black uppercase tracking-wider">Bomb Density</label>
+                                    <span id="risk-badge" class="text-[10px] font-mono font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">LOW RISK • +0.15x / HIT</span>
+                                </div>
+
+                                <!-- Hidden select kept for 100% compatibility -->
+                                <select id="mines-count" class="hidden">
+                                    <option value="3" selected>3 Mines</option>
                                     <option value="5">5 Mines</option>
                                     <option value="10">10 Mines</option>
                                 </select>
+
+                                <div class="grid grid-cols-3 gap-2.5">
+                                    <button type="button" onclick="selectMinesCount(3, this)" class="mine-preset-btn active bg-black/60 border border-gray-700 rounded-2xl p-3 text-center transition">
+                                        <div class="text-red-400 text-xs mb-0.5"><i class="fa-solid fa-bomb"></i> 3 Mines</div>
+                                        <div class="text-[10px] font-mono text-gray-400">22 Gems</div>
+                                    </button>
+                                    <button type="button" onclick="selectMinesCount(5, this)" class="mine-preset-btn bg-black/60 border border-gray-700 rounded-2xl p-3 text-center transition">
+                                        <div class="text-orange-400 text-xs mb-0.5"><i class="fa-solid fa-bomb"></i> 5 Mines</div>
+                                        <div class="text-[10px] font-mono text-gray-400">20 Gems</div>
+                                    </button>
+                                    <button type="button" onclick="selectMinesCount(10, this)" class="mine-preset-btn bg-black/60 border border-gray-700 rounded-2xl p-3 text-center transition">
+                                        <div class="text-rose-500 text-xs mb-0.5"><i class="fa-solid fa-bomb"></i> 10 Mines</div>
+                                        <div class="text-[10px] font-mono text-gray-400">15 Gems</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 1st Hit Preview Box -->
+                            <div class="bg-black/45 border border-gray-800 rounded-2xl p-3.5 space-y-1.5 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400 font-semibold">1st Diamond Payout:</span>
+                                    <span id="preview-first-hit" class="font-mono font-black text-brand">₹57.50 (1.15x)</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400 font-semibold">5th Diamond Payout:</span>
+                                    <span id="preview-fifth-hit" class="font-mono font-black text-emerald-400">₹87.50 (1.75x)</span>
+                                </div>
                             </div>
                         </div>
-                        <button id="btn-start" onclick="startGame()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-2xl py-5 rounded-xl hover:from-cyan-400 hover:to-blue-500 shadow-[0_0_25px_rgba(6,182,212,0.4)] active:scale-95 transition-all tracking-wider uppercase">START GAME</button>
-                    </div>
 
-                    <div id="game-controls" class="hidden">
-                        <div class="text-center font-bold text-gray-400 mb-6 bg-black/40 p-6 rounded-2xl border border-gray-800">
-                            Potential Win<br>
-                            <span class="text-3xl md:text-4xl font-black text-brand mt-2 block">₹<span id="potential-win">0.00</span></span>
-                        </div>
-                        <button id="btn-cashout" onclick="cashout()" class="w-full bg-gradient-to-r from-green-500 to-brand text-black font-black text-2xl py-5 rounded-xl shadow-[0_0_25px_rgba(34,197,94,0.5)] active:scale-95 transition-all tracking-wider uppercase">
-                            CASH OUT
+                        <button type="button" id="btn-start" onclick="startGame()" class="w-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:brightness-110 text-black font-black text-xl py-4 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.45)] border-b-4 border-cyan-900 active:translate-y-0.5 active:border-b-0 transition-all tracking-wider uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> START CYBER MINES
                         </button>
                     </div>
+
+                    <!-- 2. ACTIVE GAME CONTROLS (When Playing) -->
+                    <div id="game-controls" class="hidden flex-col justify-between h-full space-y-4">
+                        <div class="space-y-4">
+                            <!-- Live Cashout Value Card -->
+                            <div class="text-center bg-gradient-to-b from-emerald-950/60 to-black/80 p-5 rounded-2xl border border-emerald-500/40 shadow-[0_0_25px_rgba(16,185,129,0.15)]">
+                                <div class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">Current Cashout Value</div>
+                                <div class="text-3xl md:text-4xl font-black font-mono text-white drop-shadow">
+                                    ₹<span id="potential-win">0.00</span>
+                                </div>
+                                <div class="text-xs font-mono text-emerald-400 mt-1">
+                                    Net Profit: +₹<span id="net-profit-win">0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Live Progress Telemetry -->
+                            <div class="grid grid-cols-2 gap-2.5 text-center">
+                                <div class="bg-black/50 border border-gray-800 rounded-xl p-3">
+                                    <div class="text-[9px] font-bold text-gray-500 uppercase">Gems Uncovered</div>
+                                    <div id="active-gems-found" class="text-base font-mono font-black text-emerald-400 mt-0.5">0</div>
+                                </div>
+                                <div class="bg-black/50 border border-gray-800 rounded-xl p-3">
+                                    <div class="text-[9px] font-bold text-gray-500 uppercase">Next Tile Win</div>
+                                    <div id="active-next-payout" class="text-base font-mono font-black text-amber-400 mt-0.5">₹0.00</div>
+                                </div>
+                            </div>
+
+                            <!-- Pick Random Tile Button -->
+                            <button type="button" id="btn-random-pick" onclick="pickRandomTile()" class="w-full py-3.5 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 font-black text-xs uppercase tracking-widest rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Pick Random Safe Tile
+                            </button>
+                        </div>
+
+                        <button type="button" id="btn-cashout" onclick="cashout()" class="w-full bg-gradient-to-r from-emerald-500 to-green-400 hover:brightness-110 text-black font-black text-xl py-4 rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.5)] border-b-4 border-emerald-900 active:translate-y-0.5 active:border-b-0 transition-all tracking-wider uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-sack-dollar"></i> CASH OUT WINNINGS
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
         </div>
     </main>
 
+    <!-- PROVABLY FAIR MODAL -->
     <div id="fairModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-[#111] border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-black text-white"><i class="fa-solid fa-shield-halved text-blue-500"></i> Provably Fair</h3>
+        <div class="bg-[#0d131f] border border-gray-700 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-800">
+                <h3 class="text-lg font-black text-white flex items-center gap-2"><i class="fa-solid fa-shield-halved text-brand"></i> Provably Fair SHA-256</h3>
                 <button onclick="document.getElementById('fairModal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <p class="text-xs text-gray-400 mb-4">Mines positions are mathematically fixed before you click! We hash the grid positions with your seed.</p>
+            <p class="text-xs text-gray-400 mb-4 leading-relaxed">Mine coordinates are cryptographically locked before your first click by hashing the Server Seed with your Client Seed.</p>
             
             <div class="mb-4">
-                <label class="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Your Client Seed (Editable)</label>
-                <input type="text" id="client-seed" value="novabetx_player" class="w-full bg-black border border-gray-700 rounded-lg p-2 text-white text-sm font-mono focus:border-cyan-500 outline-none">
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Your Client Seed (Editable)</label>
+                <input type="text" id="client-seed" value="novabetx_player" class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-white text-xs font-mono focus:border-brand outline-none">
             </div>
 
-            <div class="bg-black/50 p-3 rounded-xl border border-gray-800 text-[10px] font-mono text-gray-400 break-all mb-4">
-                <div class="mb-2"><span class="text-cyan-400 font-bold block mb-1">Current Active Grid Hash:</span> <span id="active-hash">Start a game to generate!</span></div>
-                <div class="border-t border-gray-700 pt-2 mt-2"><span class="text-white font-bold block mb-1">Uncovered Server Seed (After game ends):</span> <span id="uncovered-seed">Hidden until game finishes.</span></div>
+            <div class="bg-black/60 p-3.5 rounded-2xl border border-gray-800 text-[10px] font-mono text-gray-400 break-all mb-5 space-y-2.5">
+                <div>
+                    <span class="text-brand font-bold block mb-0.5 uppercase">Current Active SHA-256 Hash:</span>
+                    <span id="active-hash" class="text-gray-200">Start a game to generate!</span>
+                </div>
+                <div class="border-t border-gray-800 pt-2.5">
+                    <span class="text-emerald-400 font-bold block mb-0.5 uppercase">Uncovered Server Seed (Post-Round):</span>
+                    <span id="uncovered-seed" class="text-gray-200">Hidden until round finishes.</span>
+                </div>
             </div>
             
-            <button onclick="document.getElementById('fairModal').classList.add('hidden')" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">Close</button>
+            <button onclick="document.getElementById('fairModal').classList.add('hidden')" class="w-full bg-brand hover:bg-cyan-400 text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">Verify & Close</button>
         </div>
     </div>
 
-    <nav class="md:hidden fixed bottom-0 w-full bg-[#03060a]/95 backdrop-blur-md border-t border-gray-800 z-50 py-2.5 px-6 flex justify-between items-center pb-safe">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(6,182,212,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
     </nav>
 
     <script>
-        function showToast(m, t='success') {
-            let c=document.getElementById('toast-container');
-            if(!c){c=document.createElement('div');c.id='toast-container';c.className='fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm';document.body.appendChild(c);}
-            const toast=document.createElement('div');
-            toast.className=`flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${t==='success'?'bg-[#1a2e1d] border-green-500/50':'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML=`<div class="${t==='success'?'text-green-500':'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${t==='success'?'fa-circle-check':'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm uppercase">${t}</h4><p class="text-gray-300 text-xs mt-0.5">${m}</p></div>`;
+        // =====================================================
+        // 1. ANTI-INSPECT & DEVTOOLS BLOCKER (MAC + WINDOWS)
+        // =====================================================
+        (function() {
+            document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, false);
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
+                if (code === 123 || key === 'f12') { e.preventDefault(); e.stopPropagation(); return false; }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                }
+            }, true);
+            document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+        })();
+
+        // =====================================================
+        // 2. NON-SHIFTING TOAST SYSTEM
+        // =====================================================
+        function showToast(m, t = 'success') {
+            const c = document.getElementById('toast-container');
+            if (!c) return;
+            while (c.children.length >= 2) c.firstChild.remove();
+            const isSuccess = t === 'success';
+            const toast = document.createElement('div');
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Cyber Mines' : 'Minefield Alert'}</h4>
+                    <p class="text-gray-200 text-xs truncate mt-0.5">${m || 'Action failed'}</p>
+                </div>
+            `;
             c.appendChild(toast);
-            requestAnimationFrame(()=>{toast.classList.remove('-translate-y-full','opacity-0');toast.classList.add('translate-y-0','opacity-100');});
-            setTimeout(()=>{toast.classList.remove('translate-y-0','opacity-100');toast.classList.add('-translate-y-full','opacity-0');setTimeout(()=>toast.remove(),300);},3000);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
 
-        let audioCtx;
-        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        // =====================================================
+        // 3. WEB AUDIO SYNTHESIZER (ESCALATING GEM CHIMES)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-brand"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
         const Sound = {
-            play: (f, t, dur, v=0.1) => {
-                if(!audioCtx) return;
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
             },
-            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
-            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); },
-            gem: () => { setTimeout(()=>Sound.play(800,'sine',0.1,0.05),0); setTimeout(()=>Sound.play(1200,'sine',0.2,0.05),50); },
-            boom: () => { Sound.play(100,'square',0.5,0.2); Sound.play(50,'sawtooth',0.8,0.2); }
+            tick: () => Sound.play(800, 'sine', 0.045, 0.045),
+            gem: (step = 1) => {
+                const base = 520 + Math.min(18, step) * 45;
+                Sound.play(base, 'triangle', 0.12, 0.1);
+                setTimeout(() => Sound.play(base * 1.25, 'sine', 0.22, 0.12), 65);
+            },
+            boom: () => {
+                Sound.play(95, 'square', 0.45, 0.22);
+                setTimeout(() => Sound.play(52, 'sawtooth', 0.65, 0.25), 80);
+            },
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 310);
+            }
         };
 
-        function triggerWinAnimation(winnings, newTotal) {
-            Sound.win();
-            if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = parseFloat(newTotal).toFixed(2);
-            if(document.getElementById('desktop-balance')) document.getElementById('desktop-balance').innerText = parseFloat(newTotal).toFixed(2);
-            
-            const balWrapper = document.getElementById('balance-wrapper'); 
-            if(!balWrapper) return;
-            const floater = document.createElement('div');
-            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
-            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
-            const rect = balWrapper.getBoundingClientRect();
-            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
-            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
-            document.body.appendChild(floater);
-            void floater.offsetWidth; 
-            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
-            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
-            setTimeout(() => { floater.remove(); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        // =====================================================
+        // 4. GAME STATE, LADDER & PAYOUT CALCULATOR
+        // =====================================================
+        let isPlaying = false;
+        let currentStake = 50;
+        let selectedMines = 3;
+        let clearedCount = 0;
+        let clickLock = false;
+        const grid = document.getElementById('mines-grid');
+
+        function calcStepMult(step, mines) {
+            if (step <= 0) return 1.00;
+            return Number((1.0 + (step * 0.15 * (mines / 3))).toFixed(2));
         }
 
-        let isPlaying = false; let currentStake = 0; const grid = document.getElementById('mines-grid');
-        
-        function initGrid() {
-            grid.innerHTML = '';
-            for(let i=0; i<25; i++) { 
-                const t = document.createElement('div'); 
-                t.className = 'tile'; 
-                t.innerHTML = `<div class="tile-front"></div><div class="tile-back text-3xl lg:text-4xl"></div>`; 
-                t.onclick = () => clickTile(i, t); 
-                grid.appendChild(t); 
+        function renderMultiplierLadder() {
+            const ladder = document.getElementById('multiplier-ladder');
+            ladder.innerHTML = '';
+            const maxSafe = 25 - selectedMines;
+            for (let s = 1; s <= Math.min(12, maxSafe); s++) {
+                const m = calcStepMult(s, selectedMines).toFixed(2);
+                const pill = document.createElement('div');
+                pill.id = `ladder-step-${s}`;
+                pill.className = `step-pill px-2.5 py-1 rounded-xl border border-gray-800 bg-black/50 text-[10px] font-mono font-bold text-gray-400 shrink-0 transition-all`;
+                pill.innerHTML = `<span class="text-gray-500 mr-1">${s}💎</span><span class="font-black text-white">${m}x</span>`;
+                ladder.appendChild(pill);
             }
-        } initGrid();
+        }
+
+        function highlightLadderStep(step) {
+            document.querySelectorAll('.step-pill').forEach(el => el.classList.remove('active'));
+            const activePill = document.getElementById(`ladder-step-${step}`);
+            if (activePill) {
+                activePill.classList.add('active');
+                activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+
+        function refreshPreviewHUD() {
+            const stake = parseFloat(document.getElementById('stake-amount').value) || 0;
+            const m1 = calcStepMult(1, selectedMines);
+            const m5 = calcStepMult(5, selectedMines);
+            document.getElementById('preview-first-hit').innerText = `₹${(stake * m1).toFixed(2)} (${m1.toFixed(2)}x)`;
+            document.getElementById('preview-fifth-hit').innerText = `₹${(stake * m5).toFixed(2)} (${m5.toFixed(2)}x)`;
+            if (!isPlaying) {
+                document.getElementById('hud-gems-left').innerText = 25 - selectedMines;
+                document.getElementById('hud-next-mult').innerText = `${m1.toFixed(2)}x`;
+            }
+        }
+
+        function selectMinesCount(count, btnEl) {
+            initAudio();
+            Sound.tick();
+            if (isPlaying) return;
+            selectedMines = count;
+            document.getElementById('mines-count').value = String(count);
+
+            document.querySelectorAll('.mine-preset-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+
+            const badge = document.getElementById('risk-badge');
+            if (count === 3) {
+                badge.innerText = 'LOW RISK • +0.15x / HIT';
+                badge.className = 'text-[10px] font-mono font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20';
+            } else if (count === 5) {
+                badge.innerText = 'MEDIUM RISK • +0.25x / HIT';
+                badge.className = 'text-[10px] font-mono font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20';
+            } else {
+                badge.innerText = 'HIGH RISK • +0.50x / HIT';
+                badge.className = 'text-[10px] font-mono font-black text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20';
+            }
+
+            renderMultiplierLadder();
+            refreshPreviewHUD();
+        }
 
         function adjustStake(amt) {
-            initAudio(); Sound.tick();
-            if(isPlaying) return;
+            initAudio();
+            Sound.tick();
+            if (isPlaying) return;
             let val = parseInt(document.getElementById('stake-amount').value) || 0;
             document.getElementById('stake-amount').value = Math.max(10, val + amt);
+            refreshPreviewHUD();
         }
 
-        async function startGame() {
-            initAudio(); Sound.tick();
-            if(isPlaying) return;
-            
-            const stake = parseFloat(document.getElementById('stake-amount').value); 
-            const mines = parseInt(document.getElementById('mines-count').value);
-            const clientSeed = document.getElementById('client-seed') ? document.getElementById('client-seed').value.trim() : 'player';
+        function setExactStake(val) {
+            initAudio();
+            Sound.tick();
+            if (isPlaying) return;
+            document.getElementById('stake-amount').value = val;
+            refreshPreviewHUD();
+        }
 
-            if(isNaN(stake) || stake < 10) { showToast('Minimum stake is ₹10', 'error'); return; }
-            
-            document.getElementById('btn-start').disabled = true;
-            document.getElementById('btn-start').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (isPlaying) return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 50;
+            document.getElementById('stake-amount').value = Math.max(10, Math.round(val * factor));
+            refreshPreviewHUD();
+        }
+
+        // =====================================================
+        // 5. 5x5 GRID INITIALIZATION & FULL BOARD REVEAL
+        // =====================================================
+        function initGrid() {
+            grid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const t = document.createElement('div');
+                t.className = 'tile';
+                t.id = `mine-tile-${i}`;
+                t.innerHTML = `<div class="tile-front"></div><div class="tile-back text-2xl md:text-3xl"></div>`;
+                t.onclick = () => clickTile(i, t);
+                grid.appendChild(t);
+            }
+        }
+
+        function revealFullGrid(serverGrid, clickedIdx) {
+            if (!Array.isArray(serverGrid)) return;
+            serverGrid.forEach((cellVal, idx) => {
+                if (idx === clickedIdx) return;
+                const el = document.getElementById(`mine-tile-${idx}`);
+                if (!el || el.classList.contains('revealed')) return;
+
+                el.classList.add('revealed', 'tile-missed');
+                if (cellVal === 1) {
+                    el.classList.add('tile-bomb');
+                    el.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-bomb text-red-200"></i>';
+                } else {
+                    el.classList.add('tile-diamond');
+                    el.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-gem text-emerald-200"></i>';
+                }
+            });
+        }
+
+        // =====================================================
+        // 6. BACKEND API DISPATCHERS (/start, /click, /cashout)
+        // =====================================================
+        async function startGame() {
+            initAudio();
+            Sound.tick();
+            if (isPlaying) return;
+
+            const stake = parseFloat(document.getElementById('stake-amount').value);
+            const mines = parseInt(document.getElementById('mines-count').value);
+            const clientSeed = document.getElementById('client-seed') ? document.getElementById('client-seed').value.trim() : 'novabetx_player';
+
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum stake is ₹10', 'error');
+                return;
+            }
+
+            const startBtn = document.getElementById('btn-start');
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ARMING VAULT...';
 
             try {
-                const res = await fetch('/mines/start', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, 
-                    body: JSON.stringify({ stake: Number(stake), mines: Number(mines), client_seed: String(clientSeed) }) 
-                }); 
-                
-                if(!res.ok) throw new Error("Server Error");
-                const data = await res.json();
-                
-                if(data.success) {
-                    isPlaying = true; currentStake = stake; 
-                    if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
-                    if(document.getElementById('desktop-balance')) document.getElementById('desktop-balance').innerText = data.new_total.toFixed(2);
-                    
-                    document.getElementById('setup-controls').classList.add('hidden'); document.getElementById('game-controls').classList.remove('hidden');
-                    document.getElementById('multiplier-display').innerText = '1.00x'; document.getElementById('multiplier-display').style.opacity = '1'; document.getElementById('potential-win').innerText = stake.toFixed(2);
-                    
-                    document.getElementById('active-hash').innerText = data.server_hash;
-                    document.getElementById('uncovered-seed').innerText = "Hidden until game finishes.";
+                const res = await fetch('/mines/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ stake: Number(stake), mines: Number(mines), client_seed: String(clientSeed) })
+                });
 
-                    initGrid(); showToast('Game Started. Find the diamonds!', 'success');
-                } else { showToast(data.error, 'error'); }
-            } catch(e) { showToast('Network Error', 'error'); }
-            
-            document.getElementById('btn-start').disabled = false;
-            document.getElementById('btn-start').innerText = 'START GAME';
+                if (!res.ok) throw new Error("Server Error");
+                const data = await res.json();
+
+                if (data.success) {
+                    isPlaying = true;
+                    currentStake = stake;
+                    selectedMines = mines;
+                    clearedCount = 0;
+
+                    if (document.getElementById('display-balance')) document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                    if (document.getElementById('desktop-balance')) document.getElementById('desktop-balance').innerText = data.new_total.toFixed(2);
+
+                    document.getElementById('setup-controls').classList.add('hidden');
+                    document.getElementById('game-controls').classList.remove('hidden');
+                    document.getElementById('game-controls').classList.add('flex');
+
+                    const nextM = calcStepMult(1, selectedMines);
+                    document.getElementById('multiplier-display').innerText = '1.00x';
+                    document.getElementById('hud-gems-left').innerText = 25 - selectedMines;
+                    document.getElementById('hud-next-mult').innerText = `${nextM.toFixed(2)}x`;
+
+                    document.getElementById('potential-win').innerText = stake.toFixed(2);
+                    document.getElementById('net-profit-win').innerText = '0.00';
+                    document.getElementById('active-gems-found').innerText = '0';
+                    document.getElementById('active-next-payout').innerText = `₹${(stake * nextM).toFixed(2)}`;
+                    document.getElementById('arena-status-text').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Grid Armed! Select any vault tile or use Random Scanner`;
+
+                    document.getElementById('active-hash').innerText = data.server_hash;
+                    document.getElementById('uncovered-seed').innerText = "Hidden until round finishes.";
+
+                    initGrid();
+                    renderMultiplierLadder();
+                    showToast('Vault Armed! Uncover the diamonds.', 'success');
+                } else {
+                    showToast(data.error || 'Insufficient balance or active session', 'error');
+                }
+            } catch (e) {
+                showToast('Network Error starting game', 'error');
+            }
+
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fa-solid fa-play"></i> START CYBER MINES';
         }
 
         async function clickTile(index, tileEl) {
             initAudio();
-            if(!isPlaying || tileEl.classList.contains('revealed')) return;
-            tileEl.style.pointerEvents = 'none';
+            if (!isPlaying || clickLock || tileEl.classList.contains('revealed')) return;
+            clickLock = true;
+            tileEl.classList.add('tile-scanning');
 
             try {
-                const res = await fetch('/mines/click', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, 
-                    body: JSON.stringify({index: Number(index)}) 
-                }); 
-                
-                if(!res.ok) throw new Error("Server Error");
+                const res = await fetch('/mines/click', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ index: Number(index) })
+                });
+
+                if (!res.ok) throw new Error("Server Error");
                 const data = await res.json();
-                
-                if(data.success) {
-                    if(data.bomb) {
+                tileEl.classList.remove('tile-scanning');
+
+                if (data.success) {
+                    if (data.bomb) {
                         Sound.boom();
+                        isPlaying = false;
                         document.getElementById('uncovered-seed').innerText = data.server_seed;
-                        isPlaying = false; tileEl.classList.add('tile-bomb'); tileEl.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-bomb"></i>'; tileEl.classList.add('revealed');
-                        document.body.classList.add('bomb-shake'); setTimeout(() => document.body.classList.remove('bomb-shake'), 500);
-                        showToast('BOOM! You hit a mine.', 'error'); setTimeout(() => resetUI(), 2500);
+
+                        tileEl.classList.add('tile-bomb', 'revealed');
+                        tileEl.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-burst text-white animate-ping"></i>';
+                        setTimeout(() => {
+                            tileEl.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-bomb text-white"></i>';
+                        }, 300);
+
+                        // Reveal all remaining mines & diamonds from data.grid
+                        revealFullGrid(data.grid, index);
+
+                        const arena = document.getElementById('board-arena');
+                        arena.classList.remove('bomb-shake');
+                        void arena.offsetWidth;
+                        arena.classList.add('bomb-shake');
+
+                        document.getElementById('arena-status-text').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Detonation at tile #${index + 1}! Full grid uncovered.`;
+                        showToast('BOOM! You hit a cyber mine.', 'error');
+                        setTimeout(() => resetUI(false), 2600);
                     } else {
-                        Sound.gem();
-                        tileEl.classList.add('tile-diamond'); tileEl.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-gem"></i>'; tileEl.classList.add('revealed');
-                        document.getElementById('multiplier-display').innerText = data.multiplier.toFixed(2) + 'x'; document.getElementById('potential-win').innerText = (currentStake * data.multiplier).toFixed(2);
+                        clearedCount++;
+                        Sound.gem(clearedCount);
+
+                        tileEl.classList.add('tile-diamond', 'revealed');
+                        tileEl.querySelector('.tile-back').innerHTML = '<i class="fa-solid fa-gem text-white anim-gem"></i>';
+
+                        const mult = data.multiplier;
+                        const currentWin = currentStake * mult;
+                        const nextM = calcStepMult(clearedCount + 1, selectedMines);
+
+                        document.getElementById('multiplier-display').innerText = mult.toFixed(2) + 'x';
+                        document.getElementById('potential-win').innerText = currentWin.toFixed(2);
+                        document.getElementById('net-profit-win').innerText = Math.max(0, currentWin - currentStake).toFixed(2);
+                        document.getElementById('active-gems-found').innerText = String(clearedCount);
+                        document.getElementById('hud-gems-left').innerText = String(Math.max(0, (25 - selectedMines) - clearedCount));
+                        document.getElementById('hud-next-mult').innerText = `${nextM.toFixed(2)}x`;
+                        document.getElementById('active-next-payout').innerText = `₹${(currentStake * nextM).toFixed(2)}`;
+
+                        highlightLadderStep(clearedCount);
                     }
                 }
-            } catch(e) { showToast('Network Error processing click.', 'error'); tileEl.style.pointerEvents = 'auto'; }
+            } catch (e) {
+                tileEl.classList.remove('tile-scanning');
+                showToast('Network Error processing click', 'error');
+            } finally {
+                clickLock = false;
+            }
+        }
+
+        function pickRandomTile() {
+            if (!isPlaying || clickLock) return;
+            const unrevealed = [];
+            for (let i = 0; i < 25; i++) {
+                const el = document.getElementById(`mine-tile-${i}`);
+                if (el && !el.classList.contains('revealed')) unrevealed.push({ idx: i, el });
+            }
+            if (unrevealed.length === 0) return;
+            const pick = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+            clickTile(pick.idx, pick.el);
         }
 
         async function cashout() {
             initAudio();
-            if(!isPlaying) return;
-            document.getElementById('btn-cashout').disabled = true;
-            document.getElementById('btn-cashout').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            if (!isPlaying || clickLock) return;
+            if (clearedCount === 0) {
+                showToast('Uncover at least 1 diamond to cash out!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-cashout');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CREDITING...';
 
             try {
-                const res = await fetch('/mines/cashout', { method: 'POST', headers: {'Accept': 'application/json'} }); 
-                if(!res.ok) throw new Error("Server Error");
+                const res = await fetch('/mines/cashout', { method: 'POST', headers: { 'Accept': 'application/json' } });
+                if (!res.ok) throw new Error("Server Error");
                 const data = await res.json();
-                
-                if(data.success) {
+
+                if (data.success) {
                     isPlaying = false;
                     document.getElementById('uncovered-seed').innerText = data.server_seed;
-                    showToast(`Cashed out! Won ₹${data.winnings.toFixed(2)}`, 'success');
+                    showToast(`Cashed Out! Won ₹${data.winnings.toFixed(2)}`, 'success');
                     triggerWinAnimation(data.winnings, data.new_total);
-                    setTimeout(() => resetUI(), 1500);
-                } else { showToast(data.error, 'error'); }
-            } catch(e) { showToast('Network Error', 'error'); }
-            
-            document.getElementById('btn-cashout').disabled = false;
-            document.getElementById('btn-cashout').innerText = 'CASH OUT';
+                    spawnConfetti();
+                    setTimeout(() => resetUI(true), 1600);
+                } else {
+                    showToast(data.error || 'Could not cash out', 'error');
+                }
+            } catch (e) {
+                showToast('Network Error', 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-sack-dollar"></i> CASH OUT WINNINGS';
         }
 
-        function resetUI() {
-            isPlaying = false; document.getElementById('setup-controls').classList.remove('hidden'); document.getElementById('game-controls').classList.add('hidden'); document.getElementById('multiplier-display').style.opacity = '0.5'; initGrid();
+        function resetUI(reinitBoard = true) {
+            isPlaying = false;
+            clearedCount = 0;
+            document.getElementById('setup-controls').classList.remove('hidden');
+            document.getElementById('game-controls').classList.add('hidden');
+            document.getElementById('game-controls').classList.remove('flex');
+            document.getElementById('multiplier-display').innerText = '1.00x';
+            document.querySelectorAll('.step-pill').forEach(el => el.classList.remove('active'));
+            refreshPreviewHUD();
+            if (reinitBoard) initGrid();
         }
+
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            if (document.getElementById('display-balance')) document.getElementById('display-balance').innerText = parseFloat(newTotal).toFixed(2);
+            if (document.getElementById('desktop-balance')) document.getElementById('desktop-balance').innerText = parseFloat(newTotal).toFixed(2);
+
+            const balWrapper = document.getElementById('balance-wrapper');
+            if (!balWrapper) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-emerald-400 text-2xl drop-shadow-[0_0_15px_rgba(16,185,129,1)] pointer-events-none transition-all duration-[1400ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 30) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-45px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1400);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#10b981', '#06b6d4', '#fbbf24', '#38bdf8', '#a855f7'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 220;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        initGrid();
+        renderMultiplierLadder();
+        refreshPreviewHUD();
+
+        (function() {
+    // 1. Block Right-Click Context Menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
+    document.addEventListener('keydown', function(e) {
+        const key = (e.key || '').toLowerCase();
+        const code = e.keyCode || e.which;
+
+        // F12 (Windows / Laptop Fn+F12)
+        if (code === 123 || key === 'f12') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
+        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
+        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
+        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // 3. Disable Dragging Images/Elements
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+
+    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
+    setInterval(function() {
+        const start = performance.now();
+        debugger;
+        if (performance.now() - start > 100) {
+            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+        }
+    }, 1500);
+})();
     </script>
 </body>
 </html>

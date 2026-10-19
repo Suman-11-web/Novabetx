@@ -7,110 +7,470 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { bgDark: '#080a0f', panelBg: 'rgba(15, 20, 30, 0.7)', brand: '#1CDA3A' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        body { font-family: 'Inter', 'Arial', sans-serif; overscroll-behavior: none; }
-        .stadium-bg { background: radial-gradient(circle at 50% 30%, #1e293b 0%, #030712 100%); }
-        .coin-container { perspective: 800px; width: 140px; height: 140px; margin: 0 auto; position: relative; z-index: 20; }
-        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: rotateX(0deg); }
-        .coin-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 50%; border: 6px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
-        .coin-heads { background: radial-gradient(circle, #fbbf24 0%, #b45309 100%); border-color: #fef08a; color: #fff; text-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        .coin-tails { background: radial-gradient(circle, #9ca3af 0%, #374151 100%); border-color: #e5e7eb; color: #fff; transform: rotateX(180deg); text-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        @keyframes pulseHeadsWin { 0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px #fbbf24; border-color: #fef08a; } 50% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 60px #fbbf24; border-color: #fff; transform: scale(1.05); } }
-        @keyframes pulseTailsWin { 0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px #9ca3af; border-color: #e5e7eb; } 50% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 60px #9ca3af; border-color: #fff; transform: rotateX(180deg) scale(1.05); } }
-        .win-glow-heads { animation: pulseHeadsWin 1.2s infinite ease-in-out; z-index: 10; }
-        .win-glow-tails { animation: pulseTailsWin 1.2s infinite ease-in-out; z-index: 10; }
-        @keyframes tossHeads { 0% { transform: translateY(0) scale(1) rotateX(0deg); } 50% { transform: translateY(-140px) scale(1.5) rotateX(1080deg); } 100% { transform: translateY(0) scale(1) rotateX(2160deg); } }
-        @keyframes tossTails { 0% { transform: translateY(0) scale(1) rotateX(0deg); } 50% { transform: translateY(-140px) scale(1.5) rotateX(1080deg); } 100% { transform: translateY(0) scale(1) rotateX(2340deg); } }
-        .coin-shadow { width: 100px; height: 15px; background: rgba(0,0,0,0.8); border-radius: 50%; margin: -10px auto 0; filter: blur(5px); opacity: 0.8; z-index: 10; }
-        @keyframes shadowShrink { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(0.3); opacity: 0.2; } 100% { transform: scale(1); opacity: 0.8; } }
-        .glass-panel { background: var(--panelBg); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5); }
-        .bet-amount-btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; padding: 8px 0; font-size: 14px; font-weight: bold; transition: all 0.2s; }
-        .bet-amount-btn:active { background: rgba(28,218,58,0.2); border-color: #1CDA3A; color: #fff; transform: scale(0.95); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 3D Stadium Arena Background */
+        .stadium-bg {
+            background:
+                radial-gradient(circle at 50% 25%, rgba(245, 158, 11, 0.16) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 85%, rgba(56, 189, 248, 0.14) 0%, transparent 55%),
+                radial-gradient(circle at 50% 50%, #131c2e 0%, #05070c 85%);
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.95);
+        }
+
+        /* Holographic Arena Pedestal Ring */
+        .pedestal-ring {
+            width: 190px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid rgba(251, 191, 36, 0.35);
+            background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.22) 0%, rgba(56, 189, 248, 0.08) 55%, transparent 75%);
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.25), inset 0 0 15px rgba(251, 191, 36, 0.2);
+            margin: -18px auto 0;
+            position: relative;
+            z-index: 10;
+            transition: all 0.4s ease;
+        }
+
+        .pedestal-ring.ring-heads {
+            border-color: #fbbf24;
+            background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.45) 0%, transparent 75%);
+            box-shadow: 0 0 45px rgba(251, 191, 36, 0.7), inset 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .pedestal-ring.ring-tails {
+            border-color: #38bdf8;
+            background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.45) 0%, transparent 75%);
+            box-shadow: 0 0 45px rgba(56, 189, 248, 0.7), inset 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+
+        /* 3D Metallic Coin Container */
+        .coin-container {
+            perspective: 1100px;
+            width: 145px;
+            height: 145px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 25;
+        }
+        @media (min-width: 768px) {
+            .coin-container { width: 170px; height: 170px; }
+        }
+
+        .coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(0deg);
+        }
+
+        /* Idle Hover Float when Waiting */
+        @keyframes coinIdleFloat {
+            0%, 100% { transform: translateY(0px) rotateY(-8deg) rotateX(6deg); }
+            50% { transform: translateY(-8px) rotateY(8deg) rotateX(-6deg); }
+        }
+        .coin-idle {
+            animation: coinIdleFloat 3.2s ease-in-out infinite;
+        }
+
+        .coin-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Inner Milled Coin Ring */
+        .coin-face::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.45);
+            pointer-events: none;
+        }
+
+        /* HEADS: Imperial Gold Coin */
+        .coin-heads {
+            background:
+                radial-gradient(circle at 30% 25%, #fef9c3 0%, #fbbf24 38%, #d97706 78%, #78350f 100%);
+            border: 6px solid #fde68a;
+            color: #451a03;
+            box-shadow:
+                inset 0 0 22px rgba(120, 53, 15, 0.75),
+                0 10px 30px rgba(0, 0, 0, 0.7),
+                0 0 20px rgba(251, 191, 36, 0.35);
+        }
+
+        /* TAILS: Cyber Platinum-Silver Coin */
+        .coin-tails {
+            background:
+                radial-gradient(circle at 30% 25%, #f8fafc 0%, #cbd5e1 40%, #64748b 78%, #1e293b 100%);
+            border: 6px solid #e2e8f0;
+            color: #0f172a;
+            transform: rotateX(180deg);
+            box-shadow:
+                inset 0 0 22px rgba(15, 23, 42, 0.75),
+                0 10px 30px rgba(0, 0, 0, 0.7),
+                0 0 20px rgba(56, 189, 248, 0.35);
+        }
+
+        @keyframes pulseHeadsWin {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(120,53,15,0.6), 0 0 25px #fbbf24, 0 0 50px rgba(251,191,36,0.5); border-color: #fef08a; }
+            50% { box-shadow: inset 0 0 25px rgba(120,53,15,0.8), 0 0 55px #fbbf24, 0 0 85px rgba(251,191,36,0.9); border-color: #ffffff; transform: scale(1.06); }
+        }
+        @keyframes pulseTailsWin {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(15,23,42,0.6), 0 0 25px #38bdf8, 0 0 50px rgba(56,189,248,0.5); border-color: #e0f2fe; }
+            50% { box-shadow: inset 0 0 25px rgba(15,23,42,0.8), 0 0 55px #38bdf8, 0 0 85px rgba(56,189,248,0.9); border-color: #ffffff; transform: rotateX(180deg) scale(1.06); }
+        }
+        .win-glow-heads { animation: pulseHeadsWin 1.1s infinite ease-in-out; }
+        .win-glow-tails { animation: pulseTailsWin 1.1s infinite ease-in-out; }
+
+        /* 3D High-Velocity Coin Flip Keyframes (3.0s) */
+        @keyframes tossHeads {
+            0% { transform: translateY(0) scale(1) rotateX(0deg) rotateZ(0deg); }
+            35% { transform: translateY(-135px) scale(1.42) rotateX(1080deg) rotateZ(12deg); }
+            65% { transform: translateY(-110px) scale(1.32) rotateX(1800deg) rotateZ(-8deg); }
+            88% { transform: translateY(6px) scale(0.96) rotateX(2160deg) rotateZ(0deg); }
+            100% { transform: translateY(0) scale(1) rotateX(2160deg) rotateZ(0deg); }
+        }
+        @keyframes tossTails {
+            0% { transform: translateY(0) scale(1) rotateX(0deg) rotateZ(0deg); }
+            35% { transform: translateY(-135px) scale(1.42) rotateX(1080deg) rotateZ(-12deg); }
+            65% { transform: translateY(-110px) scale(1.32) rotateX(1980deg) rotateZ(8deg); }
+            88% { transform: translateY(6px) scale(0.96) rotateX(2340deg) rotateZ(0deg); }
+            100% { transform: translateY(0) scale(1) rotateX(2340deg) rotateZ(0deg); }
+        }
+
+        .coin-shadow {
+            width: 115px;
+            height: 18px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 50%;
+            margin: -28px auto 0;
+            filter: blur(6px);
+            opacity: 0.85;
+            z-index: 15;
+        }
+        @keyframes shadowShrink {
+            0% { transform: scale(1); opacity: 0.85; }
+            45% { transform: scale(0.28); opacity: 0.2; }
+            88% { transform: scale(1.1); opacity: 0.95; }
+            100% { transform: scale(1); opacity: 0.85; }
+        }
+
+        /* Bead Road Badges */
+        .bead-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        }
+        .bead-H {
+            background: linear-gradient(135deg, #fbbf24, #b45309);
+            color: #000;
+            border: 1px solid #fef08a;
+        }
+        .bead-T {
+            background: linear-gradient(135deg, #94a3b8, #334155);
+            color: #fff;
+            border: 1px solid #cbd5e1;
+        }
+
+        .chip-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            border-radius: 10px;
+            padding: 8px 0;
+            font-size: 12px;
+            font-weight: 800;
+            transition: all 0.15s ease;
+        }
+        .chip-btn:hover {
+            border-color: #fbbf24;
+            color: #fff;
+            background: rgba(251, 191, 36, 0.15);
+        }
+        .chip-btn:active { transform: scale(0.95); }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col pb-16" onclick="initAudio()">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <div id="toast-container"></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <div class="flex justify-between items-start bg-[#050810] px-4 py-3 border-b border-gray-800 shadow-md z-40 relative">
-        <div class="flex flex-col gap-1.5 justify-center">
-            <div class="bg-gray-400/20 text-gray-300 px-3 py-0.5 rounded text-[10px] font-black tracking-widest border border-gray-400/30 flex items-center gap-1.5 w-max">
-                <i class="fa-solid fa-coins"></i> LIVE
+    <!-- WIN CONFETTI & FLYING CHIP OVERLAY -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-amber-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30">LIVE 3D</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-400 font-bold rounded-xl border border-amber-500/20"><i class="fa-solid fa-coins w-5 text-center"></i> Heads vs Tails</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-amber-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
             </div>
-            <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Current ID:</span>
-                <div class="text-xs font-mono font-black text-brand bg-brand/10 border border-brand/50 px-2 py-0.5 rounded shadow-[0_0_15px_rgba(28,218,58,0.2)] animate-pulse" id="live-match-number">
-                    #000000
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.45)]">
+                        <i class="fa-solid fa-coins"></i> HEADS V TAILS
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-black/60 border border-gray-800 px-2.5 py-0.5 rounded-lg">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand animate-ping"></span>
+                        <span class="text-[9px] text-gray-400 font-bold uppercase hidden sm:inline">Round:</span>
+                        <span class="text-xs font-mono font-black text-brand" id="live-match-number">#000000</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="flex items-center gap-4 h-full pt-1">
-            <div class="text-right">
-                <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                <div class="font-black text-brand text-sm inline-block transition-transform duration-300" id="balance-wrapper">₹<span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-            </div>
-        </div>
-    </div>
 
-    <div class="relative w-full h-[280px] md:h-[400px] stadium-bg border-b border-gray-800 flex flex-col items-center justify-center shadow-[inset_0_-20px_50px_rgba(0,0,0,0.9)] shrink-0">
-        <div id="game-status" class="absolute top-6 z-20 bg-black/60 px-6 py-2 rounded-full border border-gray-700 backdrop-blur-md text-center shadow-lg">
-            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div>
-            <div id="timer-text" class="text-2xl font-black text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:12</div>
-        </div>
-        <div id="result-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-            <div id="result-text" class="text-5xl md:text-7xl font-black italic tracking-widest uppercase drop-shadow-[0_0_20px_rgba(0,0,0,1)] text-white">HEADS</div>
-        </div>
-        <div class="flex flex-col items-center justify-center mt-6">
-            <div class="coin-container drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
-                <div id="the-coin" class="coin">
-                    <div id="face-heads" class="coin-face coin-heads"><span class="text-7xl font-black leading-none tracking-tighter">H</span><span class="text-[9px] font-bold uppercase tracking-widest opacity-80 mt-1">Heads</span></div>
-                    <div id="face-tails" class="coin-face coin-tails"><span class="text-7xl font-black leading-none tracking-tighter">T</span><span class="text-[9px] font-bold uppercase tracking-widest opacity-80 mt-1">Tails</span></div>
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <div class="font-black text-brand text-sm mr-2 font-mono transition-transform duration-300" id="balance-wrapper">
+                        <span id="display-balance">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    </div>
+                    <button type="button" onclick="document.getElementById('depositModal').classList.remove('hidden')" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
                 </div>
             </div>
-            <div id="the-shadow" class="coin-shadow"></div>
-        </div>
-    </div>
+        </header>
 
-    <div class="flex-1 bg-bgDark p-3 overflow-y-auto flex flex-col custom-scrollbar">
-        <div class="glass-panel rounded-2xl p-5 max-w-md mx-auto w-full relative shrink-0">
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <button id="btn-heads" onclick="placeBet('Heads')" class="bg-gradient-to-b from-yellow-500 to-yellow-700 border-2 border-yellow-400 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:shadow-[0_0_25px_rgba(234,179,8,0.6)] transition-all active:scale-95 text-black">
-                    <span class="font-black text-3xl tracking-wider leading-none mb-1">H</span><span class="font-black text-lg tracking-wider">HEADS</span><span class="text-[10px] mt-1 font-bold bg-black/20 px-2 py-0.5 rounded text-yellow-100">PAYS 1.95x</span>
-                </button>
-                <button id="btn-tails" onclick="placeBet('Tails')" class="bg-gradient-to-b from-gray-500 to-gray-700 border-2 border-gray-400 rounded-xl py-4 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(156,163,175,0.3)] hover:shadow-[0_0_25px_rgba(156,163,175,0.6)] transition-all active:scale-95 text-white">
-                    <span class="font-black text-3xl tracking-wider leading-none mb-1">T</span><span class="font-black text-lg tracking-wider">TAILS</span><span class="text-[10px] mt-1 font-bold bg-black/30 px-2 py-0.5 rounded text-gray-200">PAYS 1.95x</span>
-                </button>
+        <!-- LIVE BEAD ROAD & H/T RATIO RIBBON -->
+        <div class="bg-[#080b12] px-4 py-2 border-b border-gray-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                    <i class="fa-solid fa-chart-simple text-amber-400"></i> Bead Road:
+                </span>
+                <div id="bead-road-strip" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                    <span class="text-[10px] font-mono text-gray-600 italic">Syncing live rounds...</span>
+                </div>
             </div>
-            
-            <div class="flex items-center bg-black/60 border border-gray-700 rounded-xl px-2 py-2 mb-4 shadow-inner">
-                <button onclick="adjustStake(-50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">-</button>
-                <input type="number" id="stake-amount" value="50" class="w-full bg-transparent text-center text-white font-black text-2xl focus:outline-none">
-                <button onclick="adjustStake(50)" class="text-gray-400 hover:text-white font-black px-4 text-xl transition-colors">+</button>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="setStake(50)" class="bet-amount-btn">50</button><button onclick="setStake(100)" class="bet-amount-btn">100</button><button onclick="setStake(500)" class="bet-amount-btn">500</button>
-                <button onclick="setStake(1000)" class="bet-amount-btn">1000</button><button onclick="setStake(2500)" class="bet-amount-btn">2500</button><button onclick="setStake(5000)" class="bet-amount-btn">5000</button>
-            </div>
-            <div id="my-bet-info" class="hidden mt-5 text-center text-sm font-bold text-gray-300 bg-black/50 py-3 rounded-xl border border-gray-700 shadow-inner">
-                Bet Placed: ₹<span id="my-bet-amt" class="text-white text-lg ml-1">0</span> on <span id="my-bet-target" class="text-brand uppercase tracking-wider ml-1">Target</span>
+
+            <!-- Live Heads vs Tails Percentage Meter -->
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[10px] font-mono font-black text-amber-400" id="stat-h-pct">H: 50%</span>
+                <div class="w-24 h-2 bg-slate-700 rounded-full overflow-hidden flex border border-gray-700">
+                    <div id="stat-h-bar" class="h-full bg-amber-400 transition-all duration-500" style="width: 50%;"></div>
+                </div>
+                <span class="text-[10px] font-mono font-black text-sky-400" id="stat-t-pct">T: 50%</span>
             </div>
         </div>
 
-        <div class="w-full max-w-md mx-auto shrink-0 mt-4">
-            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2 pl-1">
-                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Round History
-            </div>
-            <div id="history-strip" class="bg-black/30 border border-gray-800 rounded-xl flex flex-col p-2 gap-2 overflow-y-auto max-h-[250px] custom-scrollbar w-full shadow-inner"></div>
-        </div>
-    </div>
+        <!-- 3D COIN TOSS STADIUM ARENA -->
+        <div id="arena-stage" class="relative w-full h-[280px] sm:h-[320px] md:h-[370px] stadium-bg border-b border-gray-800/90 flex flex-col items-center justify-center overflow-hidden shrink-0">
 
+            <!-- Subtle Cyber Grid Overlay -->
+            <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+            <!-- Top Status Pill & Countdown Timer -->
+            <div id="game-status" class="absolute top-4 z-30 bg-black/70 px-6 py-2 rounded-2xl border border-gray-700/80 backdrop-blur-md text-center shadow-2xl min-w-[180px]">
+                <div class="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">Place Your Bets</div>
+                <div id="timer-text" class="text-2xl font-black font-mono text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">00:12</div>
+                <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden mt-1">
+                    <div id="timer-bar" class="h-full bg-brand transition-all duration-300" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Result Banner Overlay -->
+            <div id="result-overlay" class="hidden absolute bottom-4 z-30 pointer-events-none">
+                <div id="result-text" class="px-6 py-1.5 rounded-2xl bg-black/85 border border-white/15 text-2xl md:text-4xl font-black italic tracking-widest uppercase shadow-2xl">
+                    HEADS WINS
+                </div>
+            </div>
+
+            <!-- 3D Coin & Holographic Pedestal -->
+            <div class="flex flex-col items-center justify-center mt-8 relative">
+                <div class="coin-container">
+                    <div id="the-coin" class="coin coin-idle">
+                        <!-- HEADS FACE (Imperial Gold) -->
+                        <div id="face-heads" class="coin-face coin-heads">
+                            <i class="fa-solid fa-crown text-lg md:text-xl text-amber-900/80 mb-0.5"></i>
+                            <span class="text-5xl md:text-6xl font-black leading-none tracking-tighter drop-shadow">H</span>
+                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-amber-950 mt-1">HEADS</span>
+                        </div>
+                        <!-- TAILS FACE (Cyber Platinum) -->
+                        <div id="face-tails" class="coin-face coin-tails">
+                            <i class="fa-solid fa-shield-halved text-lg md:text-xl text-slate-700 mb-0.5"></i>
+                            <span class="text-5xl md:text-6xl font-black leading-none tracking-tighter drop-shadow">T</span>
+                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-800 mt-1">TAILS</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="the-shadow" class="coin-shadow"></div>
+                <div id="pedestal-ring" class="pedestal-ring"></div>
+            </div>
+        </div>
+
+        <!-- BETTING COCKPIT & ROUND HISTORY -->
+        <div class="flex-1 bg-bgDark p-3.5 md:p-6 max-w-5xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- LEFT / TOP: BETTING CONSOLE (7 Cols) -->
+            <div class="lg:col-span-7 glass-panel rounded-3xl p-5 w-full relative">
+
+                <!-- HEADS vs TAILS BET PADS -->
+                <div class="grid grid-cols-2 gap-3.5 md:gap-4 mb-5">
+                    <!-- HEADS BUTTON -->
+                    <button type="button" id="btn-heads" onclick="placeBet('Heads', this)" class="group relative overflow-hidden bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 border-b-4 border-amber-900 rounded-2xl py-4 px-3 flex flex-col items-center justify-center shadow-[0_8px_25px_rgba(245,158,11,0.3)] hover:brightness-110 transition-all active:translate-y-0.5 active:border-b-0 text-black">
+                        <div class="w-11 h-11 rounded-full bg-black/15 border border-black/20 flex items-center justify-center mb-1.5 shadow-inner group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-crown text-xl text-amber-950"></i>
+                        </div>
+                        <span class="font-black text-lg md:text-xl tracking-wider uppercase leading-none">HEADS</span>
+                        <span class="text-[10px] font-mono font-black mt-1.5 bg-black/25 px-2.5 py-0.5 rounded-full text-amber-100">PAYS 1.95x</span>
+                    </button>
+
+                    <!-- TAILS BUTTON -->
+                    <button type="button" id="btn-tails" onclick="placeBet('Tails', this)" class="group relative overflow-hidden bg-gradient-to-b from-slate-500 via-slate-600 to-slate-800 border-b-4 border-slate-950 rounded-2xl py-4 px-3 flex flex-col items-center justify-center shadow-[0_8px_25px_rgba(148,163,184,0.25)] hover:brightness-110 transition-all active:translate-y-0.5 active:border-b-0 text-white">
+                        <div class="w-11 h-11 rounded-full bg-black/25 border border-white/15 flex items-center justify-center mb-1.5 shadow-inner group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-shield-halved text-xl text-sky-300"></i>
+                        </div>
+                        <span class="font-black text-lg md:text-xl tracking-wider uppercase leading-none">TAILS</span>
+                        <span class="text-[10px] font-mono font-black mt-1.5 bg-black/35 px-2.5 py-0.5 rounded-full text-sky-200">PAYS 1.95x</span>
+                    </button>
+                </div>
+
+                <!-- STAKE INPUT & POTENTIAL PAYOUT BAR -->
+                <div class="bg-[#080b12] border border-gray-800 rounded-2xl p-4 shadow-inner">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-gray-400">Bet Stake (₹)</span>
+                        <span class="text-[11px] font-mono text-gray-400">
+                            Est. Return (1.95x): <strong class="text-brand" id="potential-win-text">₹97.50</strong>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-3">
+                        <button type="button" onclick="adjustStake(-50)" class="w-11 h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg border border-gray-700 transition active:scale-95">-</button>
+                        <div class="relative flex-1">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 font-black text-base">₹</span>
+                            <input type="number" id="stake-amount" value="50" min="10" oninput="updatePotentialPayout()" class="w-full bg-black/80 border border-gray-700 rounded-xl py-2.5 pl-8 pr-3 text-center text-white font-black font-mono text-xl focus:outline-none focus:border-amber-400 transition">
+                        </div>
+                        <button type="button" onclick="adjustStake(50)" class="w-11 h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg border border-gray-700 transition active:scale-95">+</button>
+                    </div>
+
+                    <div class="grid grid-cols-6 gap-1.5">
+                        <button type="button" onclick="setStake(50)" class="chip-btn">50</button>
+                        <button type="button" onclick="setStake(100)" class="chip-btn">100</button>
+                        <button type="button" onclick="setStake(500)" class="chip-btn">500</button>
+                        <button type="button" onclick="setStake(1000)" class="chip-btn">1K</button>
+                        <button type="button" onclick="multiplyStake(0.5)" class="chip-btn text-purple-400">½</button>
+                        <button type="button" onclick="multiplyStake(2)" class="chip-btn text-amber-400">2×</button>
+                    </div>
+                </div>
+
+                <!-- ACTIVE BET RECEIPT -->
+                <div id="my-bet-info" class="hidden mt-4 bg-gradient-to-r from-amber-500/15 via-black to-black p-3.5 rounded-2xl border border-amber-500/40 flex items-center justify-between shadow-inner">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">BET LOCKED FOR TOSS</div>
+                            <div class="text-xs font-bold text-gray-200">
+                                ₹<span id="my-bet-amt" class="font-black font-mono text-white">0</span> on <span id="my-bet-target" class="font-black text-brand uppercase">Target</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right font-mono">
+                        <div class="text-[9px] text-gray-400 uppercase">Payout</div>
+                        <div class="text-xs font-black text-brand" id="my-bet-payout">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT / BOTTOM: LIVE ROUND HISTORY LOG (5 Cols) -->
+            <div class="lg:col-span-5 glass-panel rounded-3xl p-5 w-full">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
+                    <span class="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Official Round History
+                    </span>
+                    <span class="text-[10px] font-mono text-gray-500">Last 15 Tosses</span>
+                </div>
+                <div id="history-strip" class="space-y-2 overflow-y-auto max-h-[260px] custom-scrollbar pr-1"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- QUICK DEPOSIT MODAL -->
     <div id="depositModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-surface border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="bg-surface border border-gray-700 rounded-3xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <h3 class="text-xl font-black mb-2 text-white flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down text-brand"></i> Deposit Funds</h3>
             <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-wider font-bold">Transfer to admin, then submit proof.</p>
             
@@ -169,64 +529,161 @@
         </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-[#0a0d14]/95 backdrop-blur-md border-t border-gray-800 z-[100] py-2.5 px-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.6)] md:hidden">
-        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
-        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform hover:-translate-y-1"><i class="fa-solid fa-gamepad text-xl mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.5)]"></i><span class="text-[10px] font-bold">Games</span></a>
-        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1 relative"><i class="fa-solid fa-file-lines text-xl mb-1"></i><span class="text-[10px] font-bold">My Bets</span></a>
-        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-500 hover:text-white transition-transform hover:-translate-y-1"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-amber-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
     </nav>
 
     <script>
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
         function showToast(message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) { container = document.createElement('div'); container.id = 'toast-container'; container.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 pointer-events-none w-[90%] max-w-sm'; document.body.appendChild(container); }
-            const toast = document.createElement('div'); const isSuccess = type === 'success';
-            toast.className = `flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 -translate-y-full opacity-0 ${isSuccess ? 'bg-[#1a2e1d] border-green-500/50' : 'bg-[#2e1a1a] border-red-500/50'}`;
-            toast.innerHTML = `<div class="${isSuccess ? 'text-green-500' : 'text-red-500'} text-2xl drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i></div><div class="flex-1"><h4 class="text-white font-bold text-sm tracking-wider uppercase">${isSuccess ? 'Success' : 'Error'}</h4><p class="text-gray-300 text-xs mt-0.5">${message}</p></div>`;
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Coin Toss Desk' : 'Notice'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action failed'}</div>
+                </div>
+            `;
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); });
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
 
-        let audioCtx;
-        function initAudio() { if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER (METALLIC COIN RING & FX)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-amber-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
         const Sound = {
-            play: (f, t, dur, v=0.1) => {
-                if(!audioCtx) return;
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
             },
-            tick: () => Sound.play(800, 'sine', 0.05, 0.05),
-            win: () => { setTimeout(()=>Sound.play(523.25,'sine',0.1,0.1),0); setTimeout(()=>Sound.play(659.25,'sine',0.1,0.1),100); setTimeout(()=>Sound.play(783.99,'sine',0.1,0.1),200); setTimeout(()=>Sound.play(1046.50,'sine',0.4,0.15),300); },
-            lose: () => { setTimeout(()=>Sound.play(200,'sawtooth',0.3,0.05),0); setTimeout(()=>Sound.play(150,'sawtooth',0.4,0.05),300); setTimeout(()=>Sound.play(100,'sawtooth',0.6,0.05),700); }
+            tick: () => Sound.play(820, 'sine', 0.045, 0.045),
+            coinRing: () => {
+                // High metallic coin ping
+                Sound.play(2450, 'sine', 0.35, 0.07);
+                setTimeout(() => Sound.play(3280, 'triangle', 0.45, 0.05), 40);
+            },
+            coinLand: () => {
+                Sound.play(440, 'triangle', 0.14, 0.12);
+                setTimeout(() => Sound.play(880, 'sine', 0.18, 0.08), 60);
+            },
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 310);
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(200, 'sawtooth', 0.25, 0.06), 0);
+                setTimeout(() => Sound.play(145, 'sawtooth', 0.4, 0.07), 240);
+            }
         };
 
-        function triggerWinAnimation(winnings, newTotal) {
-            Sound.win(); 
-            const balWrapper = document.getElementById('balance-wrapper'); const balEl = document.getElementById('display-balance');
-            if(!balEl || !balWrapper) return;
-            const floater = document.createElement('div');
-            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1500ms] ease-out';
-            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
-            const rect = balWrapper.getBoundingClientRect();
-            floater.style.left = (rect.left - 40) + 'px'; floater.style.top = rect.top + 'px';
-            floater.style.transform = 'translateY(10px) scale(0.8)'; floater.style.opacity = '0';
-            document.body.appendChild(floater);
-            void floater.offsetWidth; 
-            floater.style.transform = 'translateY(-50px) scale(1.3)'; floater.style.opacity = '1';
-            balWrapper.style.transform = 'scale(1.15)'; balWrapper.style.color = '#1CDA3A';
-            setTimeout(() => { floater.style.opacity = '0'; }, 1000);
-            setTimeout(() => { floater.remove(); balEl.innerText = parseFloat(newTotal).toFixed(2); balWrapper.style.transform = 'scale(1)'; balWrapper.style.color = ''; }, 1500);
+        // =====================================================
+        // 3. STAKE CONTROLS & FLYING CHIP FX
+        // =====================================================
+        let localState = "WAITING";
+        let hasBet = false;
+        const theCoin = document.getElementById('the-coin');
+        const theShadow = document.getElementById('the-shadow');
+        const pedestalRing = document.getElementById('pedestal-ring');
+        const faceHeads = document.getElementById('face-heads');
+        const faceTails = document.getElementById('face-tails');
+
+        function updatePotentialPayout() {
+            const stake = parseFloat(document.getElementById('stake-amount').value) || 0;
+            document.getElementById('potential-win-text').innerText = '₹' + (stake * 1.95).toFixed(2);
         }
 
-        let localState = "WAITING"; let hasBet = false;
-        const theCoin = document.getElementById('the-coin'); const theShadow = document.getElementById('the-shadow');
-        const faceHeads = document.getElementById('face-heads'); const faceTails = document.getElementById('face-tails');
+        function setStake(val) {
+            initAudio();
+            Sound.tick();
+            if (!hasBet && localState === "WAITING") {
+                document.getElementById('stake-amount').value = val;
+                updatePotentialPayout();
+            }
+        }
 
-        function setStake(val) { initAudio(); Sound.tick(); if(!hasBet && localState === "WAITING") document.getElementById('stake-amount').value = val; }
-        function adjustStake(amt) { initAudio(); Sound.tick(); if(hasBet || localState !== "WAITING") return; let val = parseInt(document.getElementById('stake-amount').value) || 0; document.getElementById('stake-amount').value = Math.max(10, val + amt); }
+        function adjustStake(amt) {
+            initAudio();
+            Sound.tick();
+            if (hasBet || localState !== "WAITING") return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 0;
+            document.getElementById('stake-amount').value = Math.max(10, val + amt);
+            updatePotentialPayout();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.tick();
+            if (hasBet || localState !== "WAITING") return;
+            let val = parseInt(document.getElementById('stake-amount').value) || 50;
+            document.getElementById('stake-amount').value = Math.max(10, Math.round(val * factor));
+            updatePotentialPayout();
+        }
 
         function copyText(text, btn) {
             navigator.clipboard.writeText(text);
@@ -236,79 +693,199 @@
             setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
         }
 
+        function animateFlyingChip(btnEl, target) {
+            if (!btnEl) return;
+            const rect = btnEl.getBoundingClientRect();
+            const coinRect = theCoin.getBoundingClientRect();
+
+            const chip = document.createElement('div');
+            chip.className = `fixed z-[95] w-9 h-9 rounded-full border-2 border-dashed flex items-center justify-center font-black text-[10px] shadow-2xl pointer-events-none ${target === 'Heads' ? 'bg-amber-400 text-black border-white' : 'bg-sky-400 text-black border-white'}`;
+            chip.innerText = target === 'Heads' ? 'H' : 'T';
+            chip.style.left = `${rect.left + rect.width / 2}px`;
+            chip.style.top = `${rect.top + rect.height / 2}px`;
+            document.body.appendChild(chip);
+
+            const destX = (coinRect.left + coinRect.width / 2) - (rect.left + rect.width / 2);
+            const destY = (coinRect.top + coinRect.height / 2) - (rect.top + rect.height / 2);
+
+            chip.animate([
+                { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                { transform: `translate(calc(-50% + ${destX}px), calc(-50% + ${destY}px)) scale(0.35)`, opacity: 0 }
+            ], { duration: 520, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+
+            setTimeout(() => chip.remove(), 550);
+        }
+
+        // =====================================================
+        // 4. BEAD ROAD & ROUND HISTORY RENDERER
+        // =====================================================
         function renderHistory(hist) {
-            const strip = document.getElementById('history-strip'); strip.innerHTML = '';
+            if (!Array.isArray(hist)) return;
+            const strip = document.getElementById('history-strip');
+            const beadRoad = document.getElementById('bead-road-strip');
+            strip.innerHTML = '';
+            beadRoad.innerHTML = '';
+
+            if (hist.length === 0) {
+                beadRoad.innerHTML = '<span class="text-[10px] font-mono text-gray-600 italic">Waiting for first toss...</span>';
+                strip.innerHTML = '<div class="text-xs text-gray-500 italic text-center py-6">No completed rounds yet.</div>';
+                return;
+            }
+
+            let hCount = 0;
             hist.forEach(r => {
-                let borderClass = r.val === "H" ? "border-yellow-500/30" : "border-gray-400/30";
-                let textClass = r.val === "H" ? "text-yellow-500" : "text-gray-300";
-                let bgClass = r.val === "H" ? "bg-yellow-900/20" : "bg-gray-800/50";
-                let label = r.val === "H" ? "HEADS" : "TAILS";
-                
+                const isHeads = r.val === "H";
+                if (isHeads) hCount++;
+
+                // Top Bead Road Circle
+                beadRoad.innerHTML += `
+                    <div class="bead-circle ${isHeads ? 'bead-H' : 'bead-T'}" title="Round #${r.id}: ${isHeads ? 'Heads' : 'Tails'}">
+                        ${r.val}
+                    </div>
+                `;
+
+                // Detailed History Card
+                const borderClass = isHeads ? "border-amber-500/30" : "border-slate-500/30";
+                const textClass = isHeads ? "text-amber-400" : "text-sky-300";
+                const bgClass = isHeads ? "bg-amber-950/25" : "bg-slate-900/50";
+                const label = isHeads ? "HEADS (1.95x)" : "TAILS (1.95x)";
+
                 strip.innerHTML += `
-                <div class="w-full ${bgClass} border ${borderClass} rounded-lg px-4 py-2.5 flex justify-between items-center transition-all hover:bg-white/5">
+                <div class="w-full ${bgClass} border ${borderClass} rounded-xl px-3.5 py-2 flex justify-between items-center transition hover:bg-white/5">
                     <span class="text-xs font-mono font-bold text-gray-400">#${r.id}</span>
-                    <span class="text-base font-black ${textClass}">${label}</span>
+                    <span class="text-xs font-black tracking-wider ${textClass} flex items-center gap-1.5">
+                        <i class="fa-solid ${isHeads ? 'fa-crown' : 'fa-shield-halved'}"></i> ${label}
+                    </span>
                 </div>`;
             });
+
+            const hPct = Math.round((hCount / hist.length) * 100);
+            const tPct = 100 - hPct;
+            document.getElementById('stat-h-pct').innerText = `H: ${hPct}%`;
+            document.getElementById('stat-t-pct').innerText = `T: ${tPct}%`;
+            document.getElementById('stat-h-bar').style.width = `${hPct}%`;
         }
 
         function disableButtons(disable) {
-            ['btn-heads', 'btn-tails'].forEach(id => { document.getElementById(id).style.opacity = disable ? '0.5' : '1'; document.getElementById(id).style.transform = disable ? 'scale(0.98)' : 'scale(1)'; document.getElementById(id).disabled = disable; });
+            ['btn-heads', 'btn-tails'].forEach(id => {
+                const b = document.getElementById(id);
+                b.style.opacity = disable ? '0.45' : '1';
+                b.disabled = disable;
+            });
         }
 
-        async function placeBet(target) {
+        // =====================================================
+        // 5. PLACE BET & LIVE BACKEND SYNC LOOP
+        // =====================================================
+        async function placeBet(target, btnEl) {
             initAudio();
-            if(localState !== "WAITING" || hasBet) return;
+            if (localState !== "WAITING" || hasBet) return;
             let stake = parseFloat(document.getElementById('stake-amount').value);
+            if (isNaN(stake) || stake < 10) {
+                showToast("Minimum bet is ₹10", "error");
+                return;
+            }
             disableButtons(true);
             try {
-                let res = await fetch("/heads_tails/bet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stake: stake, target: target }) }); let data = await res.json();
-                if(data.success) { document.getElementById('display-balance').innerText = data.new_total.toFixed(2); hasBet = true; document.getElementById('my-bet-info').classList.remove('hidden'); document.getElementById('my-bet-amt').innerText = stake; document.getElementById('my-bet-target').innerText = target; showToast(`Bet accepted on ${target}`, "success"); } 
-                else { showToast(data.error, "error"); disableButtons(false); }
-            } catch(e) { showToast("Network Error", "error"); disableButtons(false); }
+                let res = await fetch("/heads_tails/bet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ stake: stake, target: target })
+                });
+                let data = await res.json();
+                if (data.success) {
+                    Sound.tick();
+                    animateFlyingChip(btnEl, target);
+                    document.getElementById('display-balance').innerText = data.new_total.toFixed(2);
+                    hasBet = true;
+                    document.getElementById('my-bet-info').classList.remove('hidden');
+                    document.getElementById('my-bet-amt').innerText = stake.toFixed(2);
+                    document.getElementById('my-bet-target').innerText = target;
+                    document.getElementById('my-bet-payout').innerText = '₹' + (stake * 1.95).toFixed(2);
+                    showToast(`₹${stake} locked on ${target}!`, "success");
+                } else {
+                    showToast(data.error || "Insufficient balance or betting closed", "error");
+                    disableButtons(false);
+                }
+            } catch (e) {
+                showToast("Network Error", "error");
+                disableButtons(false);
+            }
         }
 
         async function syncLoop() {
             try {
-                let res = await fetch('/heads_tails/sync'); let data = await res.json(); 
-                
+                let res = await fetch('/heads_tails/sync');
+                let data = await res.json();
+
                 document.getElementById('live-match-number').innerText = "#" + data.match_number;
                 renderHistory(data.history);
 
                 if (data.state !== localState) {
                     localState = data.state;
-                    
+
                     if (localState === "WAITING") {
                         hasBet = false;
-                        theCoin.style.animation = 'none'; theShadow.style.animation = 'none';
-                        faceHeads.classList.remove('win-glow-heads'); faceTails.classList.remove('win-glow-tails');
+                        theCoin.style.animation = '';
+                        theCoin.classList.add('coin-idle');
+                        theShadow.style.animation = 'none';
+                        faceHeads.classList.remove('win-glow-heads');
+                        faceTails.classList.remove('win-glow-tails');
+                        pedestalRing.className = 'pedestal-ring';
                         theCoin.style.transform = 'rotateX(0deg)';
-                        document.getElementById('result-overlay').classList.add('hidden'); document.getElementById('my-bet-info').classList.add('hidden');
+                        document.getElementById('result-overlay').classList.add('hidden');
+                        document.getElementById('my-bet-info').classList.add('hidden');
                         disableButtons(false);
-                    } 
+                    }
                     else if (localState === "FLIPPING") {
                         disableButtons(true);
-                        document.getElementById('game-status').innerHTML = `<div class="text-brand font-black uppercase text-xl drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]">FLIPPING</div>`;
-                        
-                        void theCoin.offsetWidth; 
-                        if(data.result === "Heads") { theCoin.style.animation = 'tossHeads 3s ease-in-out forwards'; } 
-                        else { theCoin.style.animation = 'tossTails 3s ease-in-out forwards'; }
+                        document.getElementById('game-status').innerHTML = `
+                            <div class="text-[9px] text-amber-400 font-black uppercase tracking-[0.2em]">Coin In Flight</div>
+                            <div class="text-xl font-black text-white uppercase tracking-widest animate-pulse mt-0.5">TOSSING...</div>
+                        `;
+
+                        theCoin.classList.remove('coin-idle');
+                        void theCoin.offsetWidth;
+                        Sound.coinRing();
+
+                        if (data.result === "Heads") {
+                            theCoin.style.animation = 'tossHeads 3s cubic-bezier(0.22, 0.8, 0.25, 1) forwards';
+                        } else {
+                            theCoin.style.animation = 'tossTails 3s cubic-bezier(0.22, 0.8, 0.25, 1) forwards';
+                        }
                         theShadow.style.animation = 'shadowShrink 3s ease-in-out forwards';
-                        
+
                         setTimeout(() => {
-                            const ro = document.getElementById('result-overlay'); const rt = document.getElementById('result-text'); ro.classList.remove('hidden');
-                            
-                            if(data.result === "Heads") { rt.innerText = "HEADS WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-yellow-500 drop-shadow-[0_0_20px_rgba(234,179,8,1)]"; faceHeads.classList.add('win-glow-heads'); } 
-                            else { rt.innerText = "TAILS WINS"; rt.className = "text-5xl md:text-7xl font-black italic tracking-widest text-gray-100 drop-shadow-[0_0_20px_rgba(255,255,255,1)]"; faceTails.classList.add('win-glow-tails'); }
-                            
-                            if(hasBet) { 
+                            Sound.coinLand();
+                            const ro = document.getElementById('result-overlay');
+                            const rt = document.getElementById('result-text');
+                            ro.classList.remove('hidden');
+
+                            if (data.result === "Heads") {
+                                rt.innerText = "HEADS WINS!";
+                                rt.className = "px-6 py-1.5 rounded-2xl bg-black/90 border border-amber-400/60 text-2xl md:text-4xl font-black italic tracking-widest text-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)]";
+                                faceHeads.classList.add('win-glow-heads');
+                                pedestalRing.classList.add('ring-heads');
+                            } else {
+                                rt.innerText = "TAILS WINS!";
+                                rt.className = "px-6 py-1.5 rounded-2xl bg-black/90 border border-sky-400/60 text-2xl md:text-4xl font-black italic tracking-widest text-sky-300 shadow-[0_0_30px_rgba(56,189,248,0.6)]";
+                                faceTails.classList.add('win-glow-tails');
+                                pedestalRing.classList.add('ring-tails');
+                            }
+
+                            if (hasBet) {
                                 fetch('/heads_tails').then(r => r.text()).then(html => {
                                     const match = html.match(/id="display-balance">([\d.]+)/);
-                                    if(match && match[1]) {
-                                        let newBal = parseFloat(match[1]); 
+                                    if (match && match[1]) {
+                                        let newBal = parseFloat(match[1]);
                                         let oldBal = parseFloat(document.getElementById('display-balance').innerText);
-                                        if (newBal > oldBal) { triggerWinAnimation(newBal - oldBal, newBal); } 
-                                        else { Sound.lose(); document.getElementById('display-balance').innerText = newBal.toFixed(2); }
+                                        if (newBal > oldBal) {
+                                            triggerWinAnimation(newBal - oldBal, newBal);
+                                            showToast(`WON ₹${(newBal - oldBal).toFixed(2)}!`, 'success');
+                                        } else {
+                                            Sound.lose();
+                                            document.getElementById('display-balance').innerText = newBal.toFixed(2);
+                                        }
                                     }
                                 });
                             }
@@ -317,11 +894,133 @@
                 }
 
                 if (localState === "WAITING") {
-                    let rem = Math.max(0, 12.0 - data.elapsed); let displayRem = Math.ceil(rem); let pad = displayRem < 10 ? '0' : '';
-                    document.getElementById('game-status').innerHTML = `<div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Place Your Bets</div><div class="text-2xl font-black ${rem < 4 ? 'text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]'}">00:${pad}${displayRem}</div>`;
+                    let rem = Math.max(0, 12.0 - data.elapsed);
+                    let displayRem = Math.ceil(rem);
+                    let pad = displayRem < 10 ? '0' : '';
+                    let pct = Math.max(0, Math.min(100, (rem / 12.0) * 100));
+                    document.getElementById('game-status').innerHTML = `
+                        <div class="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">Place Your Bets</div>
+                        <div class="text-2xl font-black font-mono ${rem < 4 ? 'text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'text-brand drop-shadow-[0_0_10px_rgba(28,218,58,0.8)]'}">00:${pad}${displayRem}</div>
+                        <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden mt-1">
+                            <div class="h-full ${rem < 4 ? 'bg-red-500' : 'bg-brand'} transition-all duration-300" style="width: ${pct}%;"></div>
+                        </div>
+                    `;
                 }
-            } catch(e) {}
-        } setInterval(syncLoop, 1000); syncLoop();
+            } catch (e) {}
+        }
+
+        // =====================================================
+        // 6. WIN FLOAT & CONFETTI CELEBRATION
+        // =====================================================
+        function triggerWinAnimation(winnings, newTotal) {
+            Sound.win();
+            spawnConfetti();
+            const balWrapper = document.getElementById('balance-wrapper');
+            const balEl = document.getElementById('display-balance');
+            if (!balEl || !balWrapper) return;
+
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1400ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = balWrapper.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 30) + 'px';
+            floater.style.top = rect.top + 'px';
+            floater.style.transform = 'translateY(10px) scale(0.8)';
+            floater.style.opacity = '0';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-45px) scale(1.25)';
+            floater.style.opacity = '1';
+            balWrapper.style.transform = 'scale(1.18)';
+
+            setTimeout(() => { floater.style.opacity = '0'; }, 950);
+            setTimeout(() => {
+                floater.remove();
+                balEl.innerText = parseFloat(newTotal).toFixed(2);
+                balWrapper.style.transform = 'scale(1)';
+            }, 1400);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#fbbf24', '#38bdf8', '#1CDA3A', '#f59e0b', '#ffffff'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '40%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        setInterval(syncLoop, 600);
+        syncLoop();
+        updatePotentialPayout();
+        (function() {
+    // 1. Block Right-Click Context Menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
+    document.addEventListener('keydown', function(e) {
+        const key = (e.key || '').toLowerCase();
+        const code = e.keyCode || e.which;
+
+        // F12 (Windows / Laptop Fn+F12)
+        if (code === 123 || key === 'f12') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
+        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
+        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
+        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // 3. Disable Dragging Images/Elements
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+
+    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
+    setInterval(function() {
+        const start = performance.now();
+        debugger;
+        if (performance.now() - start > 100) {
+            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+        }
+    }, 1500);
+})();
     </script>
 </body>
 </html>
