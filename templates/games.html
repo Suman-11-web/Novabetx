@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Novabetx - Premium Games</title>
+    <title>Novabetx - Premium Casino Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -21,10 +21,35 @@
         }
     </script>
     <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #0a0d13;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        .filter-btn.active { background-color: #1CDA3A; color: #000; box-shadow: 0 0 15px rgba(28,218,58,0.4); }
+
+        .filter-btn {
+            background: #121721;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d1d5db;
+            transition: all 0.25s ease;
+        }
+        .filter-btn:hover {
+            border-color: #1CDA3A;
+            color: #fff;
+        }
+        .filter-btn.active {
+            background-color: #1CDA3A;
+            color: #000;
+            box-shadow: 0 0 15px rgba(28,218,58,0.4);
+            font-weight: 900;
+        }
 
         /* 🌟 UPGRADED FLOATING GLASS BOTTOM NAVIGATION BAR */
         .floating-glass-nav {
@@ -52,21 +77,49 @@
 <body class="bg-background text-white min-h-[100dvh] flex flex-col md:flex-row pb-28 md:pb-0 select-none">
 
     <!-- 🖥️ DESKTOP SIDEBAR -->
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0 z-50">
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 z-50 shrink-0 sticky top-0">
         <div class="p-6 border-b border-gray-800">
             <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-2">Menu</div>
-            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
-            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 rounded-xl bg-brand/10 text-brand border border-brand/20 font-bold transition"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</a>
-            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
-            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pl-2 mt-6">Account</div>
-            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
-            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-500/10 text-green-500 hover:text-green-400 font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-1">Main Lobby</div>
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-house w-5 text-center"></i> Home & Sports
+            </a>
+            <a href="{{ url_for('games') }}" class="flex items-center justify-between p-3 rounded-xl bg-brand/10 text-brand border border-brand/25 font-bold transition shadow-[0_0_15px_rgba(28,218,58,0.1)]">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</span>
+                <span class="text-[9px] font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full">{{ games_catalog|length }}</span>
+            </a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-file-lines w-5 text-center text-blue-400"></i> My Bets
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Instant Originals</div>
+            <a href="{{ url_for('aviator_game') }}" class="flex items-center justify-between p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <span class="flex items-center gap-3"><i class="fa-solid fa-plane-up w-5 text-center text-red-500"></i> Aviator</span>
+                <span class="text-[9px] font-black text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">HOT</span>
+            </a>
+            <a href="{{ url_for('jetx_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-rocket w-5 text-center text-amber-400"></i> JetX Rocket
+            </a>
+            <a href="{{ url_for('dragon_tiger_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-dragon w-5 text-center text-yellow-400"></i> Dragon Tiger
+            </a>
+            <a href="{{ url_for('mines_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
+                <i class="fa-solid fa-bomb w-5 text-center text-cyan-400"></i> Cyber Mines
+            </a>
+
+            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Account & Vault</div>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
+                <i class="fa-solid fa-user-shield w-5 text-center text-cyan-400"></i> VIP Profile
+            </a>
+            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-brand/10 text-brand font-bold transition">
+                <i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw
+            </a>
         </nav>
+
         <div class="p-4 border-t border-gray-800">
-            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30 text-xs"><i class="fa-solid fa-power-off"></i> Logout</a>
         </div>
     </aside>
 
@@ -77,50 +130,62 @@
             <div class="flex items-center justify-between px-4 py-3">
                 <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
                 <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
-                    <div class="text-sm font-bold text-white">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
-                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)]"><i class="fa-solid fa-plus text-sm"></i></a>
+                    <div class="text-sm font-bold text-white font-mono">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)] active:scale-95 transition-transform"><i class="fa-solid fa-plus text-sm"></i></a>
                 </div>
             </div>
         </header>
 
         <!-- DESKTOP TOP BAR -->
-        <div class="hidden md:flex justify-end items-center p-4 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
+        <div class="hidden md:flex justify-between items-center px-8 py-3.5 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                <i class="fa-solid fa-vault text-brand mr-1"></i> Provably Fair Casino Vault
+            </div>
             <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
                 <div class="text-right">
                     <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                    <div class="text-lg font-black text-brand">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+                    <div class="text-lg font-black text-brand font-mono">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
                 </div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
+                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2 active:scale-95"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
             </div>
         </div>
 
-        <div class="px-4 py-6 md:p-8 max-w-[1400px] mx-auto w-full">
-            <h1 class="text-3xl md:text-5xl font-black italic tracking-wide mb-2 uppercase border-l-4 border-brand pl-3 drop-shadow-md">The <span class="text-brand">Vault</span></h1>
-            <p class="text-xs text-gray-400 mt-1 pl-4">{{ games_catalog|length }} Provably Fair Games with Instant Payouts</p>
-            
-            <!-- Dynamic Category Filter -->
-            <div class="flex gap-3 mb-8 mt-8 overflow-x-auto custom-scrollbar pb-2 pt-1 px-1">
-                <button onclick="filterGames('All')" class="filter-btn active shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">All Games ({{ games_catalog|length }})</button>
-                <button onclick="filterGames('Crash')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Crash Games</button>
-                <button onclick="filterGames('Cards')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Cards & Tables</button>
-                <button onclick="filterGames('Instant Win')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Instant Win</button>
-                <button onclick="filterGames('Numbers')" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2 rounded-xl text-sm transition-all hover:border-brand">Dice & Numbers</button>
+        <div class="px-4 py-6 md:p-8 max-w-[1400px] mx-auto w-full space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl md:text-5xl font-black italic tracking-wide mb-1 uppercase border-l-4 border-brand pl-3 drop-shadow-md">The <span class="text-brand">Vault</span></h1>
+                    <p class="text-xs text-gray-400 mt-1 pl-4 font-medium">{{ games_catalog|length }} Provably Fair Games with Instant Payouts</p>
+                </div>
+                <!-- Instant Search Bar -->
+                <div class="relative sm:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                    <input type="text" id="game-search" oninput="applyVaultSearch()" placeholder="Search any of the 37 games..." class="w-full bg-surface border border-gray-700 rounded-2xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand transition shadow-inner">
+                </div>
             </div>
             
-            <!-- AUTOMATIC DYNAMIC GRID GENERATION -->
+            <!-- Dynamic Category Filter -->
+            <div class="flex gap-3 mb-4 overflow-x-auto custom-scrollbar pb-2 pt-1 px-1">
+                <button onclick="filterGames('All', this)" class="filter-btn active shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">All Games ({{ games_catalog|length }})</button>
+                <button onclick="filterGames('Crash', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Crash Games</button>
+                <button onclick="filterGames('Cards', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Cards & Tables</button>
+                <button onclick="filterGames('Instant Win', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Instant Win</button>
+                <button onclick="filterGames('Numbers', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Dice & Numbers</button>
+            </div>
+            
+            <!-- EXACT PREVIOUS THEME-COLORED GAME CARDS GRID -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="games-grid">
                 {% for game in games_catalog %}
-                <a href="{{ url_for(game.route) }}" class="game-card block bg-gradient-to-br from-{{ game.color }}-900/80 to-black rounded-2xl border border-{{ game.color }}-500/30 p-6 hover:-translate-y-1 transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group" data-category="{{ game.category }}">
-                    <i class="fa-solid {{ game.icon }} absolute -right-4 -top-4 text-8xl text-{{ game.color }}-500 opacity-10 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500"></i>
+                <a href="{{ url_for(game.route) }}" class="game-card block bg-gradient-to-br from-{{ game.color }}-900/80 to-black rounded-2xl border border-{{ game.color }}-500/30 p-6 hover:-translate-y-1 transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group" data-category="{{ game.category }}" data-title="{{ game.title|lower }}">
+                    <i class="fa-solid {{ game.icon }} absolute -right-4 -top-4 text-8xl text-{{ game.color }}-500 opacity-10 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500 pointer-events-none"></i>
                     
-                    <div class="bg-{{ game.color }}-500/20 text-{{ game.color }}-400 border border-{{ game.color }}-500/30 text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block mb-3 tracking-widest">{{ game.category }}</div>
+                    <div class="bg-{{ game.color }}-500/20 text-{{ game.color }}-400 border border-{{ game.color }}-500/30 text-[10px] font-black uppercase px-2.5 py-0.5 rounded inline-block mb-3 tracking-widest">{{ game.category }}</div>
                     
                     <h2 class="text-2xl font-black italic text-white uppercase leading-none drop-shadow-md">{{ game.title }}</h2>
                     <p class="text-xs text-gray-400 mt-2 font-mono font-bold">Min Bet: {% if game.min_bet == 0 %}FREE{% else %}₹{{ game.min_bet }}{% endif %}</p>
                     
                     <div class="mt-6 flex justify-between items-center relative z-10">
                         <span class="text-[10px] font-black text-gray-500 group-hover:text-white transition-colors tracking-widest">PLAY NOW</span>
-                        <div class="bg-{{ game.color }}-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play ml-1 text-sm text-black"></i></div>
+                        <div class="bg-{{ game.color }}-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play ml-1 text-sm text-black font-black"></i></div>
                     </div>
                 </a>
                 {% endfor %}
@@ -149,75 +214,75 @@
     </nav>
 
     <script>
-        function filterGames(category) {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.innerText.includes(category)) btn.classList.add('active');
-            });
+        let currentCategory = 'All';
 
+        function filterGames(category, btnEl) {
+            currentCategory = category;
+            if (btnEl) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                btnEl.classList.add('active');
+            }
+            applyVaultSearch();
+        }
+
+        function applyVaultSearch() {
+            const query = (document.getElementById('game-search').value || '').toLowerCase().trim();
             document.querySelectorAll('.game-card').forEach(card => {
-                if (category === 'All' || card.getAttribute('data-category').includes(category)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+                const cCat = card.getAttribute('data-category') || '';
+                const cTitle = card.getAttribute('data-title') || '';
+                const catMatch = (currentCategory === 'All') || cCat.includes(currentCategory);
+                const textMatch = !query || cTitle.includes(query);
+                card.style.display = (catMatch && textMatch) ? 'block' : 'none';
             });
         }
+
+        // =====================================================
+        // ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>
