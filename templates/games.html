@@ -1,288 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Novabetx - Premium Casino Games</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#0a0d13',
-                        surface: '#121721',
-                        surfaceLight: '#1C232E',
-                        brand: '#1CDA3A'
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: none;
-            user-select: none;
-            -webkit-user-select: none;
-            background-color: #0a0d13;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Novabetx - Premium Casino Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { background:'#07090e', surface:'#121721', surfaceLight:'#1C232E', brand:'#1CDA3A' },
+  fontFamily: { display:['Unbounded','Manrope','system-ui','sans-serif'] }
+}}}
+</script>
+<style>
+  body{font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;user-select:none;-webkit-user-select:none;background:#07090e}
+  :focus-visible{outline:2px solid #1CDA3A;outline-offset:3px;border-radius:12px}
+  .custom-scrollbar::-webkit-scrollbar{width:4px;height:4px}
+  .custom-scrollbar::-webkit-scrollbar-thumb{background:#374151;border-radius:4px}
+  .custom-scrollbar{scrollbar-width:none}
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+  /* slow aurora behind everything */
+  .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .aurora i{position:absolute;border-radius:50%;filter:blur(90px);animation:drift 18s ease-in-out infinite alternate}
+  .aurora i:nth-child(1){width:46vmax;height:46vmax;left:-12vmax;top:-16vmax;background:#1CDA3A;opacity:.22}
+  .aurora i:nth-child(2){width:38vmax;height:38vmax;right:-12vmax;top:35vh;background:#0e7490;opacity:.2;animation-delay:-7s}
+  @keyframes drift{to{transform:translate3d(8vmax,6vmax,0) scale(1.15)}}
 
-        .filter-btn {
-            background: #121721;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #d1d5db;
-            transition: all 0.25s ease;
-        }
-        .filter-btn:hover {
-            border-color: #1CDA3A;
-            color: #fff;
-        }
-        .filter-btn.active {
-            background-color: #1CDA3A;
-            color: #000;
-            box-shadow: 0 0 15px rgba(28,218,58,0.4);
-            font-weight: 900;
-        }
+  /* one orchestrated entrance: staggered rise */
+  .rise{animation:rise .7s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(min(var(--i,0),14) * 45ms + 100ms)}
+  @keyframes rise{from{opacity:0;transform:translateY(26px) scale(.96)}}
 
-        /* 🌟 UPGRADED FLOATING GLASS BOTTOM NAVIGATION BAR */
-        .floating-glass-nav {
-            background: rgba(10, 15, 25, 0.85);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            animation: floatNavUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+  /* title shimmer + growing accent bar */
+  .shimmer{background:linear-gradient(100deg,#fff 20%,#1CDA3A 45%,#fff 70%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+  @keyframes shine{to{background-position:-250% 0}}
+  .bar{animation:grow .8s cubic-bezier(.16,1,.3,1) backwards;transform-origin:top}
+  @keyframes grow{from{transform:scaleY(0)}}
 
-        @keyframes floatNavUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+  /* balance pill sweep + deposit pulse */
+  .sweep{position:relative;overflow:hidden}
+  .sweep::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.14) 50%,transparent 65%);transform:translateX(-120%);animation:sweep 4.5s ease-in-out 1s infinite}
+  @keyframes sweep{60%,100%{transform:translateX(120%)}}
+  .pulse{position:relative}
+  .pulse::before{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(28,218,58,.55);animation:ring 2.4s ease-out infinite}
+  @keyframes ring{to{box-shadow:0 0 0 12px rgba(28,218,58,0)}}
 
-        .nav-item {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .nav-item:active {
-            transform: scale(0.88);
-        }
-    </style>
+  /* sidebar links */
+  .side-link{transition:transform .25s,background .25s,color .25s}
+  .side-link:hover{transform:translateX(4px)}
+  .side-link i{transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+  .side-link:hover i{transform:scale(1.25) rotate(-8deg)}
+
+  /* filter chips */
+  .filter-btn{background:#121721;border:1px solid rgba(255,255,255,.08);color:#d1d5db;transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .25s,color .25s,border-color .25s,box-shadow .25s}
+  .filter-btn:hover{border-color:#1CDA3A;color:#fff;transform:translateY(-2px)}
+  .filter-btn:active{transform:scale(.94)}
+  .filter-btn.active{background:#1CDA3A;color:#000;box-shadow:0 0 20px rgba(28,218,58,.45);font-weight:800;transform:scale(1.04)}
+
+  /* game cards: pointer spotlight + tilt (set by JS on desktop) */
+  .game-card{--mx:50%;--my:50%;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .35s;will-change:transform}
+  .game-card::before{content:"";position:absolute;inset:0;background:radial-gradient(240px circle at var(--mx) var(--my),color-mix(in srgb,currentColor 30%,transparent),transparent 65%);opacity:0;transition:opacity .3s;pointer-events:none}
+  .game-card:hover::before{opacity:1}
+  .game-card:hover{box-shadow:0 22px 40px rgba(0,0,0,.65),0 0 32px -10px currentColor}
+  .game-card:active{transform:scale(.97)}
+  .play-btn{transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s}
+  .game-card:hover .play-btn{transform:scale(1.18);box-shadow:0 0 0 6px color-mix(in srgb,currentColor 25%,transparent)}
+
+  /* floating glass nav */
+  .floating-glass-nav{background:rgba(10,15,25,.82);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.08);box-shadow:0 15px 35px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.1);bottom:max(.75rem,env(safe-area-inset-bottom));animation:floatNavUp .6s cubic-bezier(.16,1,.3,1) .2s backwards}
+  @keyframes floatNavUp{from{transform:translateY(40px);opacity:0}}
+  .nav-item{transition:transform .25s cubic-bezier(.34,1.56,.64,1),color .25s}
+  .nav-item:active{transform:scale(.85)}
+  .nav-item.on i{animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{from{transform:scale(.6) translateY(6px)}}
+
+  .empty-in{animation:rise .5s cubic-bezier(.16,1,.3,1) backwards}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body class="bg-background text-white min-h-[100dvh] flex flex-col md:flex-row pb-28 md:pb-0 select-none">
 
-    <!-- 🖥️ DESKTOP SIDEBAR -->
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 z-50 shrink-0 sticky top-0">
-        <div class="p-6 border-b border-gray-800">
-            <div class="text-3xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
+<div class="aurora" aria-hidden="true"><i></i><i></i></div>
+
+<!-- DESKTOP SIDEBAR -->
+<aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14]/90 backdrop-blur-xl border-r border-gray-800 z-50 shrink-0 sticky top-0">
+  <div class="p-6 border-b border-gray-800">
+    <div class="font-display text-2xl font-extrabold tracking-tight sweep inline-block">Nova<span class="text-brand">betx</span></div>
+  </div>
+  <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+    <div class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-1">Main Lobby</div>
+    <a href="{{ url_for('home') }}" style="--i:0" class="rise side-link flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold">
+      <i class="fa-solid fa-house w-5 text-center"></i> Home &amp; Sports
+    </a>
+    <a href="{{ url_for('games') }}" style="--i:1" aria-current="page" class="rise side-link flex items-center justify-between p-3 rounded-xl bg-brand/10 text-brand border border-brand/25 font-bold shadow-[0_0_18px_rgba(28,218,58,0.12)]">
+      <span class="flex items-center gap-3"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</span>
+      <span class="text-[9px] font-extrabold bg-brand/20 text-brand px-2 py-0.5 rounded-full">{{ games_catalog|length }}</span>
+    </a>
+    <a href="{{ url_for('my_bets') }}" style="--i:2" class="rise side-link flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold">
+      <i class="fa-solid fa-file-lines w-5 text-center text-blue-400"></i> My Bets
+    </a>
+
+    <div class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Instant Originals</div>
+    <a href="{{ url_for('aviator_game') }}" style="--i:3" class="rise side-link flex items-center justify-between p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold">
+      <span class="flex items-center gap-3"><i class="fa-solid fa-plane-up w-5 text-center text-red-500"></i> Aviator</span>
+      <span class="text-[9px] font-extrabold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded animate-pulse">HOT</span>
+    </a>
+    <a href="{{ url_for('jetx_game') }}" style="--i:4" class="rise side-link flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold">
+      <i class="fa-solid fa-rocket w-5 text-center text-amber-400"></i> JetX Rocket
+    </a>
+    <a href="{{ url_for('dragon_tiger_game') }}" style="--i:5" class="rise side-link flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold">
+      <i class="fa-solid fa-dragon w-5 text-center text-yellow-400"></i> Dragon Tiger
+    </a>
+    <a href="{{ url_for('mines_game') }}" style="--i:6" class="rise side-link flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold">
+      <i class="fa-solid fa-bomb w-5 text-center text-cyan-400"></i> Cyber Mines
+    </a>
+
+    <div class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Account &amp; Vault</div>
+    <a href="{{ url_for('profile') }}" style="--i:7" class="rise side-link flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold">
+      <i class="fa-solid fa-user-shield w-5 text-center text-cyan-400"></i> VIP Profile
+    </a>
+    <a href="{{ url_for('profile') }}?action=deposit" style="--i:8" class="rise side-link flex items-center gap-3 p-3 rounded-xl hover:bg-brand/10 text-brand font-bold">
+      <i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw
+    </a>
+  </nav>
+  <div class="p-4 border-t border-gray-800">
+    <a href="{{ url_for('logout') }}" class="side-link flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold border border-red-500/30 text-xs"><i class="fa-solid fa-power-off"></i> Logout</a>
+  </div>
+</aside>
+
+<main class="flex-1 flex flex-col min-h-screen relative z-10 w-full overflow-x-hidden">
+
+  <!-- MOBILE HEADER -->
+  <header class="md:hidden bg-[#0b0f16]/80 backdrop-blur-xl border-b border-gray-800/80 sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="font-display text-lg font-extrabold tracking-tight">Nova<span class="text-brand">betx</span></div>
+      <div class="sweep flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
+        <div class="text-sm font-bold text-white tabular-nums">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+        <a href="{{ url_for('profile') }}?action=deposit" aria-label="Deposit" class="pulse bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-transform"><i class="fa-solid fa-plus text-sm"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- DESKTOP TOP BAR -->
+  <div class="hidden md:flex justify-between items-center px-8 py-3.5 border-b border-gray-800 bg-[#0a0d14]/80 backdrop-blur-xl sticky top-0 z-40 shrink-0">
+    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+      <i class="fa-solid fa-vault text-brand mr-1"></i> Provably Fair Casino Vault
+    </div>
+    <div class="sweep flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700">
+      <div class="text-right">
+        <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
+        <div class="text-lg font-extrabold text-brand tabular-nums">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
+      </div>
+      <a href="{{ url_for('profile') }}?action=deposit" class="pulse bg-brand hover:bg-green-400 text-black px-4 py-2 rounded-lg font-extrabold uppercase text-xs tracking-wider transition active:scale-95 flex items-center gap-2"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
+    </div>
+  </div>
+
+  <div class="px-4 py-6 md:p-8 max-w-[1400px] mx-auto w-full space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div class="flex gap-3">
+        <div class="bar w-1 rounded-full bg-brand shadow-[0_0_14px_#1CDA3A]"></div>
+        <div>
+          <h1 class="font-display shimmer text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">The Vault</h1>
+          <p class="text-xs text-gray-400 mt-1 font-semibold">{{ games_catalog|length }} provably fair games with instant payouts</p>
         </div>
-        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-1">Main Lobby</div>
-            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
-                <i class="fa-solid fa-house w-5 text-center"></i> Home & Sports
-            </a>
-            <a href="{{ url_for('games') }}" class="flex items-center justify-between p-3 rounded-xl bg-brand/10 text-brand border border-brand/25 font-bold transition shadow-[0_0_15px_rgba(28,218,58,0.1)]">
-                <span class="flex items-center gap-3"><i class="fa-solid fa-gamepad w-5 text-center"></i> Casino Games</span>
-                <span class="text-[9px] font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full">{{ games_catalog|length }}</span>
-            </a>
-            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
-                <i class="fa-solid fa-file-lines w-5 text-center text-blue-400"></i> My Bets
-            </a>
+      </div>
+      <div class="relative sm:w-80 group">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs group-focus-within:text-brand transition-colors"></i>
+        <input type="search" id="game-search" oninput="applyVaultSearch()" placeholder="Search {{ games_catalog|length }} games" autocomplete="off" class="w-full bg-surface/80 backdrop-blur border border-gray-700 rounded-2xl py-3 pl-9 pr-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:shadow-[0_0_0_4px_rgba(28,218,58,0.12)] transition-all">
+        <kbd class="hidden md:block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 border border-gray-700 rounded px-1.5 py-0.5 pointer-events-none">/</kbd>
+      </div>
+    </div>
 
-            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Instant Originals</div>
-            <a href="{{ url_for('aviator_game') }}" class="flex items-center justify-between p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
-                <span class="flex items-center gap-3"><i class="fa-solid fa-plane-up w-5 text-center text-red-500"></i> Aviator</span>
-                <span class="text-[9px] font-black text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">HOT</span>
-            </a>
-            <a href="{{ url_for('jetx_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
-                <i class="fa-solid fa-rocket w-5 text-center text-amber-400"></i> JetX Rocket
-            </a>
-            <a href="{{ url_for('dragon_tiger_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
-                <i class="fa-solid fa-dragon w-5 text-center text-yellow-400"></i> Dragon Tiger
-            </a>
-            <a href="{{ url_for('mines_game') }}" class="flex items-center gap-3 p-2.5 px-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white text-sm font-bold transition">
-                <i class="fa-solid fa-bomb w-5 text-center text-cyan-400"></i> Cyber Mines
-            </a>
+    <!-- Category filter -->
+    <div class="flex gap-3 overflow-x-auto custom-scrollbar py-2 px-1 -mx-1 snap-x" role="tablist">
+      <button onclick="filterGames('All', this)" class="filter-btn active snap-start shrink-0 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider">All Games ({{ games_catalog|length }})</button>
+      <button onclick="filterGames('Crash', this)" class="filter-btn snap-start shrink-0 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider">Crash Games</button>
+      <button onclick="filterGames('Cards', this)" class="filter-btn snap-start shrink-0 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider">Cards &amp; Tables</button>
+      <button onclick="filterGames('Instant Win', this)" class="filter-btn snap-start shrink-0 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider">Instant Win</button>
+      <button onclick="filterGames('Numbers', this)" class="filter-btn snap-start shrink-0 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider">Dice &amp; Numbers</button>
+    </div>
 
-            <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-3 mt-6">Account & Vault</div>
-            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white font-bold transition">
-                <i class="fa-solid fa-user-shield w-5 text-center text-cyan-400"></i> VIP Profile
-            </a>
-            <a href="{{ url_for('profile') }}?action=deposit" class="flex items-center gap-3 p-3 rounded-xl hover:bg-brand/10 text-brand font-bold transition">
-                <i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-800">
-            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold transition border border-red-500/30 text-xs"><i class="fa-solid fa-power-off"></i> Logout</a>
+    <!-- Game cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5" id="games-grid">
+      {% for game in games_catalog %}
+      <a href="{{ url_for(game.route) }}" style="--i:{{ loop.index0 }}" data-category="{{ game.category }}" data-title="{{ game.title|lower }}"
+         class="game-card rise text-{{ game.color }}-400 block bg-gradient-to-br from-{{ game.color }}-900/80 to-black rounded-2xl border border-{{ game.color }}-500/30 hover:border-{{ game.color }}-400/70 p-4 sm:p-6 shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+        <i class="fa-solid {{ game.icon }} absolute -right-4 -top-4 text-7xl sm:text-8xl text-{{ game.color }}-500 opacity-10 group-hover:opacity-30 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 pointer-events-none"></i>
+        <div class="bg-{{ game.color }}-500/20 text-{{ game.color }}-400 border border-{{ game.color }}-500/30 text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded inline-block mb-3 tracking-wider">{{ game.category }}</div>
+        <h2 class="font-display text-base sm:text-xl font-extrabold text-white leading-tight break-words">{{ game.title }}</h2>
+        <p class="text-[11px] sm:text-xs text-gray-400 mt-2 font-bold tabular-nums">Min bet: {% if game.min_bet == 0 %}FREE{% else %}₹{{ game.min_bet }}{% endif %}</p>
+        <div class="mt-5 sm:mt-6 flex justify-between items-center relative z-10">
+          <span class="text-[10px] font-extrabold text-gray-500 group-hover:text-white transition-colors tracking-widest">PLAY NOW</span>
+          <div class="play-btn bg-{{ game.color }}-500 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-play ml-0.5 text-sm text-black"></i></div>
         </div>
-    </aside>
+      </a>
+      {% endfor %}
+    </div>
 
-    <main class="flex-1 flex flex-col min-h-screen relative w-full overflow-x-hidden">
-        
-        <!-- MOBILE HEADER -->
-        <header class="md:hidden bg-[#0f131a]/95 backdrop-blur-md border-b border-gray-800/80 sticky top-0 z-40 shadow-sm">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div class="text-xl font-black italic tracking-wider drop-shadow-md">Nova<span class="text-brand">betx</span></div>
-                <div class="flex items-center space-x-3 bg-surfaceLight/80 pl-4 pr-1 py-1 rounded-full border border-gray-700/50">
-                    <div class="text-sm font-bold text-white font-mono">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
-                    <a href="{{ url_for('profile') }}?action=deposit" class="bg-gradient-to-tr from-green-600 to-brand text-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(28,218,58,0.5)] active:scale-95 transition-transform"><i class="fa-solid fa-plus text-sm"></i></a>
-                </div>
-            </div>
-        </header>
+    <div id="empty-state" class="hidden text-center py-16">
+      <i class="fa-solid fa-ghost text-4xl text-gray-600 mb-4"></i>
+      <p class="font-display text-lg font-bold">No games match</p>
+      <p class="text-xs text-gray-400 mt-1">Try a different name or category.</p>
+      <button onclick="resetVault()" class="mt-5 bg-brand text-black font-extrabold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl active:scale-95 transition-transform">Show all games</button>
+    </div>
+  </div>
+</main>
 
-        <!-- DESKTOP TOP BAR -->
-        <div class="hidden md:flex justify-between items-center px-8 py-3.5 border-b border-gray-800 bg-[#0a0d14] sticky top-0 z-40 shrink-0">
-            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                <i class="fa-solid fa-vault text-brand mr-1"></i> Provably Fair Casino Vault
-            </div>
-            <div class="flex items-center gap-4 bg-surface px-4 py-2 rounded-xl border border-gray-700 shadow-inner">
-                <div class="text-right">
-                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Balance</div>
-                    <div class="text-lg font-black text-brand font-mono">₹{{ "%.2f"|format(user.balance + user.bonus_balance) }}</div>
-                </div>
-                <a href="{{ url_for('profile') }}?action=deposit" class="bg-brand hover:bg-green-500 text-black px-4 py-2 rounded-lg font-black uppercase text-xs tracking-wider transition shadow-lg flex items-center gap-2 active:scale-95"><i class="fa-solid fa-circle-arrow-down"></i> Deposit</a>
-            </div>
-        </div>
+<!-- Mobile bottom nav -->
+<nav class="md:hidden fixed left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+  <a href="{{ url_for('home') }}" class="nav-item flex flex-col items-center text-gray-400">
+    <i class="fa-solid fa-house text-lg mb-1"></i><span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+  </a>
+  <a href="{{ url_for('games') }}" aria-current="page" class="nav-item on flex flex-col items-center text-brand">
+    <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.8)]"></i><span class="text-[9px] font-extrabold uppercase tracking-wider">Games</span>
+  </a>
+  <a href="{{ url_for('my_bets') }}" class="nav-item flex flex-col items-center text-gray-400">
+    <i class="fa-solid fa-file-lines text-lg mb-1"></i><span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+  </a>
+  <a href="{{ url_for('profile') }}" class="nav-item flex flex-col items-center text-gray-400">
+    <i class="fa-solid fa-user text-lg mb-1"></i><span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+  </a>
+</nav>
 
-        <div class="px-4 py-6 md:p-8 max-w-[1400px] mx-auto w-full space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-3xl md:text-5xl font-black italic tracking-wide mb-1 uppercase border-l-4 border-brand pl-3 drop-shadow-md">The <span class="text-brand">Vault</span></h1>
-                    <p class="text-xs text-gray-400 mt-1 pl-4 font-medium">{{ games_catalog|length }} Provably Fair Games with Instant Payouts</p>
-                </div>
-                <!-- Instant Search Bar -->
-                <div class="relative sm:w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-                    <input type="text" id="game-search" oninput="applyVaultSearch()" placeholder="Search any of the 37 games..." class="w-full bg-surface border border-gray-700 rounded-2xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand transition shadow-inner">
-                </div>
-            </div>
-            
-            <!-- Dynamic Category Filter -->
-            <div class="flex gap-3 mb-4 overflow-x-auto custom-scrollbar pb-2 pt-1 px-1">
-                <button onclick="filterGames('All', this)" class="filter-btn active shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">All Games ({{ games_catalog|length }})</button>
-                <button onclick="filterGames('Crash', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Crash Games</button>
-                <button onclick="filterGames('Cards', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Cards & Tables</button>
-                <button onclick="filterGames('Instant Win', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Instant Win</button>
-                <button onclick="filterGames('Numbers', this)" class="filter-btn shrink-0 bg-surface border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all">Dice & Numbers</button>
-            </div>
-            
-            <!-- EXACT PREVIOUS THEME-COLORED GAME CARDS GRID -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="games-grid">
-                {% for game in games_catalog %}
-                <a href="{{ url_for(game.route) }}" class="game-card block bg-gradient-to-br from-{{ game.color }}-900/80 to-black rounded-2xl border border-{{ game.color }}-500/30 p-6 hover:-translate-y-1 transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] relative overflow-hidden group" data-category="{{ game.category }}" data-title="{{ game.title|lower }}">
-                    <i class="fa-solid {{ game.icon }} absolute -right-4 -top-4 text-8xl text-{{ game.color }}-500 opacity-10 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500 pointer-events-none"></i>
-                    
-                    <div class="bg-{{ game.color }}-500/20 text-{{ game.color }}-400 border border-{{ game.color }}-500/30 text-[10px] font-black uppercase px-2.5 py-0.5 rounded inline-block mb-3 tracking-widest">{{ game.category }}</div>
-                    
-                    <h2 class="text-2xl font-black italic text-white uppercase leading-none drop-shadow-md">{{ game.title }}</h2>
-                    <p class="text-xs text-gray-400 mt-2 font-mono font-bold">Min Bet: {% if game.min_bet == 0 %}FREE{% else %}₹{{ game.min_bet }}{% endif %}</p>
-                    
-                    <div class="mt-6 flex justify-between items-center relative z-10">
-                        <span class="text-[10px] font-black text-gray-500 group-hover:text-white transition-colors tracking-widest">PLAY NOW</span>
-                        <div class="bg-{{ game.color }}-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform"><i class="fa-solid fa-play ml-1 text-sm text-black font-black"></i></div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </main>
+<script>
+  let currentCategory = 'All';
+  const searchEl = document.getElementById('game-search');
+  const gridEl = document.getElementById('games-grid');
+  const emptyEl = document.getElementById('empty-state');
 
-    <!-- 🌟 UPGRADED FLOATING GLASS BOTTOM NAVIGATION BAR -->
-    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
-        <a href="{{ url_for('home') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
-            <i class="fa-solid fa-house text-lg mb-1"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
-        </a>
-        <a href="{{ url_for('games') }}" class="nav-item flex flex-col items-center text-brand transition-transform active:scale-90">
-            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.7)]"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
-        </a>
-        <a href="{{ url_for('my_bets') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
-            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
-        </a>
-        <a href="{{ url_for('profile') }}" class="nav-item flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
-            <i class="fa-solid fa-user text-lg mb-1"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
-        </a>
-    </nav>
+  function filterGames(category, btnEl) {
+    currentCategory = category;
+    if (btnEl) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      btnEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    applyVaultSearch();
+  }
 
-    <script>
-        let currentCategory = 'All';
+  function applyVaultSearch() {
+    const query = (searchEl.value || '').toLowerCase().trim();
+    let shown = 0;
+    document.querySelectorAll('.game-card').forEach(card => {
+      const cCat = card.getAttribute('data-category') || '';
+      const cTitle = card.getAttribute('data-title') || '';
+      const ok = (currentCategory === 'All' || cCat.includes(currentCategory)) && (!query || cTitle.includes(query));
+      card.style.display = ok ? '' : 'none';
+      if (ok) {            // replay the staggered entrance for visible cards
+        card.style.setProperty('--i', shown++);
+        card.classList.remove('rise'); void card.offsetWidth; card.classList.add('rise');
+      }
+    });
+    emptyEl.classList.toggle('hidden', shown > 0);
+    if (!shown) { emptyEl.classList.remove('empty-in'); void emptyEl.offsetWidth; emptyEl.classList.add('empty-in'); }
+  }
 
-        function filterGames(category, btnEl) {
-            currentCategory = category;
-            if (btnEl) {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                btnEl.classList.add('active');
-            }
-            applyVaultSearch();
-        }
+  function resetVault() {
+    searchEl.value = '';
+    filterGames('All', document.querySelector('.filter-btn'));
+  }
 
-        function applyVaultSearch() {
-            const query = (document.getElementById('game-search').value || '').toLowerCase().trim();
-            document.querySelectorAll('.game-card').forEach(card => {
-                const cCat = card.getAttribute('data-category') || '';
-                const cTitle = card.getAttribute('data-title') || '';
-                const catMatch = (currentCategory === 'All') || cCat.includes(currentCategory);
-                const textMatch = !query || cTitle.includes(query);
-                card.style.display = (catMatch && textMatch) ? 'block' : 'none';
-            });
-        }
+  // "/" focuses search
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchEl) { e.preventDefault(); searchEl.focus(); }
+  });
 
-        // =====================================================
-        // ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
-        // =====================================================
-        (function() {
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-            }, false);
+  // Desktop only: pointer spotlight + subtle tilt
+  if (matchMedia('(hover:hover) and (pointer:fine)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    gridEl.addEventListener('pointermove', e => {
+      const c = e.target.closest('.game-card'); if (!c) return;
+      const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.style.setProperty('--mx', x * 100 + '%'); c.style.setProperty('--my', y * 100 + '%');
+      c.style.setProperty('--ry', (x - .5) * 8 + 'deg'); c.style.setProperty('--rx', (.5 - y) * 8 + 'deg');
+    });
+    gridEl.addEventListener('pointerout', e => {
+      const c = e.target.closest('.game-card');
+      if (c && !c.contains(e.relatedTarget)) { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); }
+    });
+  }
 
-            document.addEventListener('keydown', function(e) {
-                const key = (e.key || '').toLowerCase();
-                const code = e.keyCode || e.which;
-
-                if (code === 123 || key === 'f12') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }, true);
-
-            document.addEventListener('dragstart', function(e) {
-                e.preventDefault();
-            });
-
-            setInterval(function() {
-                const start = performance.now();
-                debugger;
-                if (performance.now() - start > 100) {
-                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-                }
-            }, 1500);
-        })();
-    </script>
+  // =====================================================
+  // ANTI-INSPECT & DEVTOOLS SHIELD (unchanged behaviour)
+  // =====================================================
+  (function () {
+    document.addEventListener('contextmenu', e => { e.preventDefault(); return false; }, false);
+    document.addEventListener('keydown', function (e) {
+      const key = (e.key || '').toLowerCase(), code = e.keyCode || e.which;
+      const block = () => { e.preventDefault(); e.stopPropagation(); return false; };
+      if (code === 123 || key === 'f12') return block();
+      if (e.ctrlKey && e.shiftKey && (['i','j','c','k'].includes(key) || [73,74,67,75].includes(code))) return block();
+      if (e.metaKey && e.altKey && (['i','j','c','u','k'].includes(key) || [73,74,67,85,75].includes(code))) return block();
+      if ((e.ctrlKey || e.metaKey) && (['u','s'].includes(key) || [85,83].includes(code))) return block();
+    }, true);
+    document.addEventListener('dragstart', e => e.preventDefault());
+    setInterval(function () {
+      const start = performance.now();
+      debugger;
+      if (performance.now() - start > 100) {
+        document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+      }
+    }, 1500);
+  })();
+</script>
 </body>
 </html>
