@@ -2,190 +2,740 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackjack 21 - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blackjack 21 Pro - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',brand:'#10b981'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        blackjackGreen: '#047857'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .felt-bg { background: radial-gradient(circle at center, #064e3b 0%, #022c22 100%); }
-        .playing-card { width: 60px; height: 85px; background: white; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 8px; font-weight: 900; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.5); border: 1px solid #e5e7eb; position: relative; animation: slideIn 0.4s ease-out forwards; opacity: 0; transform: translateY(-20px); }
-        .card-red { color: #ef4444; } .card-black { color: #111827; }
-        .card-suit-large { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; opacity: 0.2; }
-        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Macau VIP Blackjack Felt Arena */
+        .blackjack-arena {
+            background:
+                radial-gradient(ellipse at 50% 45%, #065f46 0%, #022c22 62%, #05070c 100%);
+            border: 3px solid rgba(16, 185, 129, 0.45);
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.8),
+                inset 0 0 80px rgba(0, 0, 0, 0.92);
+            position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .blackjack-arena::before {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border-radius: 1.5rem;
+            border: 1px dashed rgba(251, 191, 36, 0.22);
+            pointer-events: none;
+        }
+
+        /* 3D Playing Card Slots */
+        .bj-card-slot {
+            width: 74px;
+            height: 104px;
+            perspective: 1000px;
+            position: relative;
+        }
+        @media (min-width: 640px) {
+            .bj-card-slot { width: 92px; height: 130px; }
+        }
+
+        .bj-card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.48s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: rotateY(0deg);
+        }
+
+        .bj-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes cardSlideIn {
+            0% { opacity: 0; transform: translateY(-40px) scale(0.75) rotate(-6deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+        }
+        .anim-deal {
+            animation: cardSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .bj-card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Royal Navy & Gold Card Back */
+        .bj-card-back {
+            background: radial-gradient(circle at center, #1e3a8a 0%, #090d16 100%);
+            border: 2px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bj-card-back::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1px dashed rgba(251, 191, 36, 0.45);
+            border-radius: 8px;
+        }
+
+        /* Crisp White Card Front */
+        .bj-card-front {
+            background: linear-gradient(150deg, #ffffff 0%, #f1f5f9 100%);
+            border: 2px solid #cbd5e1;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px 8px;
+            overflow: hidden;
+        }
+
+        .card-red { color: #dc2626; }
+        .card-black { color: #0f172a; }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
 
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0">
-        <div class="p-6 border-b border-gray-800"><div class="text-3xl font-black italic tracking-wider">Nova<span class="text-emerald-500">betx</span></div></div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="/games" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left"></i> Back to Games</a>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-emerald-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">21 PRO</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-emerald-500/10 text-emerald-400 font-bold rounded-xl border border-emerald-500/20"><i class="fa-solid fa-heart w-5 text-center"></i> Blackjack 21</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
         </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-emerald-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-h-screen">
-        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
-            <div class="text-xl font-black text-emerald-500 flex items-center gap-2"><i class="fa-solid fa-heart"></i> Blackjack 21</div>
-            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                        <i class="fa-solid fa-heart"></i> BLACKJACK 21
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden sm:inline-block">PAYS 3:2</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
         </header>
 
-        <div class="flex-1 felt-bg flex flex-col justify-between p-4 md:p-8 relative overflow-hidden shadow-inner">
-            
-            <!-- Dealer Area -->
-            <div class="flex flex-col items-center">
-                <div class="text-emerald-300 font-bold tracking-widest text-xs mb-2 bg-black/40 px-3 py-1 rounded-full uppercase border border-emerald-900/50">Dealer <span id="dealer-score" class="ml-2 font-black text-white">?</span></div>
-                <div id="dealer-cards" class="flex gap-2 min-h-[90px]"></div>
+        <!-- MAIN WORKSPACE: BLACKJACK FELT TABLE + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
+
+            <!-- LEFT / TOP: 3D BLACKJACK FELT TABLE (7 Cols) -->
+            <div id="bj-arena-frame" class="w-full lg:w-7/12 blackjack-arena rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden min-h-[420px] sm:min-h-[480px]">
+
+                <!-- Top Dealer Station -->
+                <div class="flex flex-col items-center justify-center z-10 my-2">
+                    <div class="flex items-center gap-2 mb-2.5 bg-black/55 px-3.5 py-1 rounded-full border border-emerald-500/30">
+                        <i class="fa-solid fa-user-tie text-emerald-400 text-xs"></i>
+                        <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-300">Dealer Hand</span>
+                        <span id="dealer-score" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full">?</span>
+                    </div>
+                    <div id="dealer-cards" class="flex items-center justify-center gap-2.5 min-h-[104px] sm:min-h-[130px]">
+                        <!-- Dealer Cards Injected Here -->
+                    </div>
+                </div>
+
+                <!-- RESULT OVERLAY BANNER -->
+                <div id="result-overlay" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 text-center w-[90%] max-w-xs pointer-events-none">
+                    <div class="bg-black/92 backdrop-blur-xl border-2 border-white/15 rounded-3xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.95)]">
+                        <div id="result-msg" class="text-3xl sm:text-4xl font-black italic uppercase tracking-wider text-white">YOU WIN!</div>
+                        <div id="result-win" class="text-base sm:text-lg font-mono font-black text-brand mt-1">+ ₹0.00</div>
+                    </div>
+                </div>
+
+                <!-- Center Felt Divider -->
+                <div class="w-full flex items-center justify-center my-1 z-10 opacity-40">
+                    <div class="w-1/3 h-[1px] bg-white/20"></div>
+                    <span class="px-3 text-[9px] font-mono text-amber-300 tracking-widest uppercase font-bold">INSURANCE PAYS 2:1</span>
+                    <div class="w-1/3 h-[1px] bg-white/20"></div>
+                </div>
+
+                <!-- Bottom Player Station -->
+                <div class="flex flex-col items-center justify-center z-10 my-2">
+                    <div id="player-cards" class="flex items-center justify-center gap-2.5 min-h-[104px] sm:min-h-[130px] mb-2.5">
+                        <!-- Player Cards Injected Here -->
+                    </div>
+                    <div class="flex items-center gap-2 bg-black/55 px-3.5 py-1 rounded-full border border-blue-500/30">
+                        <i class="fa-solid fa-user-shield text-blue-400 text-xs"></i>
+                        <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest text-blue-300">Player Hand</span>
+                        <span id="player-score" class="bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full">0</span>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Result Overlay -->
-            <div id="result-overlay" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-center w-full">
-                <div id="result-msg" class="text-4xl md:text-6xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest"></div>
-                <div id="result-win" class="text-xl font-bold text-emerald-400 mt-2"></div>
+            <!-- RIGHT / BOTTOM: BETTING COCKPIT & CONTROLS (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Table Stake (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-emerald-500 rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="50" min="10" step="10" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Stake Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="multiplyStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="multiplyStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Blackjack Rules Card -->
+                    <div class="bg-black/40 border border-gray-800 rounded-2xl p-3.5 space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-semibold">Dealer Stands on:</span>
+                            <span class="font-mono font-black text-emerald-400">All 17s</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-semibold">Blackjack Payout:</span>
+                            <span class="font-mono font-black text-amber-400">3 to 2 (1.5x)</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="mt-4">
+                    <!-- Setup Controls (Deal) -->
+                    <div id="setup-controls">
+                        <button type="button" onclick="deal()" class="w-full h-18 md:h-22 py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(16,185,129,0.45)] border-b-4 border-emerald-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-heart"></i> DEAL HAND</span>
+                            <span class="text-[10px] font-mono font-bold tracking-widest text-emerald-950 opacity-80 mt-0.5">OR PRESS SPACEBAR</span>
+                        </button>
+                    </div>
+
+                    <!-- In-Game Controls (Hit & Stand) -->
+                    <div id="game-controls" class="hidden grid grid-cols-2 gap-3">
+                        <button type="button" onclick="hit()" class="py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-black text-lg rounded-2xl uppercase tracking-wider shadow-[0_8px_25px_rgba(59,130,246,0.4)] border-b-4 border-blue-950 active:translate-y-1 active:border-b-0 transition flex items-center justify-center gap-2">
+                            <span>HIT</span> <i class="fa-solid fa-plus text-sm"></i>
+                        </button>
+                        <button type="button" onclick="stand()" class="py-4 bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white font-black text-lg rounded-2xl uppercase tracking-wider shadow-[0_8px_25px_rgba(239,68,68,0.4)] border-b-4 border-red-950 active:translate-y-1 active:border-b-0 transition flex items-center justify-center gap-2">
+                            <span>STAND</span> <i class="fa-solid fa-hand text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Hands</div>
+                            <div id="stat-hands" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Wins</div>
+                            <div id="stat-wins" class="text-xs font-mono font-black text-brand mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Player Area -->
-            <div class="flex flex-col items-center mt-12">
-                <div id="player-cards" class="flex gap-2 min-h-[90px]"></div>
-                <div class="text-emerald-300 font-bold tracking-widest text-xs mt-4 bg-black/40 px-3 py-1 rounded-full uppercase border border-emerald-900/50">Player <span id="player-score" class="ml-2 font-black text-white">0</span></div>
-            </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800">
-            <div id="setup-controls" class="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto">
-                <input type="number" id="stake" value="50" min="10" class="w-full md:w-1/3 bg-black border border-gray-700 rounded-xl p-3 text-center text-xl font-black text-white focus:border-emerald-500 outline-none shadow-inner">
-                <button onclick="deal()" class="w-full md:w-2/3 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(16,185,129,0.4)]">DEAL CARDS</button>
-            </div>
-
-            <div id="game-controls" class="hidden flex gap-3 max-w-2xl mx-auto">
-                <button onclick="hit()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg rounded-xl uppercase tracking-wider transition shadow-lg">HIT <i class="fa-solid fa-plus ml-1"></i></button>
-                <button onclick="stand()" class="flex-1 py-4 bg-red-600 hover:bg-red-500 text-white font-black text-lg rounded-xl uppercase tracking-wider transition shadow-lg">STAND <i class="fa-solid fa-hand ml-1"></i></button>
-            </div>
         </div>
     </main>
 
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-emerald-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(16,185,129,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
+
     <script>
-        function createCardHTML(card, hidden=false) {
-            if (hidden) return `<div class="playing-card bg-gray-200" style="background: repeating-linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px);"></div>`;
-            const isRed = card.suit === '♥' || card.suit === '♦';
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Blackjack 21 Pro' : 'Table Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-emerald-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            chip: () => Sound.play(880, 'sine', 0.04, 0.045),
+            cardSlide: () => Sound.play(340, 'triangle', 0.07, 0.06),
+            cardFlip: (idx) => Sound.play(480 + idx * 50, 'sine', 0.09, 0.08),
+            win: () => {
+                [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((n, i) => {
+                    setTimeout(() => Sound.play(n, 'triangle', 0.2, 0.15), i * 90);
+                });
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(200, 'sawtooth', 0.22, 0.06), 0);
+                setTimeout(() => Sound.play(150, 'sawtooth', 0.35, 0.07), 200);
+            }
+        };
+
+        // =====================================================
+        // 3. 3D PLAYING CARD BUILDER
+        // =====================================================
+        function create3DCardHTML(card, hidden = false, index = 0) {
+            if (hidden) {
+                return `
+                    <div class="bj-card-slot anim-deal">
+                        <div class="bj-card-inner">
+                            <div class="bj-card-face bj-card-back">
+                                <i class="fa-solid fa-crown text-amber-400/70 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const rank = card ? card.rank : 'A';
+            const suit = card ? card.suit : '♠';
+            const isRed = suit === '♥' || suit === '♦';
             const colorClass = isRed ? 'card-red' : 'card-black';
-            return `<div class="playing-card ${colorClass}">
-                        <span>${card.rank}</span>
-                        <div class="card-suit-large">${card.suit}</div>
-                        <span class="text-right">${card.suit}</span>
-                    </div>`;
+
+            return `
+                <div class="bj-card-slot anim-deal">
+                    <div class="bj-card-inner flipped" id="bj-card-${index}">
+                        <div class="bj-card-face bj-card-back">
+                            <i class="fa-solid fa-crown text-amber-400/70 text-xl"></i>
+                        </div>
+                        <div class="bj-card-face bj-card-front ${colorClass}">
+                            <div class="text-left leading-none">
+                                <div class="text-xs sm:text-base font-black tracking-tighter">${rank}</div>
+                                <div class="text-[10px] sm:text-xs">${suit}</div>
+                            </div>
+                            <div class="text-center text-2xl sm:text-4xl leading-none my-auto drop-shadow-sm">${suit}</div>
+                            <div class="text-right leading-none rotate-180">
+                                <div class="text-xs sm:text-base font-black tracking-tighter">${rank}</div>
+                                <div class="text-[10px] sm:text-xs">${suit}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // =====================================================
+        // 4. STAKE CONTROLS & GAME ACTIONS
+        // =====================================================
+        let activeRunStake = 50;
+        let totalHands = 0;
+        let totalWins = 0;
+        let sessionPnL = 0;
+
+        function stepStake(delta) {
+            initAudio();
+            Sound.chip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, val + delta);
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            Sound.chip();
+            document.getElementById('stake').value = val;
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            Sound.chip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
         }
 
         async function deal() {
+            initAudio();
             const stake = parseFloat(document.getElementById('stake').value);
-            const res = await fetch('/blackjack/deal', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake}) });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('bal').innerText = d.new_total.toFixed(2);
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const balEl = document.getElementById('bal');
+            const currentBal = parseFloat(balEl.innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                return;
+            }
+
+            activeRunStake = stake;
+            document.getElementById('result-overlay').classList.add('hidden');
+
+            try {
+                const res = await fetch('/blackjack/deal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake })
+                });
+                const d = await res.json();
+
+                if (!d.success) {
+                    showToast(d.error || 'Could not deal hand', 'error');
+                    return;
+                }
+
+                balEl.innerText = d.new_total.toFixed(2);
                 document.getElementById('setup-controls').classList.add('hidden');
                 document.getElementById('game-controls').classList.remove('hidden');
-                document.getElementById('result-overlay').classList.add('hidden');
-                
-                document.getElementById('player-cards').innerHTML = d.player.map(c => createCardHTML(c)).join('');
-                document.getElementById('dealer-cards').innerHTML = createCardHTML(d.dealer_up) + createCardHTML({}, true);
-                
+
+                document.getElementById('player-cards').innerHTML = d.player.map((c, i) => create3DCardHTML(c, false, i)).join('');
+                document.getElementById('dealer-cards').innerHTML = create3DCardHTML(d.dealer_up, false, 0) + create3DCardHTML(null, true, 1);
+                Sound.cardSlide();
+
                 document.getElementById('player-score').innerText = d.player_score;
                 document.getElementById('dealer-score').innerText = "?";
-            } else { alert(d.error); }
+
+            } catch (e) {
+                showToast('Network error dealing cards', 'error');
+            }
         }
 
         async function hit() {
-            const res = await fetch('/blackjack/hit', { method: 'POST' });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('player-cards').innerHTML = d.player.map(c => createCardHTML(c)).join('');
-                document.getElementById('player-score').innerText = d.score;
-                if(d.bust) endGame("BUSTED!", "text-red-500", 0);
+            initAudio();
+            try {
+                const res = await fetch('/blackjack/hit', { method: 'POST' });
+                const d = await res.json();
+
+                if (d.success) {
+                    document.getElementById('player-cards').innerHTML = d.player.map((c, i) => create3DCardHTML(c, false, i)).join('');
+                    document.getElementById('player-score').innerText = d.score;
+                    Sound.cardFlip(1);
+
+                    if (d.bust) {
+                        endGame("BUSTED!", "text-red-500", 0);
+                        updateSessionTelemetry(activeRunStake, 0, false);
+                    }
+                }
+            } catch (e) {
+                showToast('Network error hitting card', 'error');
             }
         }
 
         async function stand() {
+            initAudio();
             document.getElementById('game-controls').classList.add('hidden');
-            const res = await fetch('/blackjack/stand', { method: 'POST' });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('dealer-cards').innerHTML = d.dealer.map(c => createCardHTML(c)).join('');
-                document.getElementById('dealer-score').innerText = d.dealer_score;
-                let msg = d.win ? "YOU WIN!" : (d.push ? "PUSH" : "DEALER WINS");
-                let color = d.win ? "text-emerald-400" : (d.push ? "text-gray-400" : "text-red-500");
-                endGame(msg, color, d.winnings);
-                document.getElementById('bal').innerText = d.new_total.toFixed(2);
+
+            try {
+                const res = await fetch('/blackjack/stand', { method: 'POST' });
+                const d = await res.json();
+
+                if (d.success) {
+                    document.getElementById('dealer-cards').innerHTML = d.dealer.map((c, i) => create3DCardHTML(c, false, i)).join('');
+                    document.getElementById('dealer-score').innerText = d.dealer_score;
+                    Sound.cardSlide();
+
+                    let msg = d.win ? "YOU WIN!" : (d.push ? "PUSH (TIE)" : "DEALER WINS");
+                    let color = d.win ? "text-brand" : (d.push ? "text-amber-400" : "text-red-500");
+
+                    endGame(msg, color, d.winnings);
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    updateSessionTelemetry(activeRunStake, d.winnings, d.win);
+                }
+            } catch (e) {
+                showToast('Network error standing', 'error');
+                document.getElementById('game-controls').classList.remove('hidden');
             }
         }
 
         function endGame(msg, colorClass, winnings) {
             document.getElementById('game-controls').classList.add('hidden');
             document.getElementById('setup-controls').classList.remove('hidden');
-            document.getElementById('result-overlay').classList.remove('hidden');
-            document.getElementById('result-msg').className = `text-4xl md:text-6xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest ${colorClass}`;
-            document.getElementById('result-msg').innerText = msg;
-            document.getElementById('result-win').innerText = winnings > 0 ? `+ ₹${winnings.toFixed(2)}` : '';
+            const overlay = document.getElementById('result-overlay');
+            const msgEl = document.getElementById('result-msg');
+            const winEl = document.getElementById('result-win');
+
+            msgEl.className = `text-3xl md:text-5xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest ${colorClass}`;
+            msgEl.innerText = msg;
+            winEl.innerText = winnings > 0 ? `+ ₹${winnings.toFixed(2)}` : (msg === "PUSH (TIE)" ? "Stake Refunded" : "");
+            overlay.classList.remove('hidden');
+
+            if (winnings > 0) {
+                Sound.win();
+                spawnConfetti(28);
+                triggerFloatingWin(winnings);
+                showToast(`Blackjack Win! +₹${winnings.toFixed(2)}`, 'success');
+            } else if (msg !== "PUSH (TIE)") {
+                Sound.lose();
+            }
         }
 
+        // =====================================================
+        // 5. TELEMETRY & CONFETTI FX
+        // =====================================================
+        function updateSessionTelemetry(stake, winnings, isWin) {
+            totalHands++;
+            if (isWin) totalWins++;
+            sessionPnL += (winnings - stake);
+
+            document.getElementById('stat-hands').innerText = totalHands;
+            document.getElementById('stat-wins').innerText = totalWins;
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+        }
+
+        function triggerFloatingWin(winnings) {
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti(count) {
+            const container = document.getElementById('particle-container');
+            const colors = ['#10b981', '#fbbf24', '#1CDA3A', '#3b82f6', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        // =====================================================
+        // 6. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
-
-
-
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>

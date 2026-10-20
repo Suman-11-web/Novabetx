@@ -2,224 +2,989 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Field - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Coin Field - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        emeraldNeon: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .field-lane { transition: all 0.2s; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; font-size: 3rem; }
-        .field-lane:hover { background: rgba(16,185,129,0.1); border-color: #10b981; transform: translateY(-5px); }
-        .field-lane.safe { background: rgba(16,185,129,0.2); border-color: #10b981; color: #10b981; pointer-events: none; }
-        .field-lane.mine { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; pointer-events: none; }
-        .field-lane.locked { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(16, 185, 129, 0.14) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.08) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Tactical Minefield Arena */
+        .field-arena {
+            background:
+                radial-gradient(ellipse at 50% 35%, rgba(6, 78, 59, 0.55) 0%, rgba(15, 23, 42, 0.75) 60%, #05070c 100%);
+            border: 3px solid rgba(16, 185, 129, 0.45);
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.8),
+                inset 0 0 80px rgba(0, 0, 0, 0.92);
+            position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .field-arena.arena-danger {
+            border-color: #ef4444;
+            box-shadow: 0 0 65px rgba(239, 68, 68, 0.5), inset 0 0 45px rgba(239, 68, 68, 0.25);
+        }
+
+        /* 3D Tactical Lane Vault Pods */
+        .field-lane {
+            position: relative;
+            height: 155px;
+            background: linear-gradient(160deg, #131c2e 0%, #090d16 100%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.65),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        @media (min-width: 640px) {
+            .field-lane { height: 185px; }
+        }
+
+        /* Cyber Grid Pattern inside Lane Pod */
+        .field-lane::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(16, 185, 129, 0.14) 1px, transparent 1px);
+            background-size: 16px 16px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .field-lane:not(.locked):not(.safe):not(.mine):hover {
+            border-color: #10b981;
+            background: linear-gradient(160deg, rgba(16, 185, 129, 0.18) 0%, #0d1524 100%);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 14px 30px rgba(16, 185, 129, 0.28), inset 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+
+        .field-lane:not(.locked):active {
+            transform: scale(0.96);
+        }
+
+        /* Locked / Standby Lane State */
+        .field-lane.locked {
+            opacity: 0.48;
+            pointer-events: none;
+            cursor: not-allowed;
+            filter: grayscale(0.4);
+        }
+
+        /* Radar Scanning Sweep Effect */
+        @keyframes radarSweep {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .field-lane.scanning::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent, rgba(16, 185, 129, 0.45), transparent);
+            animation: radarSweep 0.45s infinite linear;
+        }
+
+        /* Safe Coin Cache Revealed */
+        .field-lane.safe {
+            background: radial-gradient(circle at 50% 35%, rgba(16, 185, 129, 0.38) 0%, #064e3b 70%, #022c22 100%);
+            border-color: #34d399;
+            color: #fbbf24;
+            pointer-events: none;
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 0 35px rgba(16, 185, 129, 0.55), inset 0 0 20px rgba(251, 191, 36, 0.25);
+        }
+
+        /* Direct Mine Detonation */
+        .field-lane.mine {
+            background: radial-gradient(circle at 50% 35%, rgba(239, 68, 68, 0.45) 0%, #7f1d1d 70%, #450a0a 100%);
+            border-color: #f87171;
+            color: #ffffff;
+            pointer-events: none;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.75), inset 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Unpicked Reveal (Shows where the mine or other coin was) */
+        .field-lane.revealed-other {
+            opacity: 0.45;
+            pointer-events: none;
+            border-style: dashed;
+        }
+
+        /* Step Multiplier Ladder Pills */
+        .step-pill {
+            background: rgba(8, 12, 22, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+        .step-pill.step-cleared {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+        .step-pill.step-active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #000000;
+            border-color: #6ee7b7;
+            transform: scale(1.06);
+            box-shadow: 0 0 18px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Screen Shake on Mine Hit */
+        @keyframes mineShake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(4px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 3px, 0); }
+            40%, 60% { transform: translate3d(6px, -3px, 0); }
+        }
+        .shake-explosion { animation: mineShake 0.48s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
 
-    <header class="w-full max-w-xl flex justify-between items-center py-4 border-b border-gray-800 mb-6">
-        <a href="/games" class="text-emerald-500 font-bold text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
-        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-    </header>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
 
-    <div class="w-full max-w-xl flex flex-col items-center justify-center my-auto">
-        <div class="bg-[#0a0d14] border border-emerald-900/30 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(16,185,129,0.1)] w-full text-center relative overflow-hidden">
-            
-            <div class="flex justify-between items-end mb-6 pb-4 border-b border-gray-800">
-                <div class="text-left">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Step</div>
-                    <div id="step-counter" class="text-3xl font-black text-white">0</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Multiplier</div>
-                    <div id="current-mult" class="text-3xl font-black text-emerald-400">1.00x</div>
-                </div>
-            </div>
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
 
-            <div class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pick a Lane to Advance</div>
-
-            <div class="grid grid-cols-3 gap-4 mb-6">
-                <div id="lane-0" onclick="stepLane(0)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
-                <div id="lane-1" onclick="stepLane(1)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
-                <div id="lane-2" onclick="stepLane(2)" class="field-lane locked text-gray-600"><i class="fa-solid fa-question"></i></div>
-            </div>
-            
-            <div id="current-win" class="text-lg font-bold text-emerald-400 h-6 mb-2"></div>
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-emerald-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">FIELD</span>
         </div>
-    </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-emerald-500/10 text-emerald-400 font-bold rounded-xl border border-emerald-500/20"><i class="fa-solid fa-table-cells-large w-5 text-center"></i> Coin Field</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-emerald-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </aside>
 
-    <div class="w-full max-w-xl bg-[#0a0d14] p-4 rounded-2xl border border-gray-800 flex gap-3 mt-8">
-        <input type="number" id="stake" value="50" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white outline-none focus:border-emerald-500">
-        <button id="action-btn" onclick="startGame()" class="flex-1 py-4 bg-gradient-to-r from-emerald-600 to-emerald-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(16,185,129,0.4)]">START GAME</button>
-    </div>
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.45)]">
+                        <i class="fa-solid fa-coins"></i> CYBER COIN FIELD
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded hidden sm:inline-block">2 SAFE LANES • 1 MINE</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- COMPOUND MULTIPLIER LADDER RIBBON -->
+        <div class="bg-[#080b12] px-4 py-2 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-stairs text-emerald-400"></i> Step Ladder:
+            </span>
+            <div id="step-ladder-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5"></div>
+        </div>
+
+        <!-- MAIN WORKSPACE: 3-LANE ARENA + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
+
+            <!-- LEFT / TOP: 3-LANE TACTICAL MINEFIELD ARENA (7 Cols) -->
+            <div id="field-arena-frame" class="w-full lg:w-7/12 field-arena rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+
+                <!-- Top Telemetry HUD Bar -->
+                <div class="grid grid-cols-3 gap-2.5 mb-4 relative z-10">
+                    <div class="bg-black/55 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Active Step</div>
+                        <div id="step-counter" class="text-xl sm:text-2xl font-black font-mono text-white mt-0.5">0</div>
+                    </div>
+                    <div class="bg-black/55 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Multiplier</div>
+                        <div id="current-mult" class="text-xl sm:text-2xl font-black font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] mt-0.5">1.00x</div>
+                    </div>
+                    <div class="bg-black/55 border border-gray-800 rounded-2xl p-2.5 text-center">
+                        <div class="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Next Step Win</div>
+                        <div id="next-step-payout" class="text-xl sm:text-2xl font-black font-mono text-amber-400 mt-0.5">₹72.50</div>
+                    </div>
+                </div>
+
+                <!-- Status Instruction Banner -->
+                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-black/50 border border-white/10 mb-4 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <span id="field-led" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span id="field-status-text" class="text-[11px] sm:text-xs font-black uppercase tracking-wider text-gray-200">
+                            PRESS START GAME TO ARM THE 3 LANES
+                        </span>
+                    </div>
+                    <span class="text-[10px] font-mono text-emerald-400 font-bold hidden sm:inline">66.7% SAFE PER STEP</span>
+                </div>
+
+                <!-- THE 3 TACTICAL LANE VAULT PODS -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 my-auto py-2 relative z-10">
+                    <!-- Lane 0 (Left) -->
+                    <div id="lane-0" onclick="stepLane(0)" class="field-lane locked text-gray-500">
+                        <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-gray-500">LANE #1</span>
+                        <div class="lane-icon text-4xl sm:text-5xl mb-2"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span class="lane-label text-[10px] font-black uppercase tracking-widest text-gray-400">LEFT PATH</span>
+                    </div>
+
+                    <!-- Lane 1 (Center) -->
+                    <div id="lane-1" onclick="stepLane(1)" class="field-lane locked text-gray-500">
+                        <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-gray-500">LANE #2</span>
+                        <div class="lane-icon text-4xl sm:text-5xl mb-2"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span class="lane-label text-[10px] font-black uppercase tracking-widest text-gray-400">CENTER PATH</span>
+                    </div>
+
+                    <!-- Lane 2 (Right) -->
+                    <div id="lane-2" onclick="stepLane(2)" class="field-lane locked text-gray-500">
+                        <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-gray-500">LANE #3</span>
+                        <div class="lane-icon text-4xl sm:text-5xl mb-2"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span class="lane-label text-[10px] font-black uppercase tracking-widest text-gray-400">RIGHT PATH</span>
+                    </div>
+                </div>
+
+                <!-- Live Cashout / Outcome Marquee -->
+                <div class="mt-4 bg-black/80 rounded-2xl border border-gray-800 h-14 px-4 flex items-center justify-between shadow-inner relative z-10">
+                    <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">CURRENT POT:</span>
+                    <div id="current-win" class="text-base sm:text-xl font-black font-mono text-emerald-400 tracking-wider">
+                        ₹0.00
+                    </div>
+                    <button type="button" id="btn-random-lane" onclick="pickRandomLane()" disabled class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-black text-[10px] uppercase tracking-wider transition disabled:opacity-35 disabled:cursor-not-allowed flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Pick
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- RIGHT / BOTTOM: BETTING & CASHOUT COCKPIT (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Run Stake (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-emerald-500 rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="50" min="10" step="10" oninput="refreshStepLadder()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Stake Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="adjustStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="adjustStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Compound Payout Preview Table -->
+                    <div class="bg-black/50 border border-gray-800 rounded-2xl p-3.5 space-y-2 text-xs">
+                        <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1 flex items-center justify-between">
+                            <span>Compound Multiplier Forecast</span>
+                            <span class="font-mono text-gray-400">1.45× Per Step</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
+                            <span class="text-gray-400">Step 1 Clear (1.45x):</span>
+                            <span id="forecast-step-1" class="font-mono font-black text-white">₹72.50</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
+                            <span class="text-gray-400">Step 3 Clear (3.05x):</span>
+                            <span id="forecast-step-3" class="font-mono font-black text-emerald-400">₹152.50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Step 5 Clear (6.41x):</span>
+                            <span id="forecast-step-5" class="font-mono font-black text-amber-400">₹320.50</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- PRIMARY START / CASHOUT BUTTON & SESSION STATS -->
+                <div class="mt-4">
+                    <button type="button" id="action-btn" onclick="startGame()" class="w-full h-18 md:h-22 py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(16,185,129,0.45)] border-b-4 border-emerald-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center cursor-pointer">
+                        <span id="action-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-play"></i> START GAME</span>
+                        <span id="action-btn-sub" class="text-[10px] font-mono font-extrabold tracking-widest text-emerald-950 opacity-80 mt-0.5">KEYS 1, 2, 3 TO PICK LANE</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Runs</div>
+                            <div id="stat-runs" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Best Step</div>
+                            <div id="stat-best-step" class="text-xs font-mono font-black text-amber-400 mt-0.5">Step 0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-emerald-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(16,185,129,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
-        let currentStep = 0;
-        let isPlaying = false;
-        let currentWinnings = 0;
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
 
-        function resetLanes() {
-            [0,1,2].forEach(i => {
-                const el = document.getElementById(`lane-${i}`);
-                el.className = 'field-lane text-gray-400 hover:text-white';
-                el.innerHTML = '<i class="fa-solid fa-question"></i>';
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Cyber Coin Field' : 'Minefield Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-emerald-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
             });
         }
 
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            click: () => Sound.play(820, 'sine', 0.04, 0.045),
+            stepCoin: (step) => {
+                const base = 500 + Math.min(10, step) * 65;
+                Sound.play(base, 'triangle', 0.12, 0.11);
+                setTimeout(() => Sound.play(base * 1.25, 'sine', 0.22, 0.13), 65);
+            },
+            boom: () => {
+                Sound.play(95, 'square', 0.45, 0.22);
+                setTimeout(() => Sound.play(50, 'sawtooth', 0.65, 0.25), 80);
+            },
+            cashoutWin: () => {
+                [523.25, 659.25, 783.99, 1046.50].forEach((n, i) => {
+                    setTimeout(() => Sound.play(n, 'triangle', 0.2, 0.15), i * 95);
+                });
+            }
+        };
+
+        // =====================================================
+        // 3. STEP LADDER & STAKE FORECAST ENGINE (1.45^step)
+        // =====================================================
+        let currentStep = 0;
+        let isPlaying = false;
+        let isStepping = false;
+        let currentWinnings = 0;
+        let activeRunStake = 50;
+
+        let totalRuns = 0;
+        let bestStepCleared = 0;
+        let sessionPnL = 0;
+
+        function calcFieldMult(step) {
+            if (step <= 0) return 1.00;
+            return Number(Math.pow(1.45, step).toFixed(2));
+        }
+
+        function refreshStepLadder() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            const m1 = calcFieldMult(1);
+            const m3 = calcFieldMult(3);
+            const m5 = calcFieldMult(5);
+
+            document.getElementById('forecast-step-1').innerText = `₹${(stake * m1).toFixed(2)}`;
+            document.getElementById('forecast-step-3').innerText = `₹${(stake * m3).toFixed(2)}`;
+            document.getElementById('forecast-step-5').innerText = `₹${(stake * m5).toFixed(2)}`;
+
+            if (!isPlaying) {
+                document.getElementById('next-step-payout').innerText = `₹${(stake * m1).toFixed(2)}`;
+            }
+
+            const ribbon = document.getElementById('step-ladder-ribbon');
+            ribbon.innerHTML = '';
+            for (let s = 1; s <= 10; s++) {
+                const m = calcFieldMult(s).toFixed(2);
+                const pill = document.createElement('div');
+                pill.id = `step-pill-${s}`;
+                pill.className = 'step-pill px-3 py-1 rounded-xl text-[10px] font-mono font-bold text-gray-400 shrink-0';
+                pill.innerHTML = `<span class="text-gray-500 mr-1">S${s}:</span><span class="font-black text-white">${m}x</span>`;
+                ribbon.appendChild(pill);
+            }
+        }
+
+        function highlightStepPill(clearedSteps, activeTargetStep) {
+            for (let s = 1; s <= 10; s++) {
+                const pill = document.getElementById(`step-pill-${s}`);
+                if (!pill) continue;
+                pill.classList.remove('step-cleared', 'step-active');
+                if (s <= clearedSteps) pill.classList.add('step-cleared');
+                else if (s === activeTargetStep) {
+                    pill.classList.add('step-active');
+                    pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+            }
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            if (isPlaying) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, val + delta);
+            refreshStepLadder();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            if (isPlaying) return;
+            Sound.click();
+            document.getElementById('stake').value = val;
+            refreshStepLadder();
+        }
+
+        function adjustStake(factor) {
+            initAudio();
+            if (isPlaying) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+            refreshStepLadder();
+        }
+
+        // Keyboard shortcuts: 1, 2, 3 to pick lane; Spacebar to Start or Cash Out
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT') return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isPlaying) startGame();
+                else if (currentWinnings > 0 && !isStepping) cashout();
+            } else if (isPlaying && !isStepping) {
+                if (e.key === '1') stepLane(0);
+                if (e.key === '2') stepLane(1);
+                if (e.key === '3') stepLane(2);
+            }
+        });
+
+        // =====================================================
+        // 4. CORE GAMEPLAY ENGINE (/coin_field/step & /tower/cashout)
+        // =====================================================
+        const LANE_NAMES = ['LEFT PATH', 'CENTER PATH', 'RIGHT PATH'];
+
+        function resetLanes() {
+            [0, 1, 2].forEach(i => {
+                const el = document.getElementById(`lane-${i}`);
+                el.className = 'field-lane text-emerald-400';
+                el.style.pointerEvents = 'auto';
+                el.innerHTML = `
+                    <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-gray-500">LANE #${i + 1}</span>
+                    <div class="lane-icon text-4xl sm:text-5xl mb-2 text-emerald-400/80"><i class="fa-solid fa-Vault"></i></div>
+                    <span class="lane-label text-[10px] font-black uppercase tracking-widest text-gray-300">SELECT ${LANE_NAMES[i]}</span>
+                `;
+            });
+            document.getElementById('btn-random-lane').disabled = false;
+        }
+
         function startGame() {
+            initAudio();
+            if (isPlaying) return;
+
             const stake = parseFloat(document.getElementById('stake').value);
-            if(stake < 10) return alert('Min bet 10');
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const currentBal = parseFloat(document.getElementById('bal').innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                return;
+            }
+
+            Sound.click();
             isPlaying = true;
+            isStepping = false;
             currentStep = 1;
             currentWinnings = 0;
-            
+            activeRunStake = stake;
+
+            document.getElementById('field-arena-frame').classList.remove('arena-danger', 'shake-explosion');
             document.getElementById('step-counter').innerText = currentStep;
             document.getElementById('current-mult').innerText = "1.00x";
-            document.getElementById('current-win').innerText = "";
-            
+            document.getElementById('next-step-payout').innerText = `₹${(stake * calcFieldMult(1)).toFixed(2)}`;
+            document.getElementById('current-win').innerText = "₹0.00";
+            document.getElementById('current-win').className = "text-base sm:text-xl font-black font-mono text-emerald-400 tracking-wider";
+            document.getElementById('field-status-text').innerText = `STEP 1 ARMED • PICK LANE 1, 2, OR 3`;
+
+            highlightStepPill(0, 1);
             resetLanes();
-            
+
             const btn = document.getElementById('action-btn');
-            btn.innerText = "CASH OUT";
-            btn.className = "flex-1 py-4 bg-gray-700 text-gray-400 font-black text-xl rounded-xl uppercase cursor-not-allowed";
+            const btnTitle = document.getElementById('action-btn-title');
+            const btnSub = document.getElementById('action-btn-sub');
+            btn.className = "w-full h-18 md:h-22 py-4 bg-gray-800 text-gray-500 font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider border-b-4 border-gray-900 flex flex-col items-center justify-center cursor-not-allowed";
+            btnTitle.innerHTML = `<i class="fa-solid fa-lock"></i> CLEAR STEP 1 TO CASH OUT`;
+            btnSub.innerText = "2 OF 3 LANES HOLD GOLD COINS";
             btn.onclick = cashout;
-            btn.disabled = true; 
+            btn.disabled = true;
+        }
+
+        function pickRandomLane() {
+            if (!isPlaying || isStepping) return;
+            const randLane = Math.floor(Math.random() * 3);
+            stepLane(randLane);
         }
 
         async function stepLane(laneIdx) {
-            if(!isPlaying) return;
-            const stake = parseFloat(document.getElementById('stake').value);
-            
-            // Lock briefly
-            [0,1,2].forEach(i => document.getElementById(`lane-${i}`).style.pointerEvents = 'none');
+            initAudio();
+            if (!isPlaying || isStepping) return;
+            isStepping = true;
+
+            const stake = activeRunStake;
+            document.getElementById('btn-random-lane').disabled = true;
+
+            // Lock all 3 lanes & trigger radar scan on selected lane
+            [0, 1, 2].forEach(i => {
+                document.getElementById(`lane-${i}`).style.pointerEvents = 'none';
+            });
+            const pickedEl = document.getElementById(`lane-${laneIdx}`);
+            pickedEl.classList.add('scanning');
 
             try {
-                const res = await fetch('/coin_field/step', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, lane: laneIdx, step: currentStep}) });
+                const res = await fetch('/coin_field/step', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake, lane: laneIdx, step: currentStep })
+                });
                 const d = await res.json();
-                
-                if(d.success) {
-                    if (currentStep === 1) document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                    
-                    const el = document.getElementById(`lane-${laneIdx}`);
-                    const mineEl = document.getElementById(`lane-${d.mine_lane}`);
-                    
-                    if(d.safe) {
-                        el.classList.add('safe');
-                        el.innerHTML = '<i class="fa-solid fa-coins"></i>';
-                        mineEl.innerHTML = '<i class="fa-solid fa-bomb text-gray-700"></i>';
-                        
-                        currentWinnings = d.winnings;
-                        document.getElementById('current-mult').innerText = d.multiplier + 'x';
-                        document.getElementById('current-win').innerText = '+ ₹' + d.winnings.toFixed(2);
-                        
-                        const btn = document.getElementById('action-btn');
-                        btn.disabled = false;
-                        btn.className = "flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xl rounded-xl uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition cursor-pointer";
-                        
-                        currentStep++;
-                        setTimeout(() => {
-                            document.getElementById('step-counter').innerText = currentStep;
-                            resetLanes();
-                        }, 1000);
-                    } else {
-                        el.classList.add('mine');
-                        el.innerHTML = '<i class="fa-solid fa-explosion"></i>';
-                        endGameLoose();
-                    }
-                } else { alert(d.error); resetLanes(); }
-            } catch(e) { alert("Error"); resetLanes(); }
+                pickedEl.classList.remove('scanning');
+
+                if (!d.success) {
+                    showToast(d.error || 'Unable to process step', 'error');
+                    isStepping = false;
+                    resetToStart();
+                    return;
+                }
+
+                // Step 1 deducts stake on backend
+                if (currentStep === 1) {
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                }
+
+                const mineEl = document.getElementById(`lane-${d.mine_lane}`);
+
+                if (d.safe) {
+                    const clearedStepNum = currentStep;
+                    Sound.stepCoin(clearedStepNum);
+                    if (clearedStepNum > bestStepCleared) bestStepCleared = clearedStepNum;
+
+                    // Reveal player's winning coin cache
+                    pickedEl.className = 'field-lane safe';
+                    pickedEl.innerHTML = `
+                        <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-emerald-200">SAFE HIT</span>
+                        <div class="text-4xl sm:text-5xl mb-1.5 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.9)] animate-bounce"><i class="fa-solid fa-coins"></i></div>
+                        <span class="text-xs font-mono font-black text-white">${d.multiplier}x</span>
+                    `;
+
+                    // Show where the mine and other safe lane were
+                    [0, 1, 2].forEach(i => {
+                        if (i === laneIdx) return;
+                        const otherEl = document.getElementById(`lane-${i}`);
+                        otherEl.classList.add('revealed-other');
+                        if (i === d.mine_lane) {
+                            otherEl.innerHTML = `
+                                <span class="absolute top-2.5 left-3 text-[9px] font-mono font-bold text-red-400/80">AVOIDED</span>
+                                <div class="text-3xl sm:text-4xl mb-1 text-red-500/70"><i class="fa-solid fa-land-mine-on"></i></div>
+                                <span class="text-[9px] font-bold uppercase text-red-400/70">MINE</span>
+                            `;
+                        } else {
+                            otherEl.innerHTML = `
+                                <div class="text-3xl sm:text-4xl mb-1 text-emerald-500/50"><i class="fa-solid fa-coins"></i></div>
+                                <span class="text-[9px] font-bold uppercase text-gray-500">SAFE</span>
+                            `;
+                        }
+                    });
+
+                    currentWinnings = d.winnings;
+                    document.getElementById('current-mult').innerText = d.multiplier.toFixed(2) + 'x';
+                    document.getElementById('current-win').innerText = '+ ₹' + d.winnings.toFixed(2);
+
+                    // Enable Cash Out Button
+                    const btn = document.getElementById('action-btn');
+                    const btnTitle = document.getElementById('action-btn-title');
+                    const btnSub = document.getElementById('action-btn-sub');
+                    btn.disabled = false;
+                    btn.className = "w-full h-18 md:h-22 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider shadow-[0_10px_30px_rgba(245,158,11,0.45)] border-b-4 border-amber-800 active:translate-y-1 active:border-b-0 transition cursor-pointer flex flex-col items-center justify-center";
+                    btnTitle.innerHTML = `<i class="fa-solid fa-sack-dollar"></i> CASH OUT ₹${d.winnings.toFixed(2)}`;
+                    btnSub.innerText = `OR PICK NEXT LANE FOR ${(stake * calcFieldMult(clearedStepNum + 1)).toFixed(2)}`;
+
+                    currentStep++;
+                    highlightStepPill(clearedStepNum, currentStep);
+
+                    setTimeout(() => {
+                        if (!isPlaying) return;
+                        document.getElementById('step-counter').innerText = currentStep;
+                        document.getElementById('next-step-payout').innerText = `₹${(stake * calcFieldMult(currentStep)).toFixed(2)}`;
+                        document.getElementById('field-status-text').innerText = `STEP ${currentStep} READY • ADVANCE OR CASH OUT`;
+                        resetLanes();
+                        isStepping = false;
+                    }, 850);
+
+                } else {
+                    // Direct Mine Hit
+                    Sound.boom();
+                    const arena = document.getElementById('field-arena-frame');
+                    arena.classList.add('arena-danger', 'shake-explosion');
+
+                    pickedEl.className = 'field-lane mine';
+                    pickedEl.innerHTML = `
+                        <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-red-200">DETONATED</span>
+                        <div class="text-4xl sm:text-5xl mb-1.5 text-white animate-ping"><i class="fa-solid fa-burst"></i></div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-red-100">LANDMINE!</span>
+                    `;
+
+                    // Reveal the 2 safe lanes
+                    [0, 1, 2].forEach(i => {
+                        if (i === laneIdx) return;
+                        const otherEl = document.getElementById(`lane-${i}`);
+                        otherEl.classList.add('revealed-other');
+                        otherEl.innerHTML = `
+                            <div class="text-3xl sm:text-4xl mb-1 text-emerald-400/60"><i class="fa-solid fa-coins"></i></div>
+                            <span class="text-[9px] font-bold uppercase text-emerald-400/60">SAFE LANE</span>
+                        `;
+                    });
+
+                    endGameLoose();
+                }
+
+            } catch (e) {
+                pickedEl.classList.remove('scanning');
+                showToast('Network Error stepping lane', 'error');
+                isStepping = false;
+                resetLanes();
+            }
         }
 
         async function cashout() {
-            if(!isPlaying || currentWinnings === 0) return;
-            // Uses Tower Climb cashout logic since math is identical
+            initAudio();
+            if (!isPlaying || currentWinnings === 0 || isStepping) return;
+            isStepping = true;
+
+            const btn = document.getElementById('action-btn');
+            btn.disabled = true;
+
             try {
-                const res = await fetch('/tower/cashout', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({winnings: currentWinnings}) });
+                const res = await fetch('/tower/cashout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winnings: currentWinnings })
+                });
                 const d = await res.json();
-                if(d.success) {
+                if (d.success) {
+                    Sound.cashoutWin();
                     document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                    alert(`Successfully Cashed Out: ₹${currentWinnings.toFixed(2)}`);
+                    triggerFloatingWin(currentWinnings);
+                    spawnConfetti(32);
+                    showToast(`Cashed Out ₹${currentWinnings.toFixed(2)} at Step ${currentStep - 1}!`, 'success');
+                    recordRunTelemetry(currentWinnings - activeRunStake);
                     resetToStart();
                 }
-            } catch(e) {}
+            } catch (e) {
+                showToast('Network error cashing out', 'error');
+                isStepping = false;
+                btn.disabled = false;
+            }
         }
 
         function endGameLoose() {
             isPlaying = false;
-            document.getElementById('current-win').innerText = "MINE HIT! YOU LOSE.";
-            document.getElementById('current-win').className = "text-lg font-bold text-red-500 h-6 mb-2 uppercase";
-            setTimeout(resetToStart, 2000);
+            document.getElementById('field-status-text').innerText = 'MINE DETONATED! RUN LOST';
+            document.getElementById('current-win').innerText = "MINE HIT • ₹0.00";
+            document.getElementById('current-win').className = "text-base sm:text-xl font-black font-mono text-red-500 tracking-wider uppercase";
+            showToast('BOOM! You stepped on the landmine.', 'error');
+            recordRunTelemetry(-activeRunStake);
+            setTimeout(resetToStart, 1800);
         }
 
         function resetToStart() {
             isPlaying = false;
-            [0,1,2].forEach(i => document.getElementById(`lane-${i}`).classList.add('locked'));
-            document.getElementById('current-win').className = "text-lg font-bold text-emerald-400 h-6 mb-2";
+            isStepping = false;
+            currentWinnings = 0;
+            document.getElementById('btn-random-lane').disabled = true;
+
+            [0, 1, 2].forEach(i => {
+                const el = document.getElementById(`lane-${i}`);
+                el.className = 'field-lane locked text-gray-500';
+                el.innerHTML = `
+                    <span class="absolute top-2.5 left-3 text-[9px] font-mono font-black uppercase tracking-widest text-gray-500">LANE #${i + 1}</span>
+                    <div class="lane-icon text-4xl sm:text-5xl mb-2"><i class="fa-solid fa-shield-halved"></i></div>
+                    <span class="lane-label text-[10px] font-black uppercase tracking-widest text-gray-400">${LANE_NAMES[i]}</span>
+                `;
+            });
+
             const btn = document.getElementById('action-btn');
-            btn.innerText = "START GAME";
-            btn.className = "flex-1 py-4 bg-gradient-to-r from-emerald-600 to-emerald-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer";
+            const btnTitle = document.getElementById('action-btn-title');
+            const btnSub = document.getElementById('action-btn-sub');
+            btn.className = "w-full h-18 md:h-22 py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(16,185,129,0.45)] border-b-4 border-emerald-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center cursor-pointer";
+            btnTitle.innerHTML = `<i class="fa-solid fa-play"></i> START NEW RUN`;
+            btnSub.innerText = "KEYS 1, 2, 3 TO PICK LANE";
             btn.onclick = startGame;
             btn.disabled = false;
         }
+
+        // =====================================================
+        // 5. TELEMETRY, FLOATING WIN & CONFETTI FX
+        // =====================================================
+        function recordRunTelemetry(netDelta) {
+            totalRuns++;
+            sessionPnL += netDelta;
+
+            document.getElementById('stat-runs').innerText = totalRuns;
+            document.getElementById('stat-best-step').innerText = `Step ${bestStepCleared}`;
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+        }
+
+        function triggerFloatingWin(winnings) {
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti(count) {
+            const container = document.getElementById('particle-container');
+            const colors = ['#10b981', '#fbbf24', '#1CDA3A', '#34d399', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        refreshStepLadder();
+
+        // =====================================================
+        // 6. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
-
-
-
-
-
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>
