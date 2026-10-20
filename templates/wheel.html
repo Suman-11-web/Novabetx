@@ -13,500 +13,1019 @@
                     colors: {
                         bgDark: '#05070c',
                         surface: '#0d121c',
+                        surfaceLight: '#161f30',
                         neonRed: '#ef4444',
-                        neonBlue: '#3b82f6'
+                        neonBlue: '#3b82f6',
+                        brand: '#1CDA3A'
                     }
                 }
             }
         }
     </script>
     <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 20%, rgba(239, 68, 68, 0.14) 0%, transparent 50%),
+                radial-gradient(circle at 80% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+        }
+
         .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
-        
-        .arena-bg { background: radial-gradient(ellipse at center, #1a0f14 0%, #05070c 100%); }
-        
-        /* 3D Wheel Styling */
-        .wheel-rim {
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        .arena-bg {
+            background:
+                radial-gradient(circle at 50% 45%, rgba(239, 68, 68, 0.18) 0%, rgba(15, 23, 42, 0.5) 55%, #05070c 95%);
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.95);
+        }
+
+        /* Outer Metallic Chassis & Chase Lights */
+        .wheel-chassis {
             position: relative;
+            padding: 16px;
             border-radius: 50%;
-            padding: 12px;
-            background: linear-gradient(145deg, #1f2937, #000000);
-            box-shadow: 0 0 50px rgba(239, 68, 68, 0.3), inset 0 5px 15px rgba(255,255,255,0.1);
-        }
-        
-        .wheel-container { 
-            position: relative; 
-            width: 280px; 
-            height: 280px; 
-            border-radius: 50%; 
-            transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1); /* Realistic friction curve */
-            overflow: hidden; 
-            background: #111827; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
-        }
-        
-        @media (min-width: 768px) {
-            .wheel-container { width: 380px; height: 380px; }
+            background: linear-gradient(145deg, #273244 0%, #090d16 55%, #1e293b 100%);
+            border: 3px solid rgba(239, 68, 68, 0.55);
+            box-shadow:
+                0 0 55px rgba(239, 68, 68, 0.25),
+                inset 0 0 25px rgba(0, 0, 0, 0.95);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* 12 Segments (30 degrees each) using skew technique */
-        .wheel-segment { 
-            position: absolute; 
-            top: 0; 
-            left: 50%; 
-            width: 50%; 
-            height: 50%; 
-            transform-origin: 0% 100%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            writing-mode: vertical-rl; 
-            text-orientation: mixed; 
-            font-weight: 900; 
-            font-size: 1.1rem; 
-            color: #fff; 
-            padding-bottom: 25px; 
-            box-sizing: border-box; 
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-            border-left: 2px solid rgba(255,255,255,0.1);
-        }
-        
-        @media (min-width: 768px) {
-            .wheel-segment { font-size: 1.4rem; padding-bottom: 40px; }
+        .wheel-chassis.chassis-spinning {
+            border-color: #f59e0b;
+            box-shadow: 0 0 70px rgba(245, 158, 11, 0.45), inset 0 0 30px rgba(245, 158, 11, 0.2);
         }
 
-        .wheel-center { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 60px; 
-            height: 60px; 
-            background: radial-gradient(circle, #374151 0%, #111827 100%); 
-            border: 4px solid #ef4444;
-            border-radius: 50%; 
-            z-index: 20; 
-            box-shadow: 0 0 25px rgba(0,0,0,0.9), inset 0 0 10px rgba(239,68,68,0.5); 
+        .wheel-chassis.chassis-win {
+            border-color: #10b981;
+            box-shadow: 0 0 80px rgba(16, 185, 129, 0.65), inset 0 0 35px rgba(16, 185, 129, 0.3);
+        }
+
+        /* 12-Segment Conic Gradient Wheel Drum
+           Segments (30 deg each):
+           0: 1.2x (#1e293b)   0-30
+           1: 1.5x (#2563eb)   30-60
+           2: 1.2x (#1e293b)   60-90
+           3: 2.0x (#059669)   90-120
+           4: 0.0x (#991b1b)   120-150
+           5: 1.5x (#2563eb)   150-180
+           6: 3.0x (#7c3aed)   180-210
+           7: 1.2x (#1e293b)   210-240
+           8: 5.0x (#d97706)   240-270
+           9: 0.0x (#991b1b)   270-300
+           10: 1.5x (#2563eb)  300-330
+           11: 10.0x (#db2777) 330-360
+        */
+        .wheel-drum {
+            position: relative;
+            width: 286px;
+            height: 286px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: conic-gradient(
+                from 0deg,
+                #1e293b 0deg 30deg,
+                #2563eb 30deg 60deg,
+                #1e293b 60deg 90deg,
+                #059669 90deg 120deg,
+                #991b1b 120deg 150deg,
+                #2563eb 150deg 180deg,
+                #7c3aed 180deg 210deg,
+                #1e293b 210deg 240deg,
+                #d97706 240deg 270deg,
+                #991b1b 270deg 300deg,
+                #2563eb 300deg 330deg,
+                #db2777 330deg 360deg
+            );
+            box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+            will-change: transform;
+        }
+        @media (min-width: 640px) {
+            .wheel-drum { width: 356px; height: 356px; }
+        }
+
+        /* Inner Gloss & Depth Overlay */
+        .wheel-drum::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 32%, rgba(0,0,0,0.22) 72%, rgba(0,0,0,0.72) 100%);
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        /* Radial Divider Spokes & Rim Pegs */
+        .wheel-spoke {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 50%;
+            margin-left: -1px;
+            transform-origin: bottom center;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0.12));
+            z-index: 6;
+            pointer-events: none;
+        }
+        .wheel-spoke::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #fbbf24 60%, #92400e 100%);
+            box-shadow: 0 0 6px rgba(251, 191, 36, 0.9);
+        }
+
+        /* Radial Multiplier Labels (Centered at 15deg, 45deg, ..., 345deg) */
+        .wheel-label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 64px;
+            height: 50%;
+            margin-left: -32px;
+            transform-origin: bottom center;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 18px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @media (min-width: 640px) {
+            .wheel-label { padding-top: 24px; }
+        }
+
+        /* Center Turbine Core */
+        .wheel-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #1e293b 0%, #05070c 100%);
+            border: 4px solid #ef4444;
+            box-shadow:
+                0 0 30px rgba(0, 0, 0, 0.95),
+                0 0 20px rgba(239, 68, 68, 0.5),
+                inset 0 0 15px rgba(239, 68, 68, 0.45);
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            pointer-events: none;
         }
-        
-        .wheel-center-inner {
-            width: 20px; height: 20px; background: #ef4444; border-radius: 50%; filter: blur(2px);
-        }
-
-        .wheel-pointer { 
-            position: absolute; 
-            top: -15px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent; 
-            border-right: 20px solid transparent; 
-            border-top: 40px solid #ef4444; 
-            z-index: 30; 
-            filter: drop-shadow(0 5px 10px rgba(239,68,68,0.6)); 
+        @media (min-width: 640px) {
+            .wheel-core { width: 88px; height: 88px; }
         }
 
-        /* Wheel Colors */
-        .c-0 { background: #1f2937; transform: rotate(0deg) skewY(-60deg); }
-        .c-1 { background: #3b82f6; transform: rotate(30deg) skewY(-60deg); }
-        .c-2 { background: #1f2937; transform: rotate(60deg) skewY(-60deg); }
-        .c-3 { background: #10b981; transform: rotate(90deg) skewY(-60deg); }
-        .c-4 { background: #ef4444; transform: rotate(120deg) skewY(-60deg); }
-        .c-5 { background: #3b82f6; transform: rotate(150deg) skewY(-60deg); }
-        .c-6 { background: #8b5cf6; transform: rotate(180deg) skewY(-60deg); }
-        .c-7 { background: #1f2937; transform: rotate(210deg) skewY(-60deg); }
-        .c-8 { background: #f59e0b; transform: rotate(240deg) skewY(-60deg); }
-        .c-9 { background: #ef4444; transform: rotate(270deg) skewY(-60deg); }
-        .c-10 { background: #3b82f6; transform: rotate(300deg) skewY(-60deg); }
-        .c-11 { background: #ec4899; transform: rotate(330deg) skewY(-60deg); }
+        /* Mechanical Top Flapper Pointer */
+        .pointer-assembly {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+            transform-origin: 50% 8px;
+            transition: transform 0.055s ease-out;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.85));
+        }
 
-        .glow-win { filter: drop-shadow(0 0 30px rgba(16,185,129,0.8)); }
-        .glow-lose { filter: drop-shadow(0 0 30px rgba(239,68,68,0.8)); }
+        /* Paytable Multiplier Card */
+        .mult-tier-card {
+            background: rgba(10, 14, 23, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+        .mult-tier-card.tier-hit {
+            transform: scale(1.06);
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 22px rgba(16, 185, 129, 0.45);
+        }
+
+        /* Rim Chase Bulbs */
+        .rim-bulb {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #fde047;
+            box-shadow: 0 0 8px #f59e0b;
+            z-index: 20;
+            animation: bulbBlink 1s infinite alternate;
+        }
+        @keyframes bulbBlink {
+            0% { opacity: 0.25; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0 select-none">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
+
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- PARTICLE / CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
 
     <!-- DESKTOP SIDEBAR -->
     <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090d15] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
         <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
             <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-red-500">betx</span></div>
-            <span class="text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">PRO MAX</span>
+            <span class="text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">10X MAX</span>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
             <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
-            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-red-500/10 text-red-400 font-bold rounded-xl border border-red-500/20"><i class="fa-solid fa-gamepad w-5 text-center"></i> Games Lobby</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-red-500/10 text-red-400 font-bold rounded-xl border border-red-500/20"><i class="fa-solid fa-circle-radiation w-5 text-center"></i> Turbo Wheel</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
             <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-wallet w-5 text-center"></i> Deposit / Withdraw</a>
         </nav>
         <div class="p-4 border-t border-gray-800/80">
             <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
-                <span>Audio FX</span>
-                <button onclick="toggleAudio()" id="btn-audio" class="text-red-400 text-sm hover:text-red-300 transition"><i class="fa-solid fa-volume-high"></i></button>
+                <span>Synthesizer FX</span>
+                <button onclick="toggleAudio(event)" id="btn-audio" class="text-red-400 text-sm hover:text-red-300 transition"><i class="fa-solid fa-volume-high"></i></button>
             </div>
         </div>
     </aside>
 
     <!-- MAIN GAME STAGE -->
-    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative overflow-x-hidden">
         
         <!-- HEADER -->
-        <header class="flex justify-between items-center bg-[#090d15] px-4 py-3 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+        <header class="flex justify-between items-center bg-[#090d15]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
             <div class="flex items-center gap-3">
                 <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left text-base"></i></a>
                 <div class="flex items-center gap-2">
-                    <span class="text-red-500 text-xl font-black italic tracking-wider flex items-center gap-2"><i class="fa-solid fa-circle-radiation"></i> TURBO WHEEL</span>
+                    <div class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                        <i class="fa-solid fa-circle-radiation"></i> TURBO WHEEL
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-gray-400 bg-black/50 border border-gray-800 px-2 py-0.5 rounded hidden sm:inline-block">12-SECTOR TURBINE</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleAudio()" class="md:hidden text-gray-400 hover:text-white text-base px-2" id="btn-audio-mobile"><i class="fa-solid fa-volume-high"></i></button>
-                <div class="flex items-center bg-black/60 pl-3 pr-1 py-1 rounded-full border border-gray-800 shadow-inner">
-                    <span class="text-xs font-bold text-gray-400 mr-1.5">₹</span>
-                    <span id="bal" class="text-sm font-black text-red-500 mr-2">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
-                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow"><i class="fa-solid fa-plus"></i></a>
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleAudio(event)" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition" id="btn-audio-mobile">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] font-bold text-gray-400 mr-1">₹</span>
+                    <span id="bal" class="text-sm font-black text-red-400 mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(239,68,68,0.5)]"><i class="fa-solid fa-plus"></i></a>
                 </div>
             </div>
         </header>
 
-        <!-- WHEEL ARENA -->
-        <div class="flex-1 arena-bg relative flex flex-col items-center justify-center py-10 px-4 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
-            
-            <!-- Result Overlay -->
-            <div id="result-overlay" class="absolute top-10 md:top-16 left-1/2 -translate-x-1/2 z-40 text-center w-full hidden pointer-events-none transition-all">
-                <div id="result-msg" class="text-5xl md:text-7xl font-black italic uppercase tracking-widest drop-shadow-[0_0_20px_rgba(0,0,0,1)]"></div>
-                <div id="result-sub" class="text-xl md:text-2xl font-bold mt-2 font-mono drop-shadow-md"></div>
-            </div>
-
-            <!-- The Wheel Engine -->
-            <div class="relative z-10 my-auto">
-                <div class="wheel-pointer" id="pointer"></div>
-                <div class="wheel-rim">
-                    <div id="wheel" class="wheel-container">
-                        <div class="wheel-segment c-0">1.2x</div>
-                        <div class="wheel-segment c-1">1.5x</div>
-                        <div class="wheel-segment c-2">1.2x</div>
-                        <div class="wheel-segment c-3 text-black">2.0x</div>
-                        <div class="wheel-segment c-4 text-black">0.0x</div>
-                        <div class="wheel-segment c-5">1.5x</div>
-                        <div class="wheel-segment c-6 text-black">3.0x</div>
-                        <div class="wheel-segment c-7">1.2x</div>
-                        <div class="wheel-segment c-8 text-black">5.0x</div>
-                        <div class="wheel-segment c-9 text-black">0.0x</div>
-                        <div class="wheel-segment c-10">1.5x</div>
-                        <div class="wheel-segment c-11 text-black">10x</div>
-                        <div class="wheel-center"><div class="wheel-center-inner"></div></div>
-                    </div>
-                </div>
+        <!-- RECENT SPINS HISTORY RIBBON -->
+        <div class="bg-[#080b12] px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-clock-rotate-left text-red-500"></i> History:
+            </span>
+            <div id="recent-wheel-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <span class="text-[10px] font-mono text-gray-600 italic">Spin the 12-sector turbine to record multipliers...</span>
             </div>
         </div>
 
-        <!-- CONTROLS COCKPIT -->
-        <div class="bg-surface p-4 md:p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-6 items-stretch">
-                
-                <!-- STAKE CONTROLS -->
-                <div class="w-full md:w-1/2 bg-[#0a0d15] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-                    <div class="flex items-center justify-between mb-3">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stake Amount</label>
-                        <span class="text-[10px] text-gray-500 font-mono">Max Win: 10x</span>
-                    </div>
+        <!-- MAIN WORKSPACE -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
 
-                    <div class="relative flex mb-4">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-500 font-bold text-xl">₹</span>
-                        <input type="number" id="stake" value="100" min="10" step="10" class="w-full bg-black/60 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-center text-3xl font-black text-white focus:border-red-500 outline-none transition shadow-inner">
-                    </div>
+            <!-- LEFT / TOP: 3D TURBO WHEEL ARENA (7 Cols) -->
+            <div class="w-full lg:w-7/12 glass-panel arena-bg rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between items-center relative overflow-hidden">
 
-                    <!-- Quick Bets -->
-                    <div class="grid grid-cols-4 gap-2 mt-auto">
-                        <button onclick="adjustStake(0.5)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">½</button>
-                        <button onclick="adjustStake(2)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">2×</button>
-                        <button onclick="setStake(50)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+50</button>
-                        <button onclick="setStake(100)" class="bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-bold text-xs py-3 rounded-lg transition border border-gray-700 active:scale-95">+100</button>
+                <!-- Top Live Scanner Telemetry Bar -->
+                <div class="w-full flex justify-between items-center z-20 mb-2">
+                    <div class="bg-black/60 border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <span id="scanner-dot" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pointer Sector:</span>
+                        <span id="live-sector-readout" class="text-xs font-mono font-black text-white">1.2x</span>
+                    </div>
+                    <div class="bg-pink-500/15 border border-pink-500/30 px-3 py-1 rounded-xl text-right">
+                        <span class="text-[9px] font-bold text-pink-300 uppercase block leading-none">Jackpot Wedge</span>
+                        <span class="text-xs font-mono font-black text-white">10.0x</span>
                     </div>
                 </div>
 
-                <!-- ACTION BUTTON -->
-                <div class="w-full md:w-1/2 flex flex-col justify-center">
-                    <button id="spin-btn" onclick="spinWheel()" class="w-full h-full min-h-[90px] py-4 bg-gradient-to-b from-red-500 to-red-700 hover:from-red-400 hover:to-red-600 text-white font-black text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(239,68,68,0.4)] border-b-4 border-red-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
-                        SPIN WHEEL
-                        <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>
-                    </button>
+                <!-- RESULT OVERLAY BANNER -->
+                <div id="result-overlay" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 text-center w-[88%] max-w-xs pointer-events-none">
+                    <div class="bg-black/90 backdrop-blur-xl border-2 border-white/15 rounded-3xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.95)]">
+                        <div id="result-msg" class="text-3xl sm:text-4xl font-black italic uppercase tracking-wider">YOU WIN!</div>
+                        <div id="result-sub" class="text-base sm:text-lg font-bold mt-1 font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- THE 3D TURBINE WHEEL -->
+                <div class="relative my-3 flex items-center justify-center">
+                    
+                    <!-- Top Mechanical Flapper Pointer -->
+                    <div id="pointer" class="pointer-assembly">
+                        <div class="w-5 h-5 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-2 border-red-500 mx-auto -mb-2 relative z-10 shadow"></div>
+                        <div class="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[30px] border-t-red-500 mx-auto"></div>
+                    </div>
+
+                    <!-- Outer Metallic Chassis -->
+                    <div id="wheel-chassis" class="wheel-chassis">
+                        <!-- Rim Bulbs Container -->
+                        <div id="rim-bulbs-layer" class="absolute inset-0 pointer-events-none"></div>
+
+                        <!-- Rotating Wheel Drum -->
+                        <div id="wheel" class="wheel-drum">
+                            <!-- Spokes & Labels Injected Dynamically to Match Exact 12-Slice Backend Array -->
+                        </div>
+
+                        <!-- Stationary Center Turbine Hub -->
+                        <div class="wheel-core">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">TURBO</span>
+                            <span id="core-mult-readout" class="text-sm sm:text-base font-mono font-black text-red-400">10X</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE MULTIPLIER PAYTABLE BAR (Auto-updates ₹ payouts with stake) -->
+                <div class="w-full grid grid-cols-3 sm:grid-cols-6 gap-1.5 mt-2 pt-3 border-t border-gray-800/80 z-20">
+                    <div id="tier-1.2" class="mult-tier-card rounded-xl p-2 text-center">
+                        <div class="text-xs font-black text-slate-300 font-mono">1.2x</div>
+                        <div class="text-[9px] text-gray-500 font-bold">3 Slices</div>
+                        <div class="text-[10px] font-mono font-bold text-emerald-400 mt-0.5" data-tier-mult="1.2">₹120</div>
+                    </div>
+                    <div id="tier-1.5" class="mult-tier-card rounded-xl p-2 text-center">
+                        <div class="text-xs font-black text-blue-400 font-mono">1.5x</div>
+                        <div class="text-[9px] text-gray-500 font-bold">3 Slices</div>
+                        <div class="text-[10px] font-mono font-bold text-emerald-400 mt-0.5" data-tier-mult="1.5">₹150</div>
+                    </div>
+                    <div id="tier-2" class="mult-tier-card rounded-xl p-2 text-center">
+                        <div class="text-xs font-black text-emerald-400 font-mono">2.0x</div>
+                        <div class="text-[9px] text-gray-500 font-bold">1 Slice</div>
+                        <div class="text-[10px] font-mono font-bold text-emerald-400 mt-0.5" data-tier-mult="2.0">₹200</div>
+                    </div>
+                    <div id="tier-3" class="mult-tier-card rounded-xl p-2 text-center">
+                        <div class="text-xs font-black text-purple-400 font-mono">3.0x</div>
+                        <div class="text-[9px] text-gray-500 font-bold">1 Slice</div>
+                        <div class="text-[10px] font-mono font-bold text-emerald-400 mt-0.5" data-tier-mult="3.0">₹300</div>
+                    </div>
+                    <div id="tier-5" class="mult-tier-card rounded-xl p-2 text-center">
+                        <div class="text-xs font-black text-amber-400 font-mono">5.0x</div>
+                        <div class="text-[9px] text-gray-500 font-bold">1 Slice</div>
+                        <div class="text-[10px] font-mono font-bold text-emerald-400 mt-0.5" data-tier-mult="5.0">₹500</div>
+                    </div>
+                    <div id="tier-10" class="mult-tier-card rounded-xl p-2 text-center border-pink-500/30">
+                        <div class="text-xs font-black text-pink-400 font-mono">10.0x</div>
+                        <div class="text-[9px] text-pink-300/80 font-bold">Jackpot</div>
+                        <div class="text-[10px] font-mono font-black text-amber-400 mt-0.5" data-tier-mult="10.0">₹1000</div>
+                    </div>
                 </div>
 
             </div>
+
+            <!-- RIGHT / BOTTOM: BETTING COCKPIT (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Turbo & Auto-Spin Mode Buttons -->
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" id="btn-turbo" onclick="toggleTurboMode()" class="py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Turbo: <span id="turbo-state">OFF</span>
+                        </button>
+                        <button type="button" id="btn-auto" onclick="toggleAutoSpin()" class="py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white">
+                            <i class="fa-solid fa-rotate text-red-400"></i> Auto: <span id="auto-state">OFF</span>
+                        </button>
+                    </div>
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Bet Stake (₹)</label>
+                            <span class="text-[10px] text-gray-500 font-mono">Min: ₹10 • Max Win: 10x</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-red-500 rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-red-500 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="100" min="10" step="10" oninput="updateTierPayouts()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Bet Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="adjustStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="adjustStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Max Jackpot Return Box -->
+                    <div class="bg-gradient-to-r from-red-500/15 via-black/60 to-black/60 border border-red-500/30 rounded-2xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black text-red-400 uppercase tracking-widest block">10.0x Jackpot Return</span>
+                            <span class="text-[11px] font-mono text-gray-400">10 of 12 Sectors Pay Profit!</span>
+                        </div>
+                        <span id="max-jackpot-preview" class="text-xl font-mono font-black text-amber-400">₹1,000.00</span>
+                    </div>
+
+                </div>
+
+                <!-- SPIN ACTION BUTTON & SESSION STATS -->
+                <div class="mt-4">
+                    <button type="button" id="spin-btn" onclick="spinWheel()" class="w-full h-18 md:h-22 py-4 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 hover:brightness-110 text-white font-black text-2xl md:text-3xl rounded-2xl uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(239,68,68,0.45)] border-b-4 border-red-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        <span id="spin-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-arrows-spin"></i> SPIN TURBO WHEEL</span>
+                        <span class="text-[10px] text-red-100 font-mono font-bold tracking-widest uppercase mt-0.5 opacity-85">OR PRESS SPACEBAR</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Spins</div>
+                            <div id="stat-spins" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Best Mult</div>
+                            <div id="stat-best" class="text-xs font-mono font-black text-amber-400 mt-0.5">0.0x</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </main>
 
-    <!-- Particle Container -->
-    <div id="particle-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-red-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
-        // ----------------------------------------------------
-        // 1. AUDIO SYNTHESIZER
-        // ----------------------------------------------------
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-emerald-400' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Turbo Wheel' : 'Wheel Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action failed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // =====================================================
         let audioCtx = null;
         let isAudioMuted = false;
 
-        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        function playTone(freq, type, duration, gainVal = 0.1) {
-            if (isAudioMuted) return;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTone(freq, type, duration, gainVal = 0.08) {
+            if (isAudioMuted || !audioCtx) return;
             try {
-                initAudio();
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
         }
-        
-        function soundChip() { playTone(1200, 'sine', 0.05, 0.05); }
-        function soundTick() { playTone(800, 'square', 0.02, 0.03); }
-        function soundWinBig() { playTone(523.25, 'triangle', 0.15, 0.2); setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.2), 150); setTimeout(() => playTone(1046.50, 'triangle', 0.4, 0.2), 300); }
-        function soundWinSmall() { playTone(523.25, 'triangle', 0.2, 0.15); setTimeout(() => playTone(783.99, 'triangle', 0.3, 0.15), 150); }
-        function soundLose() { playTone(200, 'sawtooth', 0.3, 0.15); setTimeout(() => playTone(150, 'sawtooth', 0.5, 0.2), 250); }
 
-        function toggleAudio() {
+        function soundChip() { playTone(980, 'sine', 0.045, 0.05); }
+        function soundPegTick(pitch = 760) { playTone(pitch, 'triangle', 0.03, 0.045); }
+        function soundWinBig() {
+            [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+                setTimeout(() => playTone(f, 'triangle', 0.22, 0.16), i * 95);
+            });
+        }
+        function soundWinSmall() {
+            playTone(523.25, 'triangle', 0.16, 0.12);
+            setTimeout(() => playTone(783.99, 'triangle', 0.28, 0.14), 120);
+        }
+        function soundLose() {
+            playTone(200, 'sawtooth', 0.25, 0.08);
+            setTimeout(() => playTone(145, 'sawtooth', 0.4, 0.1), 220);
+        }
+
+        function toggleAudio(e) {
+            if (e) e.stopPropagation();
+            initAudio();
             isAudioMuted = !isAudioMuted;
-            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
-            document.getElementById('btn-audio').innerHTML = icon; document.getElementById('btn-audio-mobile').innerHTML = icon;
+            const icon = isAudioMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-red-400"></i>';
+            document.getElementById('btn-audio').innerHTML = icon;
+            document.getElementById('btn-audio-mobile').innerHTML = icon;
         }
 
-        // ----------------------------------------------------
-        // 2. BETTING LOGIC
-        // ----------------------------------------------------
+        // =====================================================
+        // 3. BUILD 12-SECTOR WHEEL SPOKES, LABELS & RIM BULBS
+        //    Exact match to app.py: [1.2, 1.5, 1.2, 2.0, 0.0, 1.5, 3.0, 1.2, 5.0, 0.0, 1.5, 10.0]
+        // =====================================================
+        const WHEEL_SEGMENTS = [1.2, 1.5, 1.2, 2.0, 0.0, 1.5, 3.0, 1.2, 5.0, 0.0, 1.5, 10.0];
+
+        function buildWheelDOM() {
+            const wheel = document.getElementById('wheel');
+            let html = '';
+
+            // 12 Divider Spokes & Pegs at 0, 30, 60, ..., 330 deg
+            for (let i = 0; i < 12; i++) {
+                const spokeAngle = i * 30;
+                html += `<div class="wheel-spoke" style="transform: rotate(${spokeAngle}deg)"></div>`;
+            }
+
+            // 12 Multiplier Labels centered at 15, 45, 75, ..., 345 deg
+            WHEEL_SEGMENTS.forEach((mult, idx) => {
+                const centerAngle = idx * 30 + 15;
+                const isZero = mult === 0;
+                const isJackpot = mult === 10.0;
+                const labelText = isJackpot ? '10x' : `${mult.toFixed(1)}x`;
+                html += `
+                    <div class="wheel-label" style="transform: rotate(${centerAngle}deg)">
+                        <span class="font-mono font-black ${isJackpot ? 'text-amber-300 text-base sm:text-lg drop-shadow-[0_0_8px_#fbbf24]' : (isZero ? 'text-red-200 text-xs sm:text-sm opacity-80' : 'text-white text-xs sm:text-base')} tracking-tighter drop-shadow">
+                            ${labelText}
+                        </span>
+                        ${isJackpot ? '<i class="fa-solid fa-crown text-[9px] text-amber-300 mt-0.5"></i>' : (isZero ? '<i class="fa-solid fa-skull text-[8px] text-red-300/70 mt-0.5"></i>' : '')}
+                    </div>
+                `;
+            });
+
+            wheel.innerHTML = html;
+
+            // Build 24 Rim Bulbs around the outer chassis
+            const bulbLayer = document.getElementById('rim-bulbs-layer');
+            let bulbHTML = '';
+            for (let b = 0; b < 24; b++) {
+                const rad = (b * 15) * (Math.PI / 180);
+                const x = 50 + Math.sin(rad) * 48.2;
+                const y = 50 - Math.cos(rad) * 48.2;
+                bulbHTML += `<span class="rim-bulb" style="left:calc(${x}% - 3px);top:calc(${y}% - 3px);animation-delay:${(b % 3) * 0.25}s"></span>`;
+            }
+            bulbLayer.innerHTML = bulbHTML;
+        }
+
+        // =====================================================
+        // 4. STAKE, TURBO & AUTO-SPIN CONTROLS
+        // =====================================================
         let isSpinning = false;
+        let isTurbo = false;
+        let isAutoSpin = false;
+        let currentRotation = 0;
+
+        let totalSpins = 0;
+        let bestMult = 0;
+        let sessionPnL = 0;
+
+        function updateTierPayouts() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            document.querySelectorAll('[data-tier-mult]').forEach(el => {
+                const m = parseFloat(el.getAttribute('data-tier-mult'));
+                el.innerText = '₹' + Math.round(stake * m);
+            });
+            document.getElementById('max-jackpot-preview').innerText = '₹' + (stake * 10).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            if (isSpinning) return;
+            soundChip();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, val + delta);
+            updateTierPayouts();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            if (isSpinning) return;
+            soundChip();
+            document.getElementById('stake').value = val;
+            updateTierPayouts();
+        }
 
         function adjustStake(factor) {
-            if(isSpinning) return;
+            initAudio();
+            if (isSpinning) return;
             soundChip();
-            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 50;
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
             input.value = Math.max(10, Math.round(val * factor));
+            updateTierPayouts();
         }
-        function setStake(amount) {
-            if(isSpinning) return;
+
+        function toggleTurboMode() {
+            initAudio();
             soundChip();
-            const input = document.getElementById('stake'); let val = parseFloat(input.value) || 0;
-            input.value = val + amount;
+            isTurbo = !isTurbo;
+            const btn = document.getElementById('btn-turbo');
+            document.getElementById('turbo-state').innerText = isTurbo ? 'ON' : 'OFF';
+            btn.className = isTurbo
+                ? 'py-2.5 px-3 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition'
+                : 'py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white';
         }
 
-        // ----------------------------------------------------
-        // 3. WHEEL PHYSICS ENGINE
-        // ----------------------------------------------------
-        let currentRotation = 0;
-        
-        // Simulates realistic mechanical ticking as the wheel slows down
-        function startTickingSound() {
-            if(isAudioMuted) return;
-            let tickDelay = 30; // Starts fast
-            let totalTime = 0;
-            
-            function scheduleNextTick() {
-                if(!isSpinning) return;
-                soundTick();
-                
-                // Add CSS animation pointer flick
-                const pointer = document.getElementById('pointer');
-                pointer.style.transform = "translateX(-50%) rotate(15deg)";
-                setTimeout(() => pointer.style.transform = "translateX(-50%) rotate(0deg)", 50);
+        function toggleAutoSpin() {
+            initAudio();
+            soundChip();
+            isAutoSpin = !isAutoSpin;
+            const btn = document.getElementById('btn-auto');
+            document.getElementById('auto-state').innerText = isAutoSpin ? 'ON' : 'OFF';
+            btn.className = isAutoSpin
+                ? 'py-2.5 px-3 rounded-xl bg-red-500/20 border border-red-500/50 text-red-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition animate-pulse'
+                : 'py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white';
 
-                totalTime += tickDelay;
-                
-                // Gradually increase delay (friction simulation matching CSS curve)
-                if (totalTime < 1000) tickDelay += 1;
-                else if (totalTime < 2500) tickDelay += 5;
-                else if (totalTime < 3500) tickDelay += 15;
-                else tickDelay += 30;
+            if (isAutoSpin && !isSpinning) spinWheel();
+        }
 
-                if (totalTime < 3900) {
-                    setTimeout(scheduleNextTick, tickDelay);
-                }
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && !isSpinning) {
+                e.preventDefault();
+                spinWheel();
             }
-            scheduleNextTick();
+        });
+
+        // =====================================================
+        // 5. REAL-TIME 60FPS PEG PHYSICS & SPIN ENGINE
+        // =====================================================
+        function getRotationDegreesFromMatrix(el) {
+            const st = window.getComputedStyle(el, null);
+            const tr = st.getPropertyValue("transform");
+            if (!tr || tr === "none") return 0;
+            const values = tr.split('(')[1].split(')')[0].split(',');
+            const a = parseFloat(values[0]);
+            const b = parseFloat(values[1]);
+            let angle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+            return (angle < 0) ? angle + 360 : angle;
+        }
+
+        function trackWheelRealtimePhysics() {
+            const wheelEl = document.getElementById('wheel');
+            const pointerEl = document.getElementById('pointer');
+            const readoutEl = document.getElementById('live-sector-readout');
+            const coreReadout = document.getElementById('core-mult-readout');
+            let lastSectorIdx = -1;
+
+            function frame() {
+                if (!isSpinning) {
+                    pointerEl.style.transform = 'translateX(-50%) rotate(0deg)';
+                    return;
+                }
+                const deg = getRotationDegreesFromMatrix(wheelEl);
+                // Top pointer (0 deg) corresponds to wheel angle (360 - deg) % 360
+                const pointerAngleOnWheel = (360 - deg) % 360;
+                const sectorIdx = Math.floor(pointerAngleOnWheel / 30) % 12;
+
+                if (sectorIdx !== lastSectorIdx) {
+                    lastSectorIdx = sectorIdx;
+                    const mult = WHEEL_SEGMENTS[sectorIdx];
+                    readoutEl.innerText = `${mult.toFixed(1)}x`;
+                    coreReadout.innerText = `${mult.toFixed(1)}x`;
+
+                    // Physical pointer flick & peg click
+                    soundPegTick(700 + (sectorIdx * 25));
+                    pointerEl.style.transform = 'translateX(-50%) rotate(-24deg)';
+                    setTimeout(() => {
+                        if (pointerEl) pointerEl.style.transform = 'translateX(-50%) rotate(0deg)';
+                    }, 48);
+                }
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
         }
 
         async function spinWheel() {
-            if(isSpinning) return;
-            const btn = document.getElementById('spin-btn');
+            initAudio();
+            if (isSpinning) return;
+
             const stake = parseFloat(document.getElementById('stake').value);
-            if(isNaN(stake) || stake < 10) return alert('Minimum bet is ₹10');
-            
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                if (isAutoSpin) toggleAutoSpin();
+                return;
+            }
+
+            const balEl = document.getElementById('bal');
+            const currentBal = parseFloat(balEl.innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                if (isAutoSpin) toggleAutoSpin();
+                return;
+            }
+
             isSpinning = true;
-            btn.classList.add('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
-            btn.innerHTML = 'SPINNING... <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Please Wait</span>';
-            
+            const btn = document.getElementById('spin-btn');
+            const btnTitle = document.getElementById('spin-btn-title');
+            const chassis = document.getElementById('wheel-chassis');
             const overlay = document.getElementById('result-overlay');
+
+            btn.classList.add('opacity-60', 'pointer-events-none');
+            btnTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> TURBINE SPINNING...`;
             overlay.classList.add('hidden');
+            chassis.classList.remove('chassis-win');
+            chassis.classList.add('chassis-spinning');
+            document.querySelectorAll('.mult-tier-card').forEach(c => c.classList.remove('tier-hit'));
+
+            // Deduct stake visually on spin launch
+            balEl.innerText = Math.max(0, currentBal - stake).toFixed(2);
 
             try {
-                const res = await fetch('/wheel/spin', { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({stake}) 
+                const res = await fetch('/wheel/spin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake })
                 });
                 const d = await res.json();
-                
-                if(d.success) {
-                    // Start audio physics simulation
-                    startTickingSound();
 
-                    // Calculate Angles
-                    const sliceDeg = 360 / 12; // 30 degrees per slice
-                    const baseTargetAngle = 360 - (d.segment_index * sliceDeg) - (sliceDeg / 2);
-                    
-                    // Add slight random jitter so it doesn't land perfectly center every time
-                    const jitter = (Math.random() * 20) - 10; 
-                    
-                    // Add 6 full spins (2160 deg) for suspense
-                    const extraSpins = 2160;
-                    const finalRotation = currentRotation + extraSpins + baseTargetAngle + jitter - (currentRotation % 360);
-                    
-                    document.getElementById('wheel').style.transform = `rotate(${finalRotation}deg)`;
-                    currentRotation = finalRotation;
-
-                    // Wait for CSS Transition to finish (4000ms)
-                    setTimeout(() => {
-                        isSpinning = false;
-                        document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                        
-                        const msg = document.getElementById('result-msg');
-                        const sub = document.getElementById('result-sub');
-                        
-                        overlay.classList.remove('hidden');
-
-                        if (d.winnings > 0) {
-                            if (d.multiplier >= 3.0) {
-                                soundWinBig();
-                                spawnParticles('gold');
-                                msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-yellow-400 glow-win";
-                            } else {
-                                soundWinSmall();
-                                msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-green-400 glow-win";
-                            }
-                            msg.innerText = `YOU WIN!`;
-                            sub.innerText = `+₹${d.winnings.toFixed(2)} (${d.multiplier}x)`;
-                            sub.className = "text-2xl md:text-3xl font-bold mt-2 font-mono text-green-300 drop-shadow-md";
-                        } else {
-                            soundLose();
-                            msg.innerText = "NO WIN";
-                            msg.className = "text-5xl md:text-7xl font-black italic uppercase tracking-widest text-red-500 glow-lose";
-                            sub.innerText = "BET LOST (0.0x)";
-                            sub.className = "text-xl md:text-2xl font-bold mt-2 font-mono text-red-400 drop-shadow-md";
-                        }
-                        
-                        // Reset button
-                        setTimeout(() => {
-                            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
-                            btn.innerHTML = 'SPIN WHEEL <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>';
-                        }, 1500);
-
-                    }, 4200); // 4000ms CSS + 200ms padding
-                } else { 
-                    alert(d.error); resetBtn(); 
+                if (!d.success) {
+                    balEl.innerText = currentBal.toFixed(2);
+                    showToast(d.error || 'Unable to spin right now', 'error');
+                    resetBtn();
+                    if (isAutoSpin) toggleAutoSpin();
+                    return;
                 }
-            } catch(e) { 
-                alert("Network Error"); resetBtn(); 
+
+                const spinDurationMs = isTurbo ? 1800 : 4000;
+                const wheelEl = document.getElementById('wheel');
+                wheelEl.style.transition = `transform ${spinDurationMs}ms cubic-bezier(0.14, 0.86, 0.14, 1)`;
+
+                // Calculate exact target angle so segment d.segment_index lands cleanly at 0 deg (top pointer)
+                const sliceDeg = 30;
+                const baseTargetAngle = 360 - (d.segment_index * sliceDeg) - (sliceDeg / 2);
+                const safeJitter = (Math.random() * 14) - 7; // Stay well inside the 30-deg wedge
+                const extraSpins = isTurbo ? 1440 : 2160;
+                const finalRotation = currentRotation + extraSpins + baseTargetAngle + safeJitter - (currentRotation % 360);
+
+                wheelEl.style.transform = `rotate(${finalRotation}deg)`;
+                currentRotation = finalRotation;
+
+                // Start real-time 60FPS peg tracker
+                trackWheelRealtimePhysics();
+
+                setTimeout(() => {
+                    isSpinning = false;
+                    chassis.classList.remove('chassis-spinning');
+                    balEl.innerText = d.new_total.toFixed(2);
+
+                    document.getElementById('live-sector-readout').innerText = `${d.multiplier.toFixed(1)}x`;
+                    document.getElementById('core-mult-readout').innerText = `${d.multiplier.toFixed(1)}x`;
+
+                    const msg = document.getElementById('result-msg');
+                    const sub = document.getElementById('result-sub');
+                    overlay.classList.remove('hidden');
+
+                    if (d.winnings > 0) {
+                        chassis.classList.add('chassis-win');
+                        const tierCard = document.getElementById(`tier-${d.multiplier}`);
+                        if (tierCard) tierCard.classList.add('tier-hit');
+
+                        if (d.multiplier >= 3.0) {
+                            soundWinBig();
+                            spawnParticles('gold');
+                            msg.className = "text-3xl sm:text-4xl font-black italic uppercase tracking-wider text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]";
+                        } else {
+                            soundWinSmall();
+                            spawnParticles('green');
+                            msg.className = "text-3xl sm:text-4xl font-black italic uppercase tracking-wider text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]";
+                        }
+                        msg.innerText = `${d.multiplier}X HIT!`;
+                        sub.innerText = `+₹${d.winnings.toFixed(2)}`;
+                        sub.className = "text-lg sm:text-xl font-black mt-1 font-mono text-brand";
+                        triggerFloatingWin(d.winnings);
+                    } else {
+                        soundLose();
+                        msg.innerText = "0.0X MISS";
+                        msg.className = "text-3xl sm:text-4xl font-black italic uppercase tracking-wider text-red-500";
+                        sub.innerText = "TRY AGAIN";
+                        sub.className = "text-xs sm:text-sm font-bold mt-1 font-mono text-gray-400";
+                    }
+
+                    updateSessionStats(stake, d.winnings, d.multiplier);
+                    resetBtn();
+
+                    if (isAutoSpin) {
+                        setTimeout(() => {
+                            if (isAutoSpin && !isSpinning) spinWheel();
+                        }, isTurbo ? 350 : 800);
+                    }
+                }, spinDurationMs + 80);
+
+            } catch (e) {
+                balEl.innerText = currentBal.toFixed(2);
+                showToast('Network Error', 'error');
+                resetBtn();
+                if (isAutoSpin) toggleAutoSpin();
             }
         }
 
         function resetBtn() {
             isSpinning = false;
             const btn = document.getElementById('spin-btn');
-            btn.classList.remove('opacity-50', 'pointer-events-none', 'border-b-0', 'translate-y-1');
-            btn.innerHTML = 'SPIN WHEEL <span class="text-[10px] text-white/70 font-bold tracking-widest uppercase mt-1 drop-shadow-none"><i class="fa-solid fa-arrows-spin"></i> Place Bet</span>';
+            const btnTitle = document.getElementById('spin-btn-title');
+            btn.classList.remove('opacity-60', 'pointer-events-none');
+            btnTitle.innerHTML = `<i class="fa-solid fa-arrows-spin"></i> SPIN TURBO WHEEL`;
         }
 
-        // ----------------------------------------------------
-        // 4. PARTICLE ENGINE
-        // ----------------------------------------------------
-        function spawnParticles(type) {
-            const container = document.getElementById('particle-container');
-            const colors = type === 'gold' ? ['#f59e0b', '#fbbf24', '#fcd34d'] : ['#10b981', '#34d399', '#a7f3d0'];
-            
-            for(let i=0; i<50; i++) {
-                const p = document.createElement('div');
-                p.innerHTML = '<i class="fa-solid fa-gem"></i>';
-                p.className = "absolute text-2xl drop-shadow-lg";
-                p.style.color = colors[Math.floor(Math.random() * colors.length)];
-                p.style.left = '50%'; p.style.top = '40%';
-                
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 15 + Math.random() * 25;
-                const tx = Math.cos(angle) * velocity * 15;
-                const ty = Math.sin(angle) * velocity * 15 - 150; // Bias upward
-                
-                container.appendChild(p);
-                
-                p.animate([
-                    { transform: `translate(-50%, -50%) scale(0.5) rotate(0deg)`, opacity: 1 },
-                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
-                ], { duration: 1000 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
-                
-                setTimeout(() => p.remove(), 2000);
+        // =====================================================
+        // 6. TELEMETRY, FLOATING WIN & PARTICLE ENGINE
+        // =====================================================
+        function updateSessionStats(stake, winnings, mult) {
+            totalSpins++;
+            if (mult > bestMult) bestMult = mult;
+            sessionPnL += (winnings - stake);
+
+            document.getElementById('stat-spins').innerText = totalSpins;
+            document.getElementById('stat-best').innerText = `${bestMult.toFixed(1)}x`;
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+
+            const ribbon = document.getElementById('recent-wheel-ribbon');
+            if (totalSpins === 1) ribbon.innerHTML = '';
+
+            const pill = document.createElement('span');
+            let color = "bg-gray-900 text-gray-500 border-gray-800";
+            if (mult >= 5.0) color = "bg-amber-950/90 text-amber-300 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.3)]";
+            else if (mult >= 2.0) color = "bg-purple-950/90 text-purple-300 border-purple-500/40";
+            else if (mult > 0) color = "bg-emerald-950/80 text-emerald-400 border-emerald-500/30";
+
+            pill.className = `px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black border shrink-0 ${color}`;
+            pill.innerText = `${mult.toFixed(1)}x`;
+            ribbon.prepend(pill);
+
+            while (ribbon.children.length > 16) {
+                ribbon.lastChild.remove();
             }
         }
 
+        function triggerFloatingWin(winnings) {
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
 
+        function spawnParticles(type) {
+            const container = document.getElementById('particle-container');
+            const colors = type === 'gold' ? ['#f59e0b', '#fbbf24', '#ec4899', '#ffffff'] : ['#10b981', '#34d399', '#38bdf8'];
+
+            for (let i = 0; i < 38; i++) {
+                const p = document.createElement('div');
+                p.className = "absolute w-2.5 h-2.5 rounded-full";
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '42%';
+
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 70 + Math.random() * 210;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+
+                container.appendChild(p);
+                p.animate([
+                    { transform: `translate(-50%, -50%) scale(1)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 950 + Math.random() * 550, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+
+                setTimeout(() => p.remove(), 1600);
+            }
+        }
+
+        buildWheelDOM();
+        updateTierPayouts();
+
+        // =====================================================
+        // 7. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>

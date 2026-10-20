@@ -2,199 +2,1028 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baccarat Pro - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baccarat Pro VIP - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e',brand:'#3b82f6'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        royalBlue: '#3b82f6',
+                        crimsonRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .felt-bg { background: radial-gradient(circle at center, #1e3a8a 0%, #0f172a 100%); }
-        .bet-zone { transition: all 0.3s ease; cursor: pointer; }
-        .bet-zone:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
-        .bet-zone.active { background: rgba(59, 130, 246, 0.4); border-color: #60a5fa; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); transform: scale(1.02); }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 80% 85%, rgba(239, 68, 68, 0.1) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Luxury Macau VIP Table Felt */
+        .vip-felt-arena {
+            background:
+                radial-gradient(ellipse at 50% 35%, #172554 0%, #0f172a 58%, #050811 100%);
+            border: 3px solid rgba(251, 191, 36, 0.35);
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.8),
+                inset 0 0 80px rgba(0, 0, 0, 0.9);
+            position: relative;
+        }
+
+        /* Subtle Gold Table Inner Rim */
+        .vip-felt-arena::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 1.5rem;
+            border: 1px dashed rgba(251, 191, 36, 0.2);
+            pointer-events: none;
+        }
+
+        /* 3D Playing Cards */
+        .card-slot {
+            width: 68px;
+            height: 98px;
+            perspective: 900px;
+        }
+        @media (min-width: 640px) {
+            .card-slot { width: 84px; height: 120px; }
+        }
+
+        .playing-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.52s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: rotateY(0deg);
+        }
+
+        .playing-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes dealSlideIn {
+            0% { opacity: 0; transform: translateY(-45px) scale(0.75) rotate(-8deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+        }
+        .card-dealing {
+            animation: dealSlideIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Royal Gold & Navy Card Back */
+        .card-back {
+            background:
+                radial-gradient(circle at center, #1e3a8a 0%, #090d16 100%);
+            border: 2px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .card-back::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1px dashed rgba(251, 191, 36, 0.45);
+            border-radius: 8px;
+        }
+
+        /* Crisp White Card Front */
+        .card-front {
+            background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+            border: 2px solid #e2e8f0;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px 7px;
+        }
+
+        .card-front.card-natural-glow {
+            border-color: #fbbf24;
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.75);
+        }
+
+        /* Betting Zones */
+        .bet-zone {
+            position: relative;
+            background: rgba(8, 12, 22, 0.72);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .bet-zone:hover {
+            transform: translateY(-2px);
+        }
+
+        .bet-zone-player.active {
+            background: linear-gradient(160deg, rgba(59, 130, 246, 0.32) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-color: #60a5fa;
+            box-shadow: 0 0 28px rgba(59, 130, 246, 0.45), inset 0 0 15px rgba(59, 130, 246, 0.25);
+            transform: translateY(-3px);
+        }
+        .bet-zone-tie.active {
+            background: linear-gradient(160deg, rgba(16, 185, 129, 0.32) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-color: #34d399;
+            box-shadow: 0 0 28px rgba(16, 185, 129, 0.45), inset 0 0 15px rgba(16, 185, 129, 0.25);
+            transform: translateY(-3px);
+        }
+        .bet-zone-banker.active {
+            background: linear-gradient(160deg, rgba(239, 68, 68, 0.32) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-color: #f87171;
+            box-shadow: 0 0 28px rgba(239, 68, 68, 0.45), inset 0 0 15px rgba(239, 68, 68, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .bet-zone.winner-pulse {
+            animation: zoneWinFlash 0.8s infinite alternate;
+        }
+        @keyframes zoneWinFlash {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.35); box-shadow: 0 0 40px #fbbf24; border-color: #fbbf24; }
+        }
+
+        /* Bead Road Badges */
+        .bead-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        }
+        .bead-P { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border: 1px solid #93c5fd; }
+        .bead-B { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: 1px solid #fca5a5; }
+        .bead-T { background: linear-gradient(135deg, #10b981, #047857); color: #000; border: 1px solid #6ee7b7; }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-bgDark text-white min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 overflow-x-hidden" onclick="initAudio()">
 
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#0a0d14] border-r border-gray-800 shrink-0 sticky top-0">
-        <div class="p-6 border-b border-gray-800"><div class="text-3xl font-black italic tracking-wider">Nova<span class="text-blue-500">betx</span></div></div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="/games" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left"></i> Back to Games</a>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-blue-500">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">VIP</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-blue-500/10 text-blue-400 font-bold rounded-xl border border-blue-500/20"><i class="fa-solid fa-diamond w-5 text-center"></i> Baccarat Pro</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
         </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-blue-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-h-screen">
-        <header class="flex justify-between items-center bg-[#0a0d14] p-4 border-b border-gray-800">
-            <div class="text-xl font-black text-blue-500 flex items-center gap-2"><i class="fa-solid fa-diamond"></i> Baccarat Pro</div>
-            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                        <i class="fa-solid fa-diamond"></i> BACCARAT PRO
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden sm:inline-block">MACAU VIP TABLE</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
         </header>
 
-        <div class="flex-1 felt-bg flex flex-col justify-center items-center p-4 relative shadow-inner">
-            
-            <div id="result-display" class="hidden absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-center w-full">
-                <div id="result-winner" class="text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest text-white"></div>
-                <div id="result-win-amount" class="text-2xl font-bold text-blue-400 mt-2 drop-shadow-md"></div>
-            </div>
-
-            <!-- Score Board -->
-            <div class="flex justify-between w-full max-w-lg mb-8 px-4">
-                <div class="text-center">
-                    <div class="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Player Score</div>
-                    <div id="player-score" class="text-4xl font-black text-white bg-black/40 w-16 h-16 rounded-xl flex items-center justify-center border border-blue-500/30">0</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-[10px] text-red-300 font-bold uppercase tracking-widest mb-1">Banker Score</div>
-                    <div id="banker-score" class="text-4xl font-black text-white bg-black/40 w-16 h-16 rounded-xl flex items-center justify-center border border-red-500/30">0</div>
+        <!-- MACAU BEAD ROAD & P/B/T RATIO RIBBON -->
+        <div class="bg-[#080b12] px-4 py-2 border-b border-gray-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                    <i class="fa-solid fa-table-cells text-blue-400"></i> Shoe Road:
+                </span>
+                <div id="bead-road" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                    <span class="text-[10px] font-mono text-gray-600 italic">Deal your first hand to start the shoe road...</span>
                 </div>
             </div>
 
-            <!-- Betting Board -->
-            <div class="grid grid-cols-3 gap-2 w-full max-w-lg">
-                <div onclick="selectZone('Player')" id="zone-Player" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
-                    <div class="text-blue-400 font-black text-lg md:text-2xl uppercase tracking-wider">PLAYER</div>
-                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 1:1</div>
-                </div>
-                <div onclick="selectZone('Tie')" id="zone-Tie" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
-                    <div class="text-emerald-400 font-black text-lg md:text-2xl uppercase tracking-wider">TIE</div>
-                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 8:1</div>
-                </div>
-                <div onclick="selectZone('Banker')" id="zone-Banker" class="bet-zone bg-black/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col items-center justify-center shadow-lg">
-                    <div class="text-red-400 font-black text-lg md:text-2xl uppercase tracking-wider">BANKER</div>
-                    <div class="text-[10px] text-gray-500 font-bold mt-1">PAYS 0.95:1</div>
-                </div>
+            <!-- Live Player vs Banker Split Meter -->
+            <div class="flex items-center gap-2 shrink-0 font-mono text-[10px] font-black">
+                <span class="text-blue-400" id="road-p-count">P: 0</span>
+                <span class="text-emerald-400" id="road-t-count">T: 0</span>
+                <span class="text-red-400" id="road-b-count">B: 0</span>
             </div>
         </div>
 
-        <div class="bg-[#0a0d14] p-4 md:p-6 border-t border-gray-800 flex justify-center">
-            <div class="w-full max-w-2xl flex gap-3">
-                <input type="number" id="stake" value="100" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-blue-500 outline-none shadow-inner">
-                <button id="deal-btn" onclick="dealCards()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(59,130,246,0.4)]">PLACE BET & DEAL</button>
+        <!-- MAIN WORKSPACE: VIP TABLE + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
+
+            <!-- LEFT / TOP: VIP BACCARAT FELT TABLE (7 Cols) -->
+            <div class="w-full lg:w-7/12 vip-felt-arena rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+
+                <!-- Top Table Commission & Shoe Banner -->
+                <div class="flex justify-between items-center relative z-10 mb-3">
+                    <div class="bg-black/50 border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold text-gray-300 flex items-center gap-1.5">
+                        <span id="table-status-dot" class="w-2 h-2 rounded-full bg-brand animate-ping"></span>
+                        <span id="table-status-text">PLACE YOUR CHIP & DEAL</span>
+                    </div>
+                    <div class="bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-full text-[10px] font-mono font-black text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group"></i> 8-DECK GOLDEN SHOE
+                    </div>
+                </div>
+
+                <!-- FLOATING WINNER ANNOUNCEMENT OVERLAY -->
+                <div id="result-display" class="hidden absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-[90%] max-w-sm pointer-events-none">
+                    <div class="bg-black/90 backdrop-blur-xl border-2 border-amber-400/60 rounded-3xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.95)]">
+                        <div class="text-[10px] font-mono font-black uppercase tracking-[0.25em] text-amber-400 mb-0.5" id="result-sub-tag">OFFICIAL HAND RESULT</div>
+                        <div id="result-winner" class="text-3xl sm:text-4xl font-black italic uppercase tracking-wider text-white">PLAYER WINS</div>
+                        <div id="result-win-amount" class="text-base sm:text-lg font-mono font-black text-brand mt-1"></div>
+                    </div>
+                </div>
+
+                <!-- 3D CARD DEALING ZONE: PLAYER VS BANKER -->
+                <div class="grid grid-cols-2 gap-3 sm:gap-6 my-3 relative z-10">
+
+                    <!-- Center VS Badge -->
+                    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/90 border border-amber-500/40 flex items-center justify-center text-[10px] font-black italic text-amber-400 shadow-lg">
+                        VS
+                    </div>
+
+                    <!-- PLAYER HAND BOX -->
+                    <div id="hand-box-Player" class="bg-blue-950/35 border border-blue-500/30 rounded-2xl p-3 sm:p-4 flex flex-col items-center transition-all duration-300">
+                        <div class="w-full flex justify-between items-center mb-2.5">
+                            <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-1">
+                                <i class="fa-solid fa-user-tie"></i> PLAYER
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span id="player-natural-badge" class="hidden bg-amber-400 text-black text-[8px] font-black px-1.5 py-0.5 rounded uppercase">NATURAL</span>
+                                <div id="player-score" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/70 border border-blue-400/50 flex items-center justify-center text-base sm:text-lg font-mono font-black text-white shadow-inner">
+                                    0
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 3D Cards for Player -->
+                        <div class="flex items-center justify-center gap-2 sm:gap-3 my-1" id="player-cards-row">
+                            <div class="card-slot" id="p-slot-0"></div>
+                            <div class="card-slot" id="p-slot-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- BANKER HAND BOX -->
+                    <div id="hand-box-Banker" class="bg-red-950/35 border border-red-500/30 rounded-2xl p-3 sm:p-4 flex flex-col items-center transition-all duration-300">
+                        <div class="w-full flex justify-between items-center mb-2.5">
+                            <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 flex items-center gap-1">
+                                <i class="fa-solid fa-building-columns"></i> BANKER
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span id="banker-natural-badge" class="hidden bg-amber-400 text-black text-[8px] font-black px-1.5 py-0.5 rounded uppercase">NATURAL</span>
+                                <div id="banker-score" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/70 border border-red-400/50 flex items-center justify-center text-base sm:text-lg font-mono font-black text-white shadow-inner">
+                                    0
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 3D Cards for Banker -->
+                        <div class="flex items-center justify-center gap-2 sm:gap-3 my-1" id="banker-cards-row">
+                            <div class="card-slot" id="b-slot-0"></div>
+                            <div class="card-slot" id="b-slot-1"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- INTERACTIVE 3-ZONE BETTING BOARD (PLAYER / TIE / BANKER) -->
+                <div class="grid grid-cols-3 gap-2.5 sm:gap-3.5 relative z-10 mt-2">
+                    
+                    <!-- 1. PLAYER ZONE (2.00x) -->
+                    <div onclick="selectZone('Player')" id="zone-Player" class="bet-zone bet-zone-player active rounded-2xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center">
+                        <div id="chip-Player" class="w-7 h-7 rounded-full bg-blue-500 text-white border-2 border-dashed border-white flex items-center justify-center text-[9px] font-mono font-black shadow-lg mb-1.5">
+                            BET
+                        </div>
+                        <div class="text-blue-400 font-black text-base sm:text-xl uppercase tracking-wider">PLAYER</div>
+                        <div class="text-[10px] font-mono font-bold text-gray-300 mt-0.5 bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-full">PAYS 2.00x</div>
+                    </div>
+
+                    <!-- 2. TIE ZONE (8.00x) -->
+                    <div onclick="selectZone('Tie')" id="zone-Tie" class="bet-zone bet-zone-tie rounded-2xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center">
+                        <div id="chip-Tie" class="hidden w-7 h-7 rounded-full bg-emerald-500 text-black border-2 border-dashed border-white items-center justify-center text-[9px] font-mono font-black shadow-lg mb-1.5">
+                            BET
+                        </div>
+                        <div class="text-emerald-400 font-black text-base sm:text-xl uppercase tracking-wider">TIE</div>
+                        <div class="text-[10px] font-mono font-bold text-gray-300 mt-0.5 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">PAYS 8.00x</div>
+                    </div>
+
+                    <!-- 3. BANKER ZONE (1.95x) -->
+                    <div onclick="selectZone('Banker')" id="zone-Banker" class="bet-zone bet-zone-banker rounded-2xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center">
+                        <div id="chip-Banker" class="hidden w-7 h-7 rounded-full bg-red-500 text-white border-2 border-dashed border-white items-center justify-center text-[9px] font-mono font-black shadow-lg mb-1.5">
+                            BET
+                        </div>
+                        <div class="text-red-400 font-black text-base sm:text-xl uppercase tracking-wider">BANKER</div>
+                        <div class="text-[10px] font-mono font-bold text-gray-300 mt-0.5 bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded-full">PAYS 1.95x</div>
+                    </div>
+
+                </div>
+
             </div>
+
+            <!-- RIGHT / BOTTOM: BETTING COCKPIT & TELEMETRY (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Selected Zone Summary Banner -->
+                    <div class="bg-black/60 border border-gray-800 rounded-2xl p-3.5 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Active Table Pick</span>
+                            <span id="picked-zone-label" class="text-base font-black uppercase tracking-wider text-blue-400">PLAYER HAND (2.00x)</span>
+                        </div>
+                        <div class="text-right font-mono">
+                            <span class="text-[10px] text-gray-500 uppercase block">Est. Return</span>
+                            <span id="est-payout-val" class="text-base font-black text-brand">₹200.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Chip Wager (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-blue-500 rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="100" min="10" step="10" oninput="updatePayoutPreview()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(50)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Casino Chip Denominations -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="setExactStake(1000)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">1K</button>
+                            <button type="button" onclick="multiplyStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="multiplyStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Macau Baccarat Rules Quick Guide -->
+                    <div class="bg-black/45 border border-gray-800/90 rounded-2xl p-3 text-[11px] text-gray-400 space-y-1">
+                        <div class="flex justify-between">
+                            <span>Closest to <strong class="text-white">9 Points</strong> wins</span>
+                            <span class="font-mono text-amber-400">10, J, Q, K = 0 Pts</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>8 or 9 Points = <strong class="text-amber-300">Natural Win</strong></span>
+                            <span class="font-mono text-emerald-400">Tie Pays 8.00x</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- DEAL BUTTON & SESSION STATS -->
+                <div class="mt-4">
+                    <button type="button" id="deal-btn" onclick="dealCards()" class="w-full h-16 md:h-20 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600 hover:brightness-110 text-white font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(59,130,246,0.45)] border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 flex flex-col items-center justify-center">
+                        <span id="deal-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-diamond"></i> PLACE BET & DEAL</span>
+                        <span id="deal-btn-sub" class="text-[10px] font-mono font-bold tracking-widest text-blue-200 mt-0.5">OR PRESS SPACEBAR</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Hands Dealt</div>
+                            <div id="stat-hands" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Win Rate</div>
+                            <div id="stat-winrate" class="text-xs font-mono font-black text-blue-400 mt-0.5">0%</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </main>
 
-    <script>
-        let currentChoice = 'Player';
-        selectZone('Player');
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-blue-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(59,130,246,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
-        function selectZone(choice) {
-            document.querySelectorAll('.bet-zone').forEach(el => el.classList.remove('active'));
-            document.getElementById('zone-' + choice).classList.add('active');
-            currentChoice = choice;
+    <script>
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'VIP Baccarat' : 'Table Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
 
-        async function dealCards() {
-            const btn = document.getElementById('deal-btn');
-            const stake = parseFloat(document.getElementById('stake').value);
-            
-            btn.disabled = true; btn.innerText = "DEALING...";
-            document.getElementById('result-display').classList.add('hidden');
-            
-            try {
-                const res = await fetch('/baccarat/deal', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake: stake, choice: currentChoice}) });
-                const d = await res.json();
-                
-                if(d.success) {
-                    // Animation delay for suspense
-                    setTimeout(() => {
-                        document.getElementById('player-score').innerText = d.player_score;
-                        document.getElementById('banker-score').innerText = d.banker_score;
-                        
-                        setTimeout(() => {
-                            const resDisplay = document.getElementById('result-display');
-                            const resWinner = document.getElementById('result-winner');
-                            
-                            resWinner.innerText = d.winner + " WINS";
-                            resWinner.className = `text-5xl md:text-7xl font-black italic drop-shadow-[0_0_20px_rgba(0,0,0,1)] uppercase tracking-widest ${d.winner==='Player'?'text-blue-400':(d.winner==='Banker'?'text-red-400':'text-emerald-400')}`;
-                            
-                            if (d.win) {
-                                document.getElementById('result-win-amount').innerText = `+ ₹${d.winnings.toFixed(2)}`;
-                            } else {
-                                document.getElementById('result-win-amount').innerText = "BET LOST";
-                            }
-                            
-                            resDisplay.classList.remove('hidden');
-                            document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                            btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
-                        }, 500);
-                    }, 600);
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER (CARD SLIDE, FLIP & WIN FX)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-blue-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            chipTap: () => Sound.play(920, 'sine', 0.045, 0.05),
+            cardSlide: () => Sound.play(340, 'triangle', 0.07, 0.06),
+            cardFlip: (pitch = 520) => Sound.play(pitch, 'sine', 0.09, 0.08),
+            win: () => {
+                setTimeout(() => Sound.play(523.25, 'triangle', 0.12, 0.14), 0);
+                setTimeout(() => Sound.play(659.25, 'triangle', 0.12, 0.14), 100);
+                setTimeout(() => Sound.play(783.99, 'triangle', 0.15, 0.14), 200);
+                setTimeout(() => Sound.play(1046.50, 'triangle', 0.45, 0.18), 310);
+            },
+            lose: () => {
+                setTimeout(() => Sound.play(210, 'sawtooth', 0.25, 0.06), 0);
+                setTimeout(() => Sound.play(155, 'sawtooth', 0.4, 0.07), 230);
+            }
+        };
+
+        // =====================================================
+        // 3. EXACT BACCARAT HAND GENERATOR & 3D CARD RENDERER
+        // =====================================================
+        const SUITS = [
+            { sym: '♠', color: 'text-slate-900' },
+            { sym: '♥', color: 'text-red-600' },
+            { sym: '♦', color: 'text-red-600' },
+            { sym: '♣', color: 'text-slate-900' }
+        ];
+
+        const ZERO_RANKS = ['10', 'J', 'Q', 'K'];
+
+        function rankFromBaccaratValue(val) {
+            if (val === 0) return ZERO_RANKS[Math.floor(Math.random() * ZERO_RANKS.length)];
+            if (val === 1) return 'A';
+            return String(val);
+        }
+
+        function generateExactBaccaratPair(targetScore) {
+            const v1 = Math.floor(Math.random() * 10); // 0..9
+            const v2 = (targetScore - v1 + 10) % 10;  // Ensures (v1 + v2) % 10 === targetScore
+            const s1 = SUITS[Math.floor(Math.random() * SUITS.length)];
+            const s2 = SUITS[Math.floor(Math.random() * SUITS.length)];
+            return [
+                { rank: rankFromBaccaratValue(v1), suit: s1.sym, color: s1.color, pts: v1 },
+                { rank: rankFromBaccaratValue(v2), suit: s2.sym, color: s2.color, pts: v2 }
+            ];
+        }
+
+        function createCardHTML(cardData, flipped = false, isNatural = false) {
+            const r = cardData ? cardData.rank : 'A';
+            const s = cardData ? cardData.suit : '♠';
+            const c = cardData ? cardData.color : 'text-slate-900';
+            return `
+                <div class="playing-card ${flipped ? 'flipped' : ''}">
+                    <div class="card-face card-back">
+                        <i class="fa-solid fa-diamond text-amber-400/70 text-xl"></i>
+                    </div>
+                    <div class="card-face card-front ${isNatural ? 'card-natural-glow' : ''} ${c}">
+                        <div class="text-left leading-none">
+                            <div class="text-xs sm:text-sm font-black tracking-tighter">${r}</div>
+                            <div class="text-[10px] sm:text-xs">${s}</div>
+                        </div>
+                        <div class="text-center text-2xl sm:text-3xl leading-none my-auto drop-shadow-sm">${s}</div>
+                        <div class="text-right leading-none rotate-180">
+                            <div class="text-xs sm:text-sm font-black tracking-tighter">${r}</div>
+                            <div class="text-[10px] sm:text-xs">${s}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initIdleTableCards() {
+            ['p-slot-0', 'p-slot-1', 'b-slot-0', 'b-slot-1'].forEach(slotId => {
+                document.getElementById(slotId).innerHTML = createCardHTML(null, false, false);
+            });
+        }
+
+        // =====================================================
+        // 4. BETTING ZONES, STAKE CONTROLS & PAYOUT CALCULATOR
+        // =====================================================
+        let currentChoice = 'Player';
+        let isDealing = false;
+
+        // Session & Road Telemetry
+        let totalHands = 0;
+        let totalWins = 0;
+        let sessionPnL = 0;
+        let roadCounts = { Player: 0, Banker: 0, Tie: 0 };
+
+        const ZONE_MULTIPLIERS = {
+            Player: 2.00,
+            Banker: 1.95,
+            Tie: 8.00
+        };
+
+        function selectZone(choice) {
+            initAudio();
+            if (isDealing) return;
+            Sound.chipTap();
+            currentChoice = choice;
+
+            ['Player', 'Tie', 'Banker'].forEach(z => {
+                const zEl = document.getElementById(`zone-${z}`);
+                const cEl = document.getElementById(`chip-${z}`);
+                zEl.classList.remove('active', 'winner-pulse');
+                if (z === choice) {
+                    zEl.classList.add('active');
+                    cEl.classList.remove('hidden');
+                    cEl.classList.add('flex');
                 } else {
-                    alert(d.error);
-                    btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
+                    cEl.classList.add('hidden');
+                    cEl.classList.remove('flex');
                 }
-            } catch(e) {
-                alert("Network error.");
-                btn.disabled = false; btn.innerText = "PLACE BET & DEAL";
+            });
+
+            const lbl = document.getElementById('picked-zone-label');
+            if (choice === 'Player') {
+                lbl.innerText = 'PLAYER HAND (2.00x)';
+                lbl.className = 'text-base font-black uppercase tracking-wider text-blue-400';
+            } else if (choice === 'Banker') {
+                lbl.innerText = 'BANKER HAND (1.95x)';
+                lbl.className = 'text-base font-black uppercase tracking-wider text-red-400';
+            } else {
+                lbl.innerText = 'TIE GAME (8.00x)';
+                lbl.className = 'text-base font-black uppercase tracking-wider text-emerald-400';
+            }
+
+            updatePayoutPreview();
+        }
+
+        function updatePayoutPreview() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            const mult = ZONE_MULTIPLIERS[currentChoice] || 2.0;
+            document.getElementById('est-payout-val').innerText = '₹' + (stake * mult).toFixed(2);
+            const activeChip = document.getElementById(`chip-${currentChoice}`);
+            if (activeChip) activeChip.innerText = stake >= 1000 ? `${(stake/1000).toFixed(0)}K` : String(Math.round(stake));
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            if (isDealing) return;
+            Sound.chipTap();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, val + delta);
+            updatePayoutPreview();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            if (isDealing) return;
+            Sound.chipTap();
+            document.getElementById('stake').value = val;
+            updatePayoutPreview();
+        }
+
+        function multiplyStake(factor) {
+            initAudio();
+            if (isDealing) return;
+            Sound.chipTap();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 100;
+            input.value = Math.max(10, Math.round(val * factor));
+            updatePayoutPreview();
+        }
+
+        // Spacebar shortcut to deal
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && !isDealing) {
+                e.preventDefault();
+                dealCards();
+            }
+        });
+
+        // =====================================================
+        // 5. 3D DEAL & SQUEEZE SEQUENCE (/baccarat/deal)
+        // =====================================================
+        const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+        async function dealCards() {
+            initAudio();
+            if (isDealing) return;
+
+            const stake = parseFloat(document.getElementById('stake').value);
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const balEl = document.getElementById('bal');
+            const currentBal = parseFloat(balEl.innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient balance!', 'error');
+                return;
+            }
+
+            isDealing = true;
+            const btn = document.getElementById('deal-btn');
+            const btnTitle = document.getElementById('deal-btn-title');
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> DEALING SHOE...`;
+
+            // Visually deduct stake on deal start
+            balEl.innerText = Math.max(0, currentBal - stake).toFixed(2);
+
+            // Reset table UI
+            document.getElementById('result-display').classList.add('hidden');
+            document.getElementById('player-natural-badge').classList.add('hidden');
+            document.getElementById('banker-natural-badge').classList.add('hidden');
+            document.getElementById('player-score').innerText = '0';
+            document.getElementById('banker-score').innerText = '0';
+            document.querySelectorAll('.bet-zone').forEach(z => z.classList.remove('winner-pulse'));
+            document.getElementById('table-status-text').innerText = 'DEALING CARDS FROM SHOE...';
+
+            try {
+                const res = await fetch('/baccarat/deal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake: stake, choice: currentChoice })
+                });
+                const d = await res.json();
+
+                if (!d.success) {
+                    balEl.innerText = currentBal.toFixed(2);
+                    showToast(d.error || 'Unable to deal hand', 'error');
+                    resetDealButton();
+                    return;
+                }
+
+                // Generate authentic 2-card hands matching d.player_score and d.banker_score
+                const pCards = generateExactBaccaratPair(d.player_score);
+                const bCards = generateExactBaccaratPair(d.banker_score);
+                const pNatural = d.player_score >= 8;
+                const bNatural = d.banker_score >= 8;
+
+                // Deal 4 cards face down into slots with slide animation
+                const slots = [
+                    { id: 'p-slot-0', card: pCards[0], nat: pNatural },
+                    { id: 'b-slot-0', card: bCards[0], nat: bNatural },
+                    { id: 'p-slot-1', card: pCards[1], nat: pNatural },
+                    { id: 'b-slot-1', card: bCards[1], nat: bNatural }
+                ];
+
+                slots.forEach(s => {
+                    const el = document.getElementById(s.id);
+                    el.innerHTML = createCardHTML(s.card, false, s.nat);
+                    el.classList.remove('card-dealing');
+                    void el.offsetWidth;
+                    el.classList.add('card-dealing');
+                });
+                Sound.cardSlide();
+                await sleep(280);
+
+                // Flip Card 1 (Player)
+                document.querySelector('#p-slot-0 .playing-card').classList.add('flipped');
+                document.getElementById('player-score').innerText = pCards[0].pts;
+                Sound.cardFlip(480);
+                await sleep(260);
+
+                // Flip Card 2 (Banker)
+                document.querySelector('#b-slot-0 .playing-card').classList.add('flipped');
+                document.getElementById('banker-score').innerText = bCards[0].pts;
+                Sound.cardFlip(520);
+                await sleep(280);
+
+                // Flip Card 3 (Player 2nd Card -> Final Player Score)
+                document.querySelector('#p-slot-1 .playing-card').classList.add('flipped');
+                document.getElementById('player-score').innerText = d.player_score;
+                if (pNatural) document.getElementById('player-natural-badge').classList.remove('hidden');
+                Sound.cardFlip(580);
+                await sleep(300);
+
+                // Flip Card 4 (Banker 2nd Card -> Final Banker Score)
+                document.querySelector('#b-slot-1 .playing-card').classList.add('flipped');
+                document.getElementById('banker-score').innerText = d.banker_score;
+                if (bNatural) document.getElementById('banker-natural-badge').classList.remove('hidden');
+                Sound.cardFlip(640);
+                await sleep(240);
+
+                // Highlight Winning Zone & Show Result Banner
+                const winZone = document.getElementById(`zone-${d.winner}`);
+                if (winZone) winZone.classList.add('winner-pulse');
+
+                const resDisplay = document.getElementById('result-display');
+                const resWinner = document.getElementById('result-winner');
+                const resAmt = document.getElementById('result-win-amount');
+
+                resWinner.innerText = d.winner === 'Tie' ? 'TIE GAME (8X)' : `${d.winner} WINS!`;
+                resWinner.className = `text-3xl sm:text-4xl font-black italic uppercase tracking-wider ${d.winner === 'Player' ? 'text-blue-400' : (d.winner === 'Banker' ? 'text-red-400' : 'text-emerald-400')}`;
+
+                balEl.innerText = d.new_total.toFixed(2);
+
+                if (d.win) {
+                    resAmt.innerText = `+ ₹${d.winnings.toFixed(2)}`;
+                    resAmt.className = "text-base sm:text-lg font-mono font-black text-brand mt-1";
+                    document.getElementById('table-status-text').innerText = `WINNER! +₹${d.winnings.toFixed(2)} CREDITED`;
+                    triggerFloatingWin(d.winnings);
+                    spawnConfetti();
+                    showToast(`${d.winner} Wins! You won ₹${d.winnings.toFixed(2)}`, 'success');
+                } else {
+                    Sound.lose();
+                    resAmt.innerText = `Player ${d.player_score} — ${d.banker_score} Banker`;
+                    resAmt.className = "text-xs sm:text-sm font-mono font-bold text-gray-400 mt-1";
+                    document.getElementById('table-status-text').innerText = `${d.winner.toUpperCase()} WON HAND • PLACE NEXT BET`;
+                }
+
+                resDisplay.classList.remove('hidden');
+                updateSessionAndRoad(stake, d.winnings, d.win, d.winner, d.player_score, d.banker_score);
+                resetDealButton();
+
+            } catch (e) {
+                balEl.innerText = currentBal.toFixed(2);
+                showToast('Network error dealing cards', 'error');
+                resetDealButton();
             }
         }
 
+        function resetDealButton() {
+            isDealing = false;
+            const btn = document.getElementById('deal-btn');
+            const btnTitle = document.getElementById('deal-btn-title');
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-diamond"></i> PLACE BET & DEAL`;
+        }
+
+        // =====================================================
+        // 6. SHOE ROAD & TELEMETRY UPDATER
+        // =====================================================
+        function updateSessionAndRoad(stake, winnings, isWin, winner, pScore, bScore) {
+            totalHands++;
+            if (isWin) totalWins++;
+            sessionPnL += (winnings - stake);
+            roadCounts[winner] = (roadCounts[winner] || 0) + 1;
+
+            document.getElementById('stat-hands').innerText = totalHands;
+            document.getElementById('stat-winrate').innerText = Math.round((totalWins / totalHands) * 100) + '%';
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+
+            document.getElementById('road-p-count').innerText = `P: ${roadCounts.Player}`;
+            document.getElementById('road-t-count').innerText = `T: ${roadCounts.Tie}`;
+            document.getElementById('road-b-count').innerText = `B: ${roadCounts.Banker}`;
+
+            const road = document.getElementById('bead-road');
+            if (totalHands === 1) road.innerHTML = '';
+
+            const letter = winner === 'Player' ? 'P' : (winner === 'Banker' ? 'B' : 'T');
+            const dot = document.createElement('div');
+            dot.className = `bead-dot bead-${letter}`;
+            dot.title = `${winner} (${pScore}-${bScore})`;
+            dot.innerText = letter;
+            road.prepend(dot);
+
+            while (road.children.length > 18) {
+                road.lastChild.remove();
+            }
+        }
+
+        function triggerFloatingWin(winnings) {
+            Sound.win();
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti() {
+            const container = document.getElementById('particle-container');
+            const colors = ['#3b82f6', '#fbbf24', '#1CDA3A', '#ef4444', '#ffffff'];
+            for (let i = 0; i < 36; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 50;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        initIdleTableCards();
+        selectZone('Player');
+
+        // =====================================================
+        // 7. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
-
-
-
-
-
-
-
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
-
-
-
-
-
 </body>
 </html>

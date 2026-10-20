@@ -58,8 +58,9 @@
             box-shadow: 0 0 65px rgba(251, 191, 36, 0.55), inset 0 0 35px rgba(251, 191, 36, 0.2);
         }
 
-        /* 3D Cylindrical Reel Window - STRICT HEIGHT & OVERFLOW HIDDEN */
+        /* 3D Cylindrical Reel Window - CONTENT-BOX SO INNER HEIGHT MATCHES REEL-CELL 100% */
         .reel-window {
+            box-sizing: content-box !important;
             height: 120px;
             background: linear-gradient(180deg, #04060a 0%, #0e1525 50%, #04060a 100%);
             position: relative;
@@ -108,8 +109,9 @@
             right: 0;
         }
 
-        /* EXACT CELL HEIGHT MATCHING .reel-window */
+        /* EXACT CELL HEIGHT MATCHING .reel-window INNER HEIGHT */
         .reel-cell {
+            box-sizing: border-box !important;
             height: 120px;
             display: flex;
             align-items: center;
@@ -371,11 +373,11 @@
                             <span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest hidden sm:inline">TELEMETRY:</span>
                         </div>
 
-                        <div id="win-txt" class="text-sm sm:text-lg md:text-xl font-black text-pink-400 uppercase tracking-[0.18em] relative z-10 text-center truncate">
+                        <div id="win-txt" class="text-xs sm:text-base md:text-lg font-black text-pink-400 uppercase tracking-[0.15em] relative z-10 text-center truncate px-2">
                             READY TO SPIN
                         </div>
 
-                        <div class="text-right relative z-10 font-mono">
+                        <div class="text-right relative z-10 font-mono shrink-0">
                             <div class="text-[9px] text-gray-500 uppercase font-bold">Last Win</div>
                             <div id="last-win-amt" class="text-xs font-black text-emerald-400">₹0.00</div>
                         </div>
@@ -564,34 +566,101 @@
         }
 
         // =====================================================
-        // 3. 3D REEL STRIP BUILDER & SYMBOL RENDERER
+        // 3. EXACT REEL STRIP BUILDER & PAIR DETECTION ENGINE
         // =====================================================
         const SYMBOLS = ['🍒', '🍋', '🍇', '🔔', 'BAR', '777'];
-        const STRIP_LENGTH = 28;
+        const PAYTABLE_MULTS = { '🍒': 5, '🍋': 8, '🍇': 12, '🔔': 20, 'BAR': 35, '777': 100 };
+        const STRIP_LENGTH = 24;
 
-        function formatSymbolHTML(sym) {
-            if (sym === '777') return `<div class="sym-777">777</div>`;
-            if (sym === 'BAR') return `<div class="sym-bar">BAR</div>`;
-            return `<div class="sym-emoji">${sym}</div>`;
+        function normalizeSymbol(sym) {
+            return String(sym || '').trim();
         }
 
-        function getCellHeight() {
-            const winEl = document.getElementById('reel-win-0');
-            return winEl ? winEl.clientHeight : 150;
+        function formatSymbolHTML(sym) {
+            const clean = normalizeSymbol(sym);
+            if (clean === '777') return `<div class="sym-777">777</div>`;
+            if (clean === 'BAR') return `<div class="sym-bar">BAR</div>`;
+            return `<div class="sym-emoji">${clean}</div>`;
+        }
+
+        // Strict JavaScript Pair & 3-of-a-Kind Match Evaluator
+        function evaluateSlotMatch(reels) {
+            const r0 = normalizeSymbol(reels[0]);
+            const r1 = normalizeSymbol(reels[1]);
+            const r2 = normalizeSymbol(reels[2]);
+
+            // 1. Check 3-of-a-Kind Jackpot
+            if (r0 === r1 && r1 === r2) {
+                const mult = PAYTABLE_MULTS[r0] || 5;
+                return {
+                    isWin: true,
+                    matchType: 'TRIPLE',
+                    matchedSymbol: r0,
+                    winningIndices: [0, 1, 2],
+                    multiplier: mult,
+                    label: `3× ${r0} JACKPOT`
+                };
+            }
+
+            // 2. Check Exact 2-of-a-Kind Pair (Reels 1 & 2)
+            if (r0 === r1 && r0 !== r2) {
+                return {
+                    isWin: true,
+                    matchType: 'PAIR',
+                    matchedSymbol: r0,
+                    winningIndices: [0, 1],
+                    multiplier: 1.5,
+                    label: `PAIR MATCH (${r0} + ${r1})`
+                };
+            }
+
+            // 3. Check Exact 2-of-a-Kind Pair (Reels 2 & 3)
+            if (r1 === r2 && r1 !== r0) {
+                return {
+                    isWin: true,
+                    matchType: 'PAIR',
+                    matchedSymbol: r1,
+                    winningIndices: [1, 2],
+                    multiplier: 1.5,
+                    label: `PAIR MATCH (${r1} + ${r2})`
+                };
+            }
+
+            // 4. Check Exact 2-of-a-Kind Pair (Reels 1 & 3)
+            if (r0 === r2 && r0 !== r1) {
+                return {
+                    isWin: true,
+                    matchType: 'PAIR',
+                    matchedSymbol: r0,
+                    winningIndices: [0, 2],
+                    multiplier: 1.5,
+                    label: `SPLIT PAIR (${r0} + ${r2})`
+                };
+            }
+
+            // 5. All 3 Symbols are Different -> No Match
+            return {
+                isWin: false,
+                matchType: 'NONE',
+                matchedSymbol: null,
+                winningIndices: [],
+                multiplier: 0,
+                label: 'NO MATCH • TRY AGAIN'
+            };
+        }
+
+        // Lock a single symbol cleanly at y=0 so there is zero pixel drift
+        function lockSingleSymbolOnReel(reelIdx, sym) {
+            const strip = document.getElementById(`reel-strip-${reelIdx}`);
+            if (!strip) return;
+            strip.style.transition = 'none';
+            strip.innerHTML = `<div class="reel-cell" data-symbol="${normalizeSymbol(sym)}">${formatSymbolHTML(sym)}</div>`;
+            strip.style.transform = 'translateY(0px)';
         }
 
         function initReelStrips(initialSymbols = ['777', '777', '777']) {
-            const cellH = getCellHeight();
             for (let i = 0; i < 3; i++) {
-                const strip = document.getElementById(`reel-strip-${i}`);
-                let html = `<div class="reel-cell">${formatSymbolHTML(initialSymbols[i])}</div>`;
-                for (let j = 1; j < STRIP_LENGTH; j++) {
-                    const randSym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                    html += `<div class="reel-cell">${formatSymbolHTML(randSym)}</div>`;
-                }
-                strip.innerHTML = html;
-                strip.style.transition = 'none';
-                strip.style.transform = 'translateY(0px)';
+                lockSingleSymbolOnReel(i, initialSymbols[i]);
             }
         }
 
@@ -675,7 +744,7 @@
         });
 
         // =====================================================
-        // 5. CORE SPIN & 3D REEL ANIMATION ENGINE
+        // 5. CORE SPIN & EXACT REEL ALIGNMENT ENGINE
         // =====================================================
         async function spinSlots() {
             initAudio();
@@ -710,7 +779,7 @@
             const cabinet = document.getElementById('slot-cabinet-frame');
 
             winTxt.innerText = isTurbo ? "TURBO SPINNING..." : "REELS IN MOTION...";
-            winTxt.className = "text-base sm:text-xl md:text-2xl font-black text-pink-400 uppercase tracking-[0.18em] relative z-10 text-center truncate";
+            winTxt.className = "text-xs sm:text-base md:text-lg font-black text-pink-400 uppercase tracking-[0.15em] relative z-10 text-center truncate px-2";
             winBg.classList.remove('opacity-100');
             laser.classList.remove('laser-win');
             cabinet.classList.remove('cabinet-jackpot');
@@ -729,7 +798,7 @@
                 });
                 const d = await res.json();
 
-                if (!d.success) {
+                if (!d.success || !Array.isArray(d.reels) || d.reels.length !== 3) {
                     clearInterval(tickTimer);
                     balEl.innerText = currentBal.toFixed(2);
                     showToast(d.error || 'Unable to spin right now', 'error');
@@ -738,31 +807,41 @@
                     return;
                 }
 
-                const targetReels = d.reels;
+                // Normalize the 3 official symbols from the server
+                const targetReels = d.reels.map(normalizeSymbol);
+                const matchAnalysis = evaluateSlotMatch(targetReels);
                 const isNearMiss = (targetReels[0] === targetReels[1]);
-                const cellH = getCellHeight();
-                const durations = isTurbo ? [350, 520, 680] : [650, 1050, (isNearMiss ? 1650 : 1380)];
+                const durations = isTurbo ? [350, 520, 680] : [650, 1050, (isNearMiss ? 1600 : 1350)];
 
                 for (let i = 0; i < 3; i++) {
                     const strip = document.getElementById(`reel-strip-${i}`);
                     let html = `<div class="reel-cell">${formatSymbolHTML(currentVisibleSymbols[i])}</div>`;
                     for (let j = 1; j < STRIP_LENGTH - 1; j++) {
+                        // Ensure the filler symbol right before the final cell is different so the stop is crisp
                         const randSym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
                         html += `<div class="reel-cell">${formatSymbolHTML(randSym)}</div>`;
                     }
-                    html += `<div class="reel-cell">${formatSymbolHTML(targetReels[i])}</div>`;
+                    // Final cell at index (STRIP_LENGTH - 1) is ALWAYS the exact target symbol
+                    html += `<div class="reel-cell" data-final="true">${formatSymbolHTML(targetReels[i])}</div>`;
 
                     strip.innerHTML = html;
                     strip.style.transition = 'none';
                     strip.style.transform = 'translateY(0px)';
                     void strip.offsetWidth;
 
-                    const finalOffset = -((STRIP_LENGTH - 1) * cellH);
-                    strip.style.transition = `transform ${durations[i]}ms cubic-bezier(0.12, 0.85, 0.22, 1.04)`;
+                    // Measure exact rendered cell height from the DOM element itself (prevents border offset bugs)
+                    const firstCell = strip.querySelector('.reel-cell');
+                    const exactCellH = firstCell ? firstCell.getBoundingClientRect().height : 120;
+                    const finalOffset = -((STRIP_LENGTH - 1) * exactCellH);
+
+                    strip.style.transition = `transform ${durations[i]}ms cubic-bezier(0.12, 0.85, 0.22, 1)`;
                     strip.style.transform = `translateY(${finalOffset}px)`;
 
                     setTimeout(() => {
+                        // Hard-lock the final symbol at translateY(0px) once this reel stops so it is 100% centered
+                        lockSingleSymbolOnReel(i, targetReels[i]);
                         soundReelLock(i);
+
                         if (i === 1 && isNearMiss && !isTurbo) {
                             document.getElementById('reel-win-2').classList.add('reel-tension-glow');
                             soundTensionRiser();
@@ -776,19 +855,29 @@
                     clearInterval(tickTimer);
                     document.getElementById('reel-win-2').classList.remove('reel-tension-glow');
 
+                    // Guarantee all 3 reels show the exact server symbols
+                    for (let i = 0; i < 3; i++) {
+                        lockSingleSymbolOnReel(i, targetReels[i]);
+                    }
+
                     balEl.innerText = d.new_total.toFixed(2);
 
-                    if (d.winnings > 0) {
+                    // Use strict pair/triple match verification alongside backend payout
+                    if (matchAnalysis.isWin && d.winnings > 0) {
                         soundWin(d.multiplier);
-                        winTxt.innerText = `WIN ₹${d.winnings.toFixed(2)} (${d.multiplier}X)!`;
-                        winTxt.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-400 uppercase tracking-[0.15em] relative z-10 text-center drop-shadow-[0_0_12px_rgba(16,185,129,0.8)]";
+                        winTxt.innerText = `${matchAnalysis.label} • WIN ₹${d.winnings.toFixed(2)} (${d.multiplier}X)!`;
+                        winTxt.className = "text-xs sm:text-base md:text-lg font-black text-emerald-400 uppercase tracking-[0.12em] relative z-10 text-center drop-shadow-[0_0_12px_rgba(16,185,129,0.8)] px-2";
                         winBg.classList.add('opacity-100');
                         laser.classList.add('laser-win');
                         document.getElementById('last-win-amt').innerText = `₹${d.winnings.toFixed(2)}`;
 
                         if (d.multiplier >= 20) cabinet.classList.add('cabinet-jackpot');
 
-                        highlightWinningReels(targetReels);
+                        // Highlight ONLY the exact reels that formed the winning pair or triple
+                        matchAnalysis.winningIndices.forEach(idx => {
+                            document.getElementById(`reel-win-${idx}`).classList.add('reel-win-glow');
+                        });
+
                         const payCard = document.getElementById(`pay-${d.multiplier}`);
                         if (payCard) payCard.classList.add('pay-active');
 
@@ -796,11 +885,11 @@
                         spawnCoins(d.multiplier >= 12 ? 40 : 22);
                     } else {
                         soundLose();
-                        winTxt.innerText = "NO MATCH • TRY AGAIN";
-                        winTxt.className = "text-sm sm:text-lg font-black text-gray-500 uppercase tracking-[0.2em] relative z-10 text-center";
+                        winTxt.innerText = `${targetReels.join('  ')} • NO MATCH`;
+                        winTxt.className = "text-xs sm:text-base font-black text-gray-500 uppercase tracking-[0.18em] relative z-10 text-center px-2";
                     }
 
-                    updateSessionStats(stake, d.winnings, d.multiplier, targetReels);
+                    updateSessionStats(stake, d.winnings, d.multiplier, targetReels, matchAnalysis);
                     resetSpinButton();
 
                     if (isAutoSpin) {
@@ -808,7 +897,7 @@
                             if (isAutoSpin && !isSpinning) spinSlots();
                         }, isTurbo ? 250 : 650);
                     }
-                }, durations[2] + 60);
+                }, durations[2] + 50);
 
             } catch (e) {
                 clearInterval(tickTimer);
@@ -816,18 +905,6 @@
                 showToast('Network error while spinning', 'error');
                 resetSpinButton();
                 if (isAutoSpin) toggleAutoSpin();
-            }
-        }
-
-        function highlightWinningReels(reels) {
-            if (reels[0] === reels[1] && reels[1] === reels[2]) {
-                [0, 1, 2].forEach(i => document.getElementById(`reel-win-${i}`).classList.add('reel-win-glow'));
-            } else if (reels[0] === reels[1]) {
-                [0, 1].forEach(i => document.getElementById(`reel-win-${i}`).classList.add('reel-win-glow'));
-            } else if (reels[1] === reels[2]) {
-                [1, 2].forEach(i => document.getElementById(`reel-win-${i}`).classList.add('reel-win-glow'));
-            } else if (reels[0] === reels[2]) {
-                [0, 2].forEach(i => document.getElementById(`reel-win-${i}`).classList.add('reel-win-glow'));
             }
         }
 
@@ -839,7 +916,7 @@
             btnLabel.innerHTML = `<i class="fa-solid fa-play text-lg"></i> SPIN REELS`;
         }
 
-        function updateSessionStats(stake, winnings, mult, reels) {
+        function updateSessionStats(stake, winnings, mult, reels, matchAnalysis) {
             totalSpins++;
             if (mult > bestMult) bestMult = mult;
             netPnL += (winnings - stake);
@@ -856,7 +933,7 @@
             if (totalSpins === 1) ribbon.innerHTML = '';
 
             const pill = document.createElement('span');
-            const isWin = winnings > 0;
+            const isWin = matchAnalysis.isWin && winnings > 0;
             pill.className = `px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black border shrink-0 ${isWin ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500/40' : 'bg-gray-900 text-gray-500 border-gray-800'}`;
             pill.innerText = `${reels.join(' ')} (${mult}x)`;
             ribbon.prepend(pill);
@@ -912,66 +989,59 @@
             }
         }
 
-        window.addEventListener('resize', () => initReelStrips(currentVisibleSymbols));
+        window.addEventListener('resize', () => {
+            if (!isSpinning) initReelStrips(currentVisibleSymbols);
+        });
         initReelStrips(currentVisibleSymbols);
         updatePaytableDisplay();
 
-
+        // =====================================================
+        // 6. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>
