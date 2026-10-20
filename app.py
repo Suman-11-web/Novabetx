@@ -957,6 +957,13 @@ def home():
         "SELECT balance, bonus_balance FROM users WHERE id = ?",
         (session["user_id"],),
     ).fetchone()
+    
+    # Null check safety block
+    if not u:
+      session.clear()
+      flash("Session expired or database reset. Please log in again.", "error")
+      return redirect(url_for("login"))
+
     l = conn.execute(
         "SELECT * FROM matches WHERE is_live = 1 AND (status IS NULL OR status"
         ' NOT LIKE "Winner:%") LIMIT 4'
@@ -4406,7 +4413,7 @@ def admin():
       cp_state=CP_STATE,
   )
 
-
+init_db()
 if __name__ == "__main__":
   with app.app_context():
     init_db()
