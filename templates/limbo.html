@@ -2,146 +2,909 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Limbo Rocket - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Limbo Rocket Pro - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config={theme:{extend:{colors:{bgDark:'#06090e'}}}}</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A',
+                        cyberCyan: '#06b6d4'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.14) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(28, 218, 58, 0.06) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Deep Space Warp Arena */
+        .limbo-arena {
+            background:
+                radial-gradient(ellipse at 50% 45%, rgba(8, 51, 68, 0.65) 0%, rgba(15, 23, 42, 0.8) 58%, #04060b 100%);
+            border: 3px solid rgba(6, 182, 212, 0.45);
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.85),
+                inset 0 0 80px rgba(0, 0, 0, 0.95);
+            position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .limbo-arena.arena-win {
+            border-color: #1CDA3A;
+            box-shadow: 0 0 65px rgba(28, 218, 58, 0.5), inset 0 0 45px rgba(28, 218, 58, 0.22);
+        }
+
+        .limbo-arena.arena-crash {
+            border-color: #ef4444;
+            box-shadow: 0 0 65px rgba(239, 68, 68, 0.5), inset 0 0 45px rgba(239, 68, 68, 0.25);
+        }
+
+        /* 3D Rocket Hover & Blast Animations */
+        @keyframes rocketFloat {
+            0%, 100% { transform: translateY(0px) rotate(-45deg); }
+            50% { transform: translateY(-8px) rotate(-45deg); }
+        }
+        .rocket-idle {
+            animation: rocketFloat 2.6s ease-in-out infinite;
+        }
+
+        @keyframes rocketWarpThrust {
+            0%, 100% { transform: translate(0, -14px) rotate(-45deg) scale(1.14); }
+            50% { transform: translate(2px, -18px) rotate(-45deg) scale(1.18); }
+        }
+        .rocket-boosting {
+            animation: rocketWarpThrust 0.14s infinite linear;
+        }
+
+        /* Screen Shake on Early Crash */
+        @keyframes crashShake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(4px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 3px, 0); }
+            40%, 60% { transform: translate3d(6px, -3px, 0); }
+        }
+        .shake-crash { animation: crashShake 0.42s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .target-preset-btn {
+            background: rgba(10, 15, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+        .target-preset-btn:hover,
+        .target-preset-btn.active {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.2);
+            color: #22d3ee;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-    
-    <!-- Background Elements -->
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.1),transparent_50%)] pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-cyan-900/20 to-transparent pointer-events-none"></div>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
 
-    <div class="w-full max-w-md bg-[#0a0d14]/90 backdrop-blur-xl border border-cyan-900/30 rounded-[2rem] p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative z-10">
-        
-        <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-800">
-            <a href="/games" class="text-cyan-500 font-black text-sm uppercase tracking-widest hover:text-white transition"><i class="fa-solid fa-arrow-left mr-1"></i> Exit</a>
-            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700 shadow-inner text-white">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-cyan-400">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-cyan-500/15 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30">1000X</span>
         </div>
-
-        <div class="relative py-10">
-            <i class="fa-solid fa-rocket absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-cyan-500/5 drop-shadow-[0_0_50px_rgba(6,182,212,0.2)]"></i>
-            <div id="roll" class="text-7xl md:text-8xl font-black text-white font-mono tracking-tighter drop-shadow-lg relative z-10">1.00x</div>
-            <div id="result-status" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-2 h-4">Set target & blast</div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-cyan-500/10 text-cyan-400 font-bold rounded-xl border border-cyan-500/20"><i class="fa-solid fa-rocket w-5 text-center"></i> Limbo Rocket</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-cyan-400 text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
         </div>
+    </aside>
 
-        <div class="space-y-4 mb-8 bg-black/40 p-4 rounded-2xl border border-gray-800/50 shadow-inner">
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Target Multiplier</label>
-                    <span class="text-[9px] text-cyan-500 font-black bg-cyan-500/10 px-2 py-0.5 rounded">Max 1000x</span>
-                </div>
-                <div class="relative">
-                    <input type="number" id="target" value="2.00" step="0.1" min="1.01" max="1000" class="w-full bg-[#1C232E] border border-gray-700 rounded-xl p-4 text-left pl-6 text-xl font-black text-cyan-400 outline-none focus:border-cyan-500 transition">
-                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-black">X</div>
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-cyan-500 to-blue-600 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.45)]">
+                        <i class="fa-solid fa-rocket"></i> LIMBO WARP ROCKET
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded hidden sm:inline-block">MAX 1000X</span>
                 </div>
             </div>
-            
-            <div>
-                <label class="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 text-left">Stake Amount</label>
-                <div class="relative">
-                    <input type="number" id="stake" value="50" min="10" class="w-full bg-[#1C232E] border border-gray-700 rounded-xl p-4 text-left pl-6 text-xl font-black text-white outline-none focus:border-cyan-500 transition">
-                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-black">₹</div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
                 </div>
+            </div>
+        </header>
+
+        <!-- RECENT LAUNCHES HISTORY RIBBON -->
+        <div class="bg-[#080b12] px-4 py-1.5 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-satellite-dish text-cyan-400"></i> Flight Log:
+            </span>
+            <div id="recent-limbo-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <span class="text-[10px] font-mono text-gray-600 italic">Set target multiplier and blast off...</span>
             </div>
         </div>
 
-        <button onclick="playLimbo()" id="play-btn" class="w-full py-5 bg-gradient-to-r from-cyan-600 to-cyan-400 text-black font-black text-xl rounded-xl uppercase tracking-wider transition-all shadow-[0_0_30px_rgba(6,182,212,0.4)] active:scale-[0.98] flex items-center justify-center gap-2">
-            <i class="fa-solid fa-arrow-trend-up"></i> BLAST OFF
-        </button>
-    </div>
+        <!-- MAIN WORKSPACE: HYPERSPACE WARP ARENA + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
+
+            <!-- LEFT / TOP: 3D HYPERSPACE WARP STAGE (7 Cols) -->
+            <div id="limbo-arena-frame" class="w-full lg:w-7/12 limbo-arena rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden min-h-[380px] sm:min-h-[450px]">
+
+                <!-- Interactive Starfield Warp Canvas -->
+                <canvas id="warp-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-80"></canvas>
+
+                <!-- Top Telemetry HUD Bar -->
+                <div class="flex justify-between items-center relative z-20">
+                    <div class="bg-black/65 border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <span id="warp-led" class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Altitude:</span>
+                        <span id="hud-target-readout" class="text-xs font-mono font-black text-cyan-400">2.00x</span>
+                    </div>
+                    <div class="bg-black/65 border border-cyan-500/30 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Win Chance:</span>
+                        <span id="hud-chance-readout" class="text-xs font-mono font-black text-brand">49.50%</span>
+                    </div>
+                </div>
+
+                <!-- CENTER ROCKET & GIANT MULTIPLIER ODOMETER -->
+                <div class="my-auto py-6 flex flex-col items-center justify-center relative z-20">
+                    
+                    <!-- 3D Thruster Rocket Emblem -->
+                    <div class="relative mb-3">
+                        <div id="rocket-glow" class="absolute inset-0 bg-cyan-400/25 blur-2xl rounded-full scale-150 transition-all duration-300"></div>
+                        <div id="rocket-ship" class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-black/60 border border-cyan-400/40 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)] relative">
+                            <i id="rocket-icon" class="fa-solid fa-rocket text-3xl sm:text-4xl text-cyan-400 rocket-idle"></i>
+                        </div>
+                    </div>
+
+                    <!-- Giant Digital Multiplier Readout -->
+                    <div id="roll" class="text-6xl sm:text-7xl md:text-8xl font-black text-white font-mono tracking-tighter drop-shadow-[0_0_25px_rgba(6,182,212,0.4)] leading-none select-none">
+                        1.00x
+                    </div>
+
+                    <!-- Dynamic Flight Status Pill -->
+                    <div id="result-status" class="mt-3 px-4 py-1.5 rounded-full bg-black/75 border border-white/10 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                        SET TARGET & BLAST OFF
+                    </div>
+                </div>
+
+                <!-- BOTTOM WIN PROBABILITY & RISK METER BAR -->
+                <div class="bg-black/65 border border-gray-800/90 rounded-2xl p-3.5 relative z-20">
+                    <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-wider mb-1.5">
+                        <span class="text-gray-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high text-cyan-400"></i> Survival Probability Meter
+                        </span>
+                        <span id="risk-tier-badge" class="text-cyan-400 font-mono">BALANCED THRUST (49.50%)</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-gray-900 rounded-full overflow-hidden border border-gray-700/80 p-[1px]">
+                        <div id="chance-progress-bar" class="h-full bg-gradient-to-r from-brand via-cyan-400 to-blue-500 rounded-full transition-all duration-300" style="width: 49.5%;"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT / BOTTOM: FLIGHT CONTROL COCKPIT (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Mode Toggles: Turbo & Auto Blast -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="btn-turbo" onclick="toggleTurbo()" class="py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Turbo: <span id="turbo-state">OFF</span>
+                        </button>
+                        <button type="button" id="btn-auto" onclick="toggleAutoPilot()" class="py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white">
+                            <i class="fa-solid fa-rotate text-cyan-400"></i> Auto: <span id="auto-state">OFF</span>
+                        </button>
+                    </div>
+
+                    <!-- TARGET MULTIPLIER SELECTOR -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Target Multiplier</label>
+                            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded">1.01x – 1000x</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-cyan-400 rounded-2xl p-1.5 mb-2 shadow-inner transition">
+                            <button type="button" onclick="stepTarget(-0.5)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <input type="number" id="target" value="2.00" step="0.1" min="1.01" max="1000" oninput="updateFlightTelemetry()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-cyan-400 focus:outline-none pr-5">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-black text-sm">×</span>
+                            </div>
+                            <button type="button" onclick="stepTarget(0.5)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Target Presets -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setTargetPreset(1.5, this)" class="target-preset-btn py-1.5 rounded-xl text-[11px] font-mono font-black text-gray-300">1.5x</button>
+                            <button type="button" onclick="setTargetPreset(2.0, this)" class="target-preset-btn active py-1.5 rounded-xl text-[11px] font-mono font-black text-gray-300">2.0x</button>
+                            <button type="button" onclick="setTargetPreset(3.0, this)" class="target-preset-btn py-1.5 rounded-xl text-[11px] font-mono font-black text-gray-300">3.0x</button>
+                            <button type="button" onclick="setTargetPreset(5.0, this)" class="target-preset-btn py-1.5 rounded-xl text-[11px] font-mono font-black text-gray-300">5.0x</button>
+                            <button type="button" onclick="setTargetPreset(10.0, this)" class="target-preset-btn py-1.5 rounded-xl text-[11px] font-mono font-black text-gray-300">10x</button>
+                            <button type="button" onclick="setTargetPreset(100.0, this)" class="target-preset-btn py-1.5 rounded-xl text-[11px] font-mono font-black text-amber-400">100x</button>
+                        </div>
+                    </div>
+
+                    <!-- STAKE AMOUNT SELECTOR -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Stake Amount (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-cyan-400 rounded-2xl p-1.5 mb-2 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 font-black text-base">₹</span>
+                                <input type="number" id="stake" value="50" min="10" step="10" oninput="updateFlightTelemetry()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Stake Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="adjustStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="adjustStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Live Payout & Profit Preview Card -->
+                    <div class="bg-gradient-to-r from-cyan-500/15 via-black/60 to-black/60 border border-cyan-500/30 rounded-2xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black text-cyan-400 uppercase tracking-widest block">Target Payout on Win</span>
+                            <span class="text-[11px] font-mono text-gray-400">Net Profit: <strong class="text-brand" id="net-profit-preview">+₹50.00</strong></span>
+                        </div>
+                        <span id="payout-preview" class="text-xl font-mono font-black text-white">₹100.00</span>
+                    </div>
+
+                </div>
+
+                <!-- BLAST OFF BUTTON & SESSION STATS -->
+                <div class="mt-4">
+                    <button type="button" onclick="playLimbo()" id="play-btn" class="w-full h-18 md:h-20 py-4 bg-gradient-to-r from-cyan-500 via-sky-400 to-cyan-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(6,182,212,0.45)] border-b-4 border-cyan-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        <span id="play-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-rocket"></i> BLAST OFF</span>
+                        <span class="text-[10px] font-mono font-extrabold tracking-widest text-cyan-950 opacity-80 mt-0.5">OR PRESS SPACEBAR</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Launches</div>
+                            <div id="stat-launches" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Peak Roll</div>
+                            <div id="stat-peak" class="text-xs font-mono font-black text-amber-400 mt-0.5">0.00x</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-cyan-400 transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(6,182,212,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Limbo Warp Rocket' : 'Flight Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER (TURBINE RISER & WARP FX)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-cyan-400"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            click: () => Sound.play(840, 'sine', 0.04, 0.04),
+            thrustTick: (progress) => Sound.play(280 + progress * 520, 'triangle', 0.04, 0.04),
+            win: () => {
+                [523.25, 659.25, 783.99, 1046.50].forEach((n, i) => {
+                    setTimeout(() => Sound.play(n, 'triangle', 0.2, 0.15), i * 85);
+                });
+            },
+            crash: () => {
+                Sound.play(150, 'sawtooth', 0.28, 0.1);
+                setTimeout(() => Sound.play(85, 'square', 0.35, 0.12), 120);
+            }
+        };
+
+        // =====================================================
+        // 3. 60FPS HTML5 STARFIELD WARP CANVAS
+        // =====================================================
+        const warpCanvas = document.getElementById('warp-canvas');
+        const wCtx = warpCanvas.getContext('2d');
+        let warpSpeed = 1.2;
+        let warpColor = '#06b6d4';
+        const stars = [];
+
+        function resizeWarpCanvas() {
+            warpCanvas.width = warpCanvas.clientWidth || 600;
+            warpCanvas.height = warpCanvas.clientHeight || 400;
+        }
+        window.addEventListener('resize', resizeWarpCanvas);
+        resizeWarpCanvas();
+
+        for (let i = 0; i < 65; i++) {
+            stars.push({
+                x: (Math.random() - 0.5) * 600,
+                y: (Math.random() - 0.5) * 400,
+                z: Math.random() * 400 + 10
+            });
+        }
+
+        function animateStarfield() {
+            const w = warpCanvas.width;
+            const h = warpCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            wCtx.fillStyle = 'rgba(5, 7, 12, 0.32)';
+            wCtx.fillRect(0, 0, w, h);
+
+            stars.forEach(s => {
+                s.z -= warpSpeed * 4;
+                if (s.z <= 5) {
+                    s.x = (Math.random() - 0.5) * w;
+                    s.y = (Math.random() - 0.5) * h;
+                    s.z = 400;
+                }
+                const k = 180 / s.z;
+                const px = cx + s.x * k;
+                const py = cy + s.y * k;
+                const size = Math.max(0.8, (1 - s.z / 400) * 3.2);
+
+                wCtx.beginPath();
+                wCtx.fillStyle = warpColor;
+                wCtx.arc(px, py, size, 0, Math.PI * 2);
+                wCtx.fill();
+            });
+
+            requestAnimationFrame(animateStarfield);
+        }
+        requestAnimationFrame(animateStarfield);
+
+        // =====================================================
+        // 4. TARGET, WIN CHANCE & STAKE TELEMETRY
+        // =====================================================
+        let isBlasting = false;
+        let isTurbo = false;
+        let isAutoPilot = false;
+
+        let totalLaunches = 0;
+        let peakRoll = 0;
+        let sessionPnL = 0;
+
+        function updateFlightTelemetry() {
+            let target = parseFloat(document.getElementById('target').value) || 2.00;
+            target = Math.max(1.01, Math.min(1000, target));
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+
+            const winChance = Math.min(98.02, Math.max(0.09, 99 / target));
+            const totalPayout = stake * target;
+            const netProfit = Math.max(0, totalPayout - stake);
+
+            document.getElementById('hud-target-readout').innerText = target.toFixed(2) + 'x';
+            document.getElementById('hud-chance-readout').innerText = winChance.toFixed(2) + '%';
+            document.getElementById('chance-progress-bar').style.width = `${winChance}%`;
+
+            document.getElementById('payout-preview').innerText = '₹' + totalPayout.toFixed(2);
+            document.getElementById('net-profit-preview').innerText = '+₹' + netProfit.toFixed(2);
+
+            const tierBadge = document.getElementById('risk-tier-badge');
+            if (winChance >= 60) {
+                tierBadge.innerText = `LOW RISK ORBIT (${winChance.toFixed(1)}%)`;
+                tierBadge.className = 'text-brand font-mono';
+            } else if (winChance >= 25) {
+                tierBadge.innerText = `BALANCED THRUST (${winChance.toFixed(1)}%)`;
+                tierBadge.className = 'text-cyan-400 font-mono';
+            } else if (winChance >= 5) {
+                tierBadge.innerText = `DEEP SPACE (${winChance.toFixed(2)}%)`;
+                tierBadge.className = 'text-amber-400 font-mono';
+            } else {
+                tierBadge.innerText = `SUPERNOVA RISK (${winChance.toFixed(2)}%)`;
+                tierBadge.className = 'text-pink-400 font-mono';
+            }
+        }
+
+        function setTargetPreset(val, btnEl) {
+            initAudio();
+            if (isBlasting) return;
+            Sound.click();
+            document.getElementById('target').value = val.toFixed(2);
+            document.querySelectorAll('.target-preset-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            updateFlightTelemetry();
+        }
+
+        function stepTarget(delta) {
+            initAudio();
+            if (isBlasting) return;
+            Sound.click();
+            const input = document.getElementById('target');
+            let val = parseFloat(input.value) || 2.00;
+            val = Math.max(1.01, Math.min(1000, Number((val + delta).toFixed(2))));
+            input.value = val.toFixed(2);
+            document.querySelectorAll('.target-preset-btn').forEach(b => b.classList.remove('active'));
+            updateFlightTelemetry();
+        }
+
+        function stepStake(delta) {
+            initAudio();
+            if (isBlasting) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, val + delta);
+            updateFlightTelemetry();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            if (isBlasting) return;
+            Sound.click();
+            document.getElementById('stake').value = val;
+            updateFlightTelemetry();
+        }
+
+        function adjustStake(factor) {
+            initAudio();
+            if (isBlasting) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+            updateFlightTelemetry();
+        }
+
+        function toggleTurbo() {
+            initAudio();
+            Sound.click();
+            isTurbo = !isTurbo;
+            const btn = document.getElementById('btn-turbo');
+            document.getElementById('turbo-state').innerText = isTurbo ? 'ON' : 'OFF';
+            btn.className = isTurbo
+                ? 'py-2.5 px-3 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition'
+                : 'py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white';
+        }
+
+        function toggleAutoPilot() {
+            initAudio();
+            Sound.click();
+            isAutoPilot = !isAutoPilot;
+            const btn = document.getElementById('btn-auto');
+            document.getElementById('auto-state').innerText = isAutoPilot ? 'ON' : 'OFF';
+            btn.className = isAutoPilot
+                ? 'py-2.5 px-3 rounded-xl bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition animate-pulse'
+                : 'py-2.5 px-3 rounded-xl bg-black/50 border border-gray-800 text-gray-400 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition hover:text-white';
+
+            if (isAutoPilot && !isBlasting) playLimbo();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT') return;
+            if (e.code === 'Space' && !isBlasting) {
+                e.preventDefault();
+                playLimbo();
+            }
+        });
+
+        // =====================================================
+        // 5. CORE LIMBO ROCKET ENGINE (/limbo/play)
+        // =====================================================
+        function animateMultiplierCounter(finalVal, durationMs) {
+            return new Promise(resolve => {
+                const rollEl = document.getElementById('roll');
+                const startTime = performance.now();
+                let lastTick = 0;
+
+                function frame(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(1, elapsed / durationMs);
+                    // Ease out cubic curve
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const currentVal = 1.00 + (finalVal - 1.00) * eased;
+                    rollEl.innerText = currentVal.toFixed(2) + 'x';
+
+                    if (now - lastTick > 55) {
+                        lastTick = now;
+                        Sound.thrustTick(progress);
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(frame);
+                    } else {
+                        rollEl.innerText = finalVal.toFixed(2) + 'x';
+                        resolve();
+                    }
+                }
+                requestAnimationFrame(frame);
+            });
+        }
+
         async function playLimbo() {
-            const btn = document.getElementById('play-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CALCULATING';
-            
+            initAudio();
+            if (isBlasting) return;
+
             const stake = parseFloat(document.getElementById('stake').value);
             const target = parseFloat(document.getElementById('target').value);
+
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum stake is ₹10', 'error');
+                if (isAutoPilot) toggleAutoPilot();
+                return;
+            }
+            if (isNaN(target) || target < 1.01 || target > 1000) {
+                showToast('Target multiplier must be between 1.01x and 1000x', 'error');
+                if (isAutoPilot) toggleAutoPilot();
+                return;
+            }
+
+            const balEl = document.getElementById('bal');
+            const currentBal = parseFloat(balEl.innerText) || 0;
+            if (stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                if (isAutoPilot) toggleAutoPilot();
+                return;
+            }
+
+            isBlasting = true;
+            const btn = document.getElementById('play-btn');
+            const btnTitle = document.getElementById('play-btn-title');
             const rollEl = document.getElementById('roll');
             const statusEl = document.getElementById('result-status');
-            
+            const arenaFrame = document.getElementById('limbo-arena-frame');
+            const rocketIcon = document.getElementById('rocket-icon');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> IGNITING THRUSTERS...`;
+
+            // Visually deduct stake on launch
+            balEl.innerText = Math.max(0, currentBal - stake).toFixed(2);
+
+            arenaFrame.classList.remove('arena-win', 'arena-crash', 'shake-crash');
+            rocketIcon.className = 'fa-solid fa-rocket text-3xl sm:text-4xl text-cyan-300 rocket-boosting';
+            rollEl.className = 'text-6xl sm:text-7xl md:text-8xl font-black text-white font-mono tracking-tighter drop-shadow-[0_0_25px_rgba(6,182,212,0.5)] leading-none select-none';
+            statusEl.innerText = `ASCENDING TOWARD ${target.toFixed(2)}X...`;
+            statusEl.className = 'mt-3 px-4 py-1.5 rounded-full bg-black/75 border border-cyan-500/30 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-cyan-300';
+
+            warpSpeed = 5.5;
+            warpColor = '#38bdf8';
+
             try {
-                const res = await fetch('/limbo/play', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, target}) });
+                const res = await fetch('/limbo/play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake, target })
+                });
                 const d = await res.json();
-                
-                if(d.success) {
-                    rollEl.innerText = d.roll.toFixed(2) + "x";
-                    if (d.win) {
-                        rollEl.className = "text-7xl md:text-8xl font-black text-green-400 font-mono tracking-tighter drop-shadow-[0_0_20px_rgba(74,222,128,0.5)] relative z-10 animate-pulse";
-                        statusEl.innerText = `YOU WON ₹${d.winnings.toFixed(2)}!`;
-                        statusEl.className = "text-[10px] font-black uppercase tracking-widest text-green-400 mt-2 h-4";
-                    } else {
-                        rollEl.className = "text-7xl md:text-8xl font-black text-red-500 font-mono tracking-tighter drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] relative z-10";
-                        statusEl.innerText = "ROCKET CRASHED TOO EARLY";
-                        statusEl.className = "text-[10px] font-black uppercase tracking-widest text-red-500 mt-2 h-4";
-                    }
-                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                } else { alert(d.error); }
-            } catch(e) { alert("Network Error"); }
-            
+
+                if (!d.success) {
+                    balEl.innerText = currentBal.toFixed(2);
+                    showToast(d.error || 'Could not launch rocket', 'error');
+                    resetBlastButton();
+                    if (isAutoPilot) toggleAutoPilot();
+                    return;
+                }
+
+                // Smoothly roll up multiplier counter
+                const animDuration = isTurbo ? 160 : 480;
+                await animateMultiplierCounter(d.roll, animDuration);
+
+                balEl.innerText = d.new_total.toFixed(2);
+                warpSpeed = 1.2;
+
+                if (d.win) {
+                    Sound.win();
+                    warpColor = '#1CDA3A';
+                    arenaFrame.classList.add('arena-win');
+                    rocketIcon.className = 'fa-solid fa-rocket text-3xl sm:text-4xl text-brand rocket-idle';
+                    rollEl.className = 'text-6xl sm:text-7xl md:text-8xl font-black text-brand font-mono tracking-tighter drop-shadow-[0_0_30px_rgba(28,218,58,0.75)] leading-none select-none';
+                    statusEl.innerText = `TARGET CLEARED! WON +₹${d.winnings.toFixed(2)}!`;
+                    statusEl.className = 'mt-3 px-4 py-1.5 rounded-full bg-emerald-950/90 border border-brand/60 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-brand shadow-lg';
+
+                    triggerFloatingWin(d.winnings);
+                    spawnConfetti(target >= 5 ? 38 : 22);
+                } else {
+                    Sound.crash();
+                    warpColor = '#ef4444';
+                    arenaFrame.classList.add('arena-crash', 'shake-crash');
+                    rocketIcon.className = 'fa-solid fa-burst text-3xl sm:text-4xl text-red-500';
+                    rollEl.className = 'text-6xl sm:text-7xl md:text-8xl font-black text-red-500 font-mono tracking-tighter drop-shadow-[0_0_25px_rgba(239,68,68,0.6)] leading-none select-none';
+                    statusEl.innerText = `CRASHED AT ${d.roll.toFixed(2)}X (NEEDED ${target.toFixed(2)}X)`;
+                    statusEl.className = 'mt-3 px-4 py-1.5 rounded-full bg-red-950/90 border border-red-500/40 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-red-400';
+                }
+
+                updateSessionStats(stake, d.winnings, d.win, d.roll, target);
+                resetBlastButton();
+
+                if (isAutoPilot) {
+                    setTimeout(() => {
+                        if (isAutoPilot && !isBlasting) playLimbo();
+                    }, isTurbo ? 260 : 650);
+                }
+
+            } catch (e) {
+                balEl.innerText = currentBal.toFixed(2);
+                showToast('Network Error', 'error');
+                resetBlastButton();
+                if (isAutoPilot) toggleAutoPilot();
+            }
+        }
+
+        function resetBlastButton() {
+            isBlasting = false;
+            warpSpeed = 1.2;
+            const btn = document.getElementById('play-btn');
+            const btnTitle = document.getElementById('play-btn-title');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-arrow-trend-up"></i> BLAST OFF';
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            btnTitle.innerHTML = `<i class="fa-solid fa-rocket"></i> BLAST OFF`;
         }
 
+        // =====================================================
+        // 6. TELEMETRY, FLOATING WIN & CONFETTI FX
+        // =====================================================
+        function updateSessionStats(stake, winnings, isWin, rolledMult, targetMult) {
+            totalLaunches++;
+            if (rolledMult > peakRoll) peakRoll = rolledMult;
+            sessionPnL += (winnings - stake);
+
+            document.getElementById('stat-launches').innerText = totalLaunches;
+            document.getElementById('stat-peak').innerText = `${peakRoll.toFixed(2)}x`;
+
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+
+            const ribbon = document.getElementById('recent-limbo-ribbon');
+            if (totalLaunches === 1) ribbon.innerHTML = '';
+
+            const pill = document.createElement('span');
+            pill.className = `px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black border shrink-0 ${isWin ? 'bg-emerald-950/90 text-brand border-brand/40' : 'bg-gray-900 text-gray-500 border-gray-800'}`;
+            pill.innerText = `${rolledMult.toFixed(2)}x`;
+            ribbon.prepend(pill);
+
+            while (ribbon.children.length > 16) {
+                ribbon.lastChild.remove();
+            }
+        }
+
+        function triggerFloatingWin(winnings) {
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti(count) {
+            const container = document.getElementById('particle-container');
+            const colors = ['#06b6d4', '#1CDA3A', '#fbbf24', '#38bdf8', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        updateFlightTelemetry();
+
+        // =====================================================
+        // 7. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>

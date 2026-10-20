@@ -2,150 +2,942 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Streak - Novabetx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Coin Streak Pro - Novabetx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#05070c',
+                        surface: '#0d121c',
+                        surfaceLight: '#161f30',
+                        brand: '#1CDA3A'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .coin { width: 120px; height: 120px; background: radial-gradient(circle at 30% 30%, #fde047, #b45309); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.5); border: 4px solid #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); transition: transform 0.5s; }
-        .flipping { animation: flip 0.6s infinite linear; }
-        @keyframes flip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #05070c;
+            background-image:
+                radial-gradient(circle at 50% 15%, rgba(28, 218, 58, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.08) 0%, transparent 45%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1CDA3A; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(13, 18, 28, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        /* 3D Reactor Arena */
+        .streak-arena {
+            background:
+                radial-gradient(ellipse at 50% 40%, rgba(20, 83, 45, 0.45) 0%, rgba(15, 23, 42, 0.75) 60%, #05070c 100%);
+            border: 3px solid rgba(28, 218, 58, 0.4);
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.8),
+                inset 0 0 80px rgba(0, 0, 0, 0.92);
+            position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .streak-arena.arena-hot {
+            border-color: #fbbf24;
+            box-shadow: 0 0 65px rgba(251, 191, 36, 0.45), inset 0 0 40px rgba(251, 191, 36, 0.18);
+        }
+
+        .streak-arena.arena-broken {
+            border-color: #ef4444;
+            box-shadow: 0 0 65px rgba(239, 68, 68, 0.5), inset 0 0 40px rgba(239, 68, 68, 0.22);
+        }
+
+        /* 3D Coin Stage */
+        .coin-stage {
+            perspective: 1100px;
+            width: 148px;
+            height: 148px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 25;
+        }
+        @media (min-width: 640px) {
+            .coin-stage { width: 172px; height: 172px; }
+        }
+
+        .coin-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes coinIdleHover {
+            0%, 100% { transform: translateY(0px) rotateY(-10deg) rotateX(6deg); }
+            50% { transform: translateY(-9px) rotateY(10deg) rotateX(-6deg); }
+        }
+        .coin-idle {
+            animation: coinIdleHover 3.2s ease-in-out infinite;
+        }
+
+        @keyframes coinHighToss {
+            0% { transform: translateY(0) scale(1) rotateX(0deg) rotateY(0deg); }
+            45% { transform: translateY(-95px) scale(1.32) rotateX(1080deg) rotateY(180deg); }
+            100% { transform: translateY(0) scale(1) rotateX(2160deg) rotateY(360deg); }
+        }
+        .coin-flipping {
+            animation: coinHighToss 0.62s cubic-bezier(0.25, 0.85, 0.35, 1) infinite;
+        }
+
+        .coin-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 30% 25%, #fef9c3 0%, #fbbf24 40%, #d97706 78%, #78350f 100%);
+            border: 6px solid #fde68a;
+            box-shadow:
+                inset 0 0 22px rgba(120, 53, 15, 0.75),
+                0 12px 30px rgba(0, 0, 0, 0.75),
+                0 0 25px rgba(251, 191, 36, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .coin-face::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+
+        .coin-face.coin-win-state {
+            background: radial-gradient(circle at 30% 25%, #d1fae5 0%, #10b981 45%, #047857 82%, #064e3b 100%);
+            border-color: #6ee7b7;
+            box-shadow:
+                inset 0 0 22px rgba(6, 78, 59, 0.8),
+                0 0 45px rgba(28, 218, 58, 0.8);
+        }
+
+        .coin-face.coin-lose-state {
+            background: radial-gradient(circle at 30% 25%, #fee2e2 0%, #ef4444 45%, #991b1b 82%, #450a0a 100%);
+            border-color: #fca5a5;
+            box-shadow:
+                inset 0 0 22px rgba(69, 10, 10, 0.8),
+                0 0 45px rgba(239, 68, 68, 0.8);
+        }
+
+        /* Holographic Reactor Base Ring */
+        .reactor-ring {
+            width: 195px;
+            height: 44px;
+            border-radius: 50%;
+            margin: -18px auto 0;
+            border: 2px solid rgba(28, 218, 58, 0.4);
+            background: radial-gradient(ellipse at center, rgba(28, 218, 58, 0.25) 0%, transparent 72%);
+            box-shadow: 0 0 30px rgba(28, 218, 58, 0.3), inset 0 0 15px rgba(28, 218, 58, 0.2);
+            transition: all 0.35s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Streak Step Pills */
+        .streak-pill {
+            background: rgba(8, 12, 22, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+        .streak-pill.pill-cleared {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #34d399;
+        }
+        .streak-pill.pill-current {
+            background: linear-gradient(135deg, #1CDA3A, #059669);
+            color: #000000;
+            border-color: #86efac;
+            transform: scale(1.06);
+            box-shadow: 0 0 18px rgba(28, 218, 58, 0.55);
+        }
+
+        .call-btn.active {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.18);
+            color: #fde047;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.25);
+        }
+
+        /* Screen Shake on Streak Break */
+        @keyframes breakShake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(4px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 3px, 0); }
+            40%, 60% { transform: translate3d(6px, -3px, 0); }
+        }
+        .shake-break { animation: breakShake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* Floating Glass Bottom Nav */
+        .floating-glass-nav {
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-[#06090e] text-white min-h-screen flex flex-col items-center justify-between p-4">
-    <header class="w-full max-w-md flex justify-between items-center py-4 border-b border-gray-800 mb-6">
-        <a href="/games" class="text-green-500 font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-arrow-left mr-1"></i> Games</a>
-        <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-gray-700">₹<span id="bal">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span></div>
-    </header>
+<body class="bg-bgDark text-white min-h-[100dvh] flex flex-col md:flex-row pb-24 md:pb-0 select-none overflow-x-hidden" onclick="initAudio()">
 
-    <div class="w-full max-w-md flex flex-col items-center bg-[#0a0d14] p-8 rounded-3xl border border-gray-800 shadow-2xl relative my-auto">
-        <div class="flex justify-between w-full mb-8">
-            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Streak</span><span id="streak-counter" class="text-2xl font-black text-white">0</span></div>
-            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Multiplier</span><span id="current-mult" class="text-2xl font-black text-green-500">1.00x</span></div>
-            <div class="text-center"><span class="block text-[10px] text-gray-500 uppercase">Winnings</span><span id="current-win" class="text-2xl font-black text-green-400">₹0.00</span></div>
+    <!-- FIXED NON-INTRUSIVE TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-2.5 pointer-events-none w-[92%] max-w-sm"></div>
+
+    <!-- WIN CONFETTI CONTAINER -->
+    <div id="particle-container" class="fixed inset-0 pointer-events-none z-[90] overflow-hidden"></div>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-[#090c14] border-r border-gray-800/80 shrink-0 sticky top-0 z-50">
+        <div class="p-6 border-b border-gray-800/80 flex items-center justify-between">
+            <div class="text-3xl font-black italic tracking-wider">Nova<span class="text-brand">betx</span></div>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-brand/15 text-brand px-2 py-0.5 rounded border border-brand/30">STREAK</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-house w-5 text-center"></i> Home</a>
+            <a href="{{ url_for('games') }}" class="flex items-center gap-3 p-3 bg-brand/10 text-brand font-bold rounded-xl border border-brand/20"><i class="fa-solid fa-bolt w-5 text-center"></i> Coin Streak</a>
+            <a href="{{ url_for('my_bets') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-file-lines w-5 text-center"></i> My Bets</a>
+            <a href="{{ url_for('profile') }}" class="flex items-center gap-3 p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition"><i class="fa-solid fa-user w-5 text-center"></i> VIP Profile</a>
+        </nav>
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400 font-bold px-2 py-1">
+                <span>Synthesizer FX</span>
+                <button onclick="toggleMute(event)" id="sidebar-mute-btn" class="text-brand text-sm hover:text-white transition"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+            <a href="{{ url_for('logout') }}" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-xs transition border border-red-500/30"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-[100dvh] relative w-full overflow-x-hidden">
+
+        <!-- TOP STICKY HEADER -->
+        <header class="flex justify-between items-center bg-[#090c14]/95 backdrop-blur-md px-4 py-2.5 border-b border-gray-800/80 sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('games') }}" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-brand to-emerald-500 text-black px-2.5 py-0.5 rounded-lg text-xs font-black italic tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(28,218,58,0.45)]">
+                        <i class="fa-solid fa-bolt"></i> COIN STREAK PRO
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded hidden sm:inline-block">COMPOUND MULTIPLIER</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleMute(event)" id="header-mute-btn" class="w-8 h-8 rounded-full bg-white/5 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white text-xs transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex items-center bg-black/70 pl-3 pr-1 py-1 rounded-full border border-gray-700/80 shadow-inner" id="balance-wrapper">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold mr-1">₹</span>
+                    <span id="bal" class="font-black text-brand text-sm mr-2 font-mono">{{ "%.2f"|format(user.balance + user.bonus_balance) }}</span>
+                    <a href="{{ url_for('profile') }}?action=deposit" class="w-6 h-6 bg-brand hover:bg-green-400 text-black rounded-full flex items-center justify-center text-xs font-black transition shadow-[0_0_10px_rgba(28,218,58,0.5)]">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- COMPOUND STREAK LADDER RIBBON -->
+        <div class="bg-[#080b12] px-4 py-2 border-b border-gray-800/80 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-fire text-amber-400"></i> Streak Ladder:
+            </span>
+            <div id="streak-ladder-ribbon" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5"></div>
         </div>
 
-        <div id="coin" class="coin mb-10"><i class="fa-solid fa-bolt"></i></div>
-        <div id="result-msg" class="text-2xl font-black italic uppercase tracking-widest text-center h-8 mb-6 text-gray-400">Guess to start</div>
+        <!-- MAIN WORKSPACE: 3D COIN REACTOR + COCKPIT -->
+        <div class="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3.5 md:p-6 gap-5 max-w-6xl mx-auto w-full">
 
-        <div class="flex gap-3 w-full mb-4">
-            <input type="number" id="stake" value="50" min="10" class="w-1/3 bg-black border border-gray-700 rounded-xl text-center text-xl font-black text-white focus:border-green-500 outline-none">
-            <button id="cashout-btn" onclick="cashout()" class="flex-1 py-4 bg-gray-600 text-gray-400 font-black text-lg rounded-xl uppercase transition cursor-not-allowed" disabled>CASH OUT</button>
+            <!-- LEFT / TOP: 3D COIN REACTOR ARENA (7 Cols) -->
+            <div id="streak-arena-frame" class="w-full lg:w-7/12 streak-arena rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+
+                <!-- Top Telemetry HUD Bar -->
+                <div class="grid grid-cols-3 gap-2.5 mb-4 relative z-10">
+                    <div class="bg-black/60 border border-gray-800 rounded-2xl p-3 text-center">
+                        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Active Streak</div>
+                        <div class="text-xl sm:text-2xl font-black font-mono text-white mt-0.5 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
+                            <span id="streak-counter">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-black/60 border border-gray-800 rounded-2xl p-3 text-center">
+                        <div class="text-[9px] font-bold text-brand uppercase tracking-wider">Multiplier</div>
+                        <div id="current-mult" class="text-xl sm:text-2xl font-black font-mono text-brand drop-shadow-[0_0_8px_rgba(28,218,58,0.5)] mt-0.5">1.00x</div>
+                    </div>
+                    <div class="bg-black/60 border border-gray-800 rounded-2xl p-3 text-center">
+                        <div class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Locked Pot</div>
+                        <div id="current-win" class="text-xl sm:text-2xl font-black font-mono text-emerald-400 mt-0.5">₹0.00</div>
+                    </div>
+                </div>
+
+                <!-- 3D COIN & HOLOGRAPHIC PEDESTAL -->
+                <div class="my-auto py-6 flex flex-col items-center justify-center relative z-10">
+                    <div class="coin-stage">
+                        <div id="coin-3d-wrapper" class="coin-3d coin-idle">
+                            <div id="coin" class="coin-face">
+                                <i class="fa-solid fa-crown text-sm sm:text-base text-amber-900/80 mb-0.5"></i>
+                                <span id="coin-main-icon" class="text-5xl sm:text-6xl text-amber-950 drop-shadow"><i class="fa-solid fa-bolt"></i></span>
+                                <span id="coin-sub-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-amber-950 mt-1">STREAK</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="reactor-ring" class="reactor-ring"></div>
+                </div>
+
+                <!-- Status Marquee & Call Selector -->
+                <div class="mt-4 bg-black/80 rounded-2xl border border-gray-800 p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <span id="status-led" class="w-2.5 h-2.5 rounded-full bg-brand animate-ping"></span>
+                        <div id="result-msg" class="text-xs sm:text-sm font-black italic uppercase tracking-wider text-gray-300">
+                            CALL HEADS OR TAILS & FLIP TO START
+                        </div>
+                    </div>
+
+                    <!-- Call Side Selector (Heads / Tails) -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[9px] font-bold text-gray-500 uppercase mr-1">Call:</span>
+                        <button type="button" onclick="selectCallSide('HEADS', this)" class="call-btn active px-3 py-1 rounded-xl border border-gray-700 bg-black/60 text-[10px] font-black uppercase tracking-wider transition">
+                            <i class="fa-solid fa-crown mr-1"></i> Heads
+                        </button>
+                        <button type="button" onclick="selectCallSide('TAILS', this)" class="call-btn px-3 py-1 rounded-xl border border-gray-700 bg-black/60 text-[10px] font-black uppercase tracking-wider text-gray-400 transition">
+                            <i class="fa-solid fa-shield-halved mr-1"></i> Tails
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT / BOTTOM: BETTING & CASHOUT COCKPIT (5 Cols) -->
+            <div class="w-full lg:w-5/12 glass-panel rounded-[2rem] p-5 flex flex-col justify-between">
+                <div class="space-y-4">
+
+                    <!-- Stake Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Streak Stake (₹)</label>
+                            <span class="text-[10px] font-mono text-gray-500">Min: ₹10</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-black/80 border border-gray-700 focus-within:border-brand rounded-2xl p-1.5 mb-2.5 shadow-inner transition">
+                            <button type="button" onclick="stepStake(-20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">-</button>
+                            <div class="relative flex-1">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand font-black text-base">₹</span>
+                                <input type="number" id="stake" value="50" min="10" step="10" oninput="refreshStreakForecast()" class="w-full bg-transparent text-center text-2xl font-black font-mono text-white focus:outline-none pl-4">
+                            </div>
+                            <button type="button" onclick="stepStake(20)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-black text-lg transition active:scale-95">+</button>
+                        </div>
+
+                        <!-- Quick Stake Chips -->
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" onclick="setExactStake(20)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">20</button>
+                            <button type="button" onclick="setExactStake(50)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">50</button>
+                            <button type="button" onclick="setExactStake(100)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">100</button>
+                            <button type="button" onclick="setExactStake(500)" class="bg-surfaceLight hover:bg-gray-700 text-gray-200 font-extrabold text-xs py-2 rounded-xl border border-gray-700/80 transition active:scale-95">500</button>
+                            <button type="button" onclick="adjustStake(0.5)" class="bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 font-black text-xs py-2 rounded-xl border border-purple-500/30 transition active:scale-95">½</button>
+                            <button type="button" onclick="adjustStake(2)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-black text-xs py-2 rounded-xl border border-amber-500/30 transition active:scale-95">2×</button>
+                        </div>
+                    </div>
+
+                    <!-- Next Flip & Compounding Payout Forecast -->
+                    <div class="bg-black/50 border border-gray-800 rounded-2xl p-3.5 space-y-2 text-xs">
+                        <div class="text-[10px] font-black uppercase tracking-widest text-brand mb-1 flex items-center justify-between">
+                            <span>Compounding Streak Returns</span>
+                            <span class="font-mono text-gray-400">Cash Out Anytime</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
+                            <span class="text-gray-400">Next Flip Target:</span>
+                            <span id="next-flip-preview" class="font-mono font-black text-white">₹95.00 (1.90x)</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
+                            <span class="text-gray-400">3-Flip Streak (6.86x):</span>
+                            <span id="streak-3-preview" class="font-mono font-black text-emerald-400">₹343.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">5-Flip Streak (24.76x):</span>
+                            <span id="streak-5-preview" class="font-mono font-black text-amber-400">₹1,238.00</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ACTION BUTTONS: CASH OUT & FLIP COIN -->
+                <div class="mt-4 space-y-3">
+                    <button type="button" id="cashout-btn" onclick="cashout()" disabled class="w-full py-3.5 bg-gray-800 text-gray-500 font-black text-sm sm:text-base rounded-2xl uppercase tracking-wider border border-gray-700/80 transition cursor-not-allowed flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> CASH OUT (WIN 1 FLIP FIRST)
+                    </button>
+
+                    <button type="button" onclick="flipCoin()" id="flip-btn" class="w-full h-18 md:h-20 py-4 bg-gradient-to-r from-brand via-emerald-400 to-green-500 hover:brightness-110 text-black font-black text-xl md:text-2xl rounded-2xl uppercase tracking-wider transition-all shadow-[0_10px_30px_rgba(28,218,58,0.4)] border-b-4 border-emerald-900 active:translate-y-1 active:border-b-0 flex flex-col items-center justify-center">
+                        <span id="flip-btn-title" class="flex items-center gap-2"><i class="fa-solid fa-coins"></i> FLIP COIN</span>
+                        <span id="flip-btn-sub" class="text-[10px] font-mono font-extrabold tracking-widest text-emerald-950 opacity-80 mt-0.5">SPACE TO FLIP • C TO CASH OUT</span>
+                    </button>
+
+                    <!-- Session Stats Footer -->
+                    <div class="grid grid-cols-3 gap-2 pt-3 border-t border-gray-800/80 text-center">
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Flips</div>
+                            <div id="stat-flips" class="text-xs font-mono font-black text-white mt-0.5">0</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Best Streak</div>
+                            <div id="stat-best-streak" class="text-xs font-mono font-black text-amber-400 mt-0.5">0 🔥</div>
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-2 border border-gray-800/60">
+                            <div class="text-[9px] font-bold text-gray-500 uppercase">Session P&L</div>
+                            <div id="stat-pnl" class="text-xs font-mono font-black text-gray-300 mt-0.5">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
-        <button onclick="flipCoin()" id="flip-btn" class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-black font-black text-xl rounded-xl uppercase tracking-wider transition shadow-[0_0_20px_rgba(34,197,94,0.4)]">FLIP COIN</button>
-    </div>
+    </main>
+
+    <!-- FLOATING GLASS BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="md:hidden fixed bottom-3 left-3 right-3 floating-glass-nav z-50 py-2.5 px-6 rounded-3xl flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
+        </a>
+        <a href="{{ url_for('games') }}" class="flex flex-col items-center text-brand transition-transform active:scale-90">
+            <i class="fa-solid fa-gamepad text-lg mb-1 drop-shadow-[0_0_8px_rgba(28,218,58,0.7)]"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider">Games</span>
+        </a>
+        <a href="{{ url_for('my_bets') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-file-lines text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">My Bets</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-transform active:scale-90">
+            <i class="fa-solid fa-user text-lg mb-1"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Profile</span>
+        </a>
+    </nav>
 
     <script>
-        let currentStep = 0; let isPlaying = false; let currentWinnings = 0;
-        async function flipCoin() {
-            if(isPlaying && isNaN(parseFloat(document.getElementById('stake').value))) return;
-            const stake = parseFloat(document.getElementById('stake').value);
-            if(stake < 10) return alert("Min bet 10");
-            isPlaying = true; currentStep++;
-            const coin = document.getElementById('coin'); coin.classList.add('flipping');
-            const btn = document.getElementById('flip-btn'); const cbtn = document.getElementById('cashout-btn');
-            btn.disabled = true; btn.innerText = "FLIPPING..."; cbtn.disabled = true;
-            try {
-                const res = await fetch('/coin_streak/play', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({stake, step: currentStep}) });
-                const d = await res.json();
-                if(d.success) {
-                    if (currentStep === 1) document.getElementById('bal').innerText = d.new_total.toFixed(2);
-                    setTimeout(() => {
-                        coin.classList.remove('flipping');
-                        if(d.win) {
-                            coin.innerHTML = '<i class="fa-solid fa-check text-green-500 bg-white/20 rounded-full p-2"></i>';
-                            currentWinnings = d.winnings; document.getElementById('streak-counter').innerText = currentStep;
-                            document.getElementById('current-mult').innerText = d.multiplier + 'x'; document.getElementById('current-win').innerText = '₹' + d.winnings.toFixed(2);
-                            document.getElementById('result-msg').innerText = "SUCCESS! FLIP AGAIN?"; document.getElementById('result-msg').className = "text-xl font-black italic uppercase tracking-widest text-center h-8 mb-6 text-green-400";
-                            btn.disabled = false; btn.innerText = "FLIP AGAIN";
-                            cbtn.disabled = false; cbtn.className = "flex-1 py-4 bg-gray-200 hover:bg-white text-black font-black text-lg rounded-xl uppercase transition shadow-lg";
-                        } else {
-                            coin.innerHTML = '<i class="fa-solid fa-xmark text-red-500 bg-white/20 rounded-full p-2"></i>';
-                            document.getElementById('result-msg').innerText = "STREAK BROKEN!"; document.getElementById('result-msg').className = "text-2xl font-black italic uppercase tracking-widest text-center h-8 mb-6 text-red-500";
-                            setTimeout(resetToStart, 2000);
-                        }
-                    }, 600);
-                } else { alert(d.error); resetToStart(); }
-            } catch(e) { resetToStart(); }
+        // =====================================================
+        // 1. NON-SHIFTING TOAST NOTIFICATIONS
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            while (container.children.length >= 2) container.firstChild.remove();
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `w-full flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 -translate-y-6 opacity-0 pointer-events-auto ${isSuccess ? 'bg-[#0f291e]/95 border-emerald-500/60' : 'bg-[#2d1215]/95 border-red-500/60'}`;
+            toast.innerHTML = `
+                <div class="${isSuccess ? 'text-brand' : 'text-red-400'} text-xl shrink-0">
+                    <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-black text-xs tracking-wider uppercase">${isSuccess ? 'Coin Streak Pro' : 'Streak Alert'}</div>
+                    <div class="text-gray-200 text-xs truncate mt-0.5">${message || 'Action could not be completed'}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-6', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
-        async function cashout() {
-            if(!isPlaying || currentWinnings === 0) return;
-            try {
-                const res = await fetch('/coin_streak/cashout', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({winnings: currentWinnings}) });
-                const d = await res.json();
-                if(d.success) {
-                    document.getElementById('bal').innerText = d.new_total.toFixed(2); alert(`Cashed out: ₹${currentWinnings.toFixed(2)}`); resetToStart();
+
+        // =====================================================
+        // 2. WEB AUDIO SYNTHESIZER (METALLIC RING & STREAK CHIMES)
+        // =====================================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMute(e) {
+            if (e) e.stopPropagation();
+            initAudio();
+            isMuted = !isMuted;
+            const icon = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high text-brand"></i>';
+            ['header-mute-btn', 'sidebar-mute-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = icon;
+            });
+        }
+
+        const Sound = {
+            play: (f, t, dur, v = 0.08) => {
+                if (!audioCtx || isMuted) return;
+                try {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = t;
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    g.gain.setValueAtTime(v, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.start();
+                    o.stop(audioCtx.currentTime + dur);
+                } catch (e) {}
+            },
+            click: () => Sound.play(820, 'sine', 0.04, 0.045),
+            coinRing: () => {
+                Sound.play(2300, 'sine', 0.25, 0.06);
+                setTimeout(() => Sound.play(3100, 'triangle', 0.35, 0.05), 40);
+            },
+            streakHit: (step) => {
+                const base = 520 + Math.min(10, step) * 75;
+                Sound.play(base, 'triangle', 0.14, 0.12);
+                setTimeout(() => Sound.play(base * 1.25, 'sine', 0.24, 0.14), 70);
+            },
+            streakBreak: () => {
+                Sound.play(190, 'sawtooth', 0.28, 0.09);
+                setTimeout(() => Sound.play(135, 'sawtooth', 0.42, 0.1), 190);
+            },
+            cashoutFanfare: () => {
+                [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((n, i) => {
+                    setTimeout(() => Sound.play(n, 'triangle', 0.22, 0.15), i * 90);
+                });
+            }
+        };
+
+        // =====================================================
+        // 3. STREAK LADDER & STAKE FORECAST (1.9^step)
+        // =====================================================
+        let currentStep = 0;
+        let isPlaying = false;
+        let isFlipping = false;
+        let currentWinnings = 0;
+        let activeRunStake = 50;
+        let calledSide = 'HEADS';
+
+        let totalFlipsCount = 0;
+        let bestStreakCount = 0;
+        let sessionPnL = 0;
+
+        function calcStreakMult(step) {
+            if (step <= 0) return 1.00;
+            return Number(Math.pow(1.9, step).toFixed(2));
+        }
+
+        function selectCallSide(side, btnEl) {
+            initAudio();
+            Sound.click();
+            calledSide = side;
+            document.querySelectorAll('.call-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            document.getElementById('coin-sub-label').innerText = side;
+        }
+
+        function refreshStreakForecast() {
+            const stake = parseFloat(document.getElementById('stake').value) || 0;
+            const nextStep = isPlaying ? (currentStep + 1) : 1;
+            const mNext = calcStreakMult(nextStep);
+            const m3 = calcStreakMult(3);
+            const m5 = calcStreakMult(5);
+
+            document.getElementById('next-flip-preview').innerText = `₹${(stake * mNext).toFixed(2)} (${mNext.toFixed(2)}x)`;
+            document.getElementById('streak-3-preview').innerText = `₹${(stake * m3).toFixed(2)}`;
+            document.getElementById('streak-5-preview').innerText = `₹${(stake * m5).toFixed(2)}`;
+
+            const ribbon = document.getElementById('streak-ladder-ribbon');
+            ribbon.innerHTML = '';
+            for (let s = 1; s <= 10; s++) {
+                const m = calcStreakMult(s).toFixed(2);
+                const pill = document.createElement('div');
+                pill.id = `streak-pill-${s}`;
+                pill.className = 'streak-pill px-3 py-1 rounded-xl text-[10px] font-mono font-bold text-gray-400 shrink-0';
+                pill.innerHTML = `<span class="text-gray-500 mr-1">🔥${s}:</span><span class="font-black text-white">${m}x</span>`;
+                ribbon.appendChild(pill);
+            }
+            highlightStreakLadder(currentStep);
+        }
+
+        function highlightStreakLadder(stepCleared) {
+            for (let s = 1; s <= 10; s++) {
+                const pill = document.getElementById(`streak-pill-${s}`);
+                if (!pill) continue;
+                pill.classList.remove('pill-cleared', 'pill-current');
+                if (s < stepCleared) pill.classList.add('pill-cleared');
+                else if (s === stepCleared) {
+                    pill.classList.add('pill-current');
+                    pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 }
-            } catch(e) {}
+            }
         }
+
+        function stepStake(delta) {
+            initAudio();
+            if (isPlaying || isFlipping) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, val + delta);
+            refreshStreakForecast();
+        }
+
+        function setExactStake(val) {
+            initAudio();
+            if (isPlaying || isFlipping) return;
+            Sound.click();
+            document.getElementById('stake').value = val;
+            refreshStreakForecast();
+        }
+
+        function adjustStake(factor) {
+            initAudio();
+            if (isPlaying || isFlipping) return;
+            Sound.click();
+            const input = document.getElementById('stake');
+            let val = parseFloat(input.value) || 50;
+            input.value = Math.max(10, Math.round(val * factor));
+            refreshStreakForecast();
+        }
+
+        // Keyboard support: Spacebar to Flip, C to Cash Out
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT') return;
+            if (e.code === 'Space' && !isFlipping) {
+                e.preventDefault();
+                flipCoin();
+            } else if (e.key.toLowerCase() === 'c' && isPlaying && currentWinnings > 0 && !isFlipping) {
+                e.preventDefault();
+                cashout();
+            }
+        });
+
+        // =====================================================
+        // 4. CORE COIN STREAK ENGINE (/coin_streak/play & /cashout)
+        // =====================================================
+        async function flipCoin() {
+            initAudio();
+            if (isFlipping) return;
+
+            const stakeInput = document.getElementById('stake');
+            const stake = isPlaying ? activeRunStake : parseFloat(stakeInput.value);
+            if (isNaN(stake) || stake < 10) {
+                showToast('Minimum bet is ₹10', 'error');
+                return;
+            }
+
+            const balEl = document.getElementById('bal');
+            const currentBal = parseFloat(balEl.innerText) || 0;
+            if (!isPlaying && stake > currentBal) {
+                showToast('Insufficient wallet balance!', 'error');
+                return;
+            }
+
+            if (!isPlaying) {
+                activeRunStake = stake;
+                stakeInput.disabled = true;
+            }
+
+            isPlaying = true;
+            isFlipping = true;
+            currentStep++;
+
+            const coinWrap = document.getElementById('coin-3d-wrapper');
+            const coinFace = document.getElementById('coin');
+            const coinIcon = document.getElementById('coin-main-icon');
+            const arenaFrame = document.getElementById('streak-arena-frame');
+            const btn = document.getElementById('flip-btn');
+            const btnTitle = document.getElementById('flip-btn-title');
+            const cbtn = document.getElementById('cashout-btn');
+
+            arenaFrame.classList.remove('arena-broken', 'shake-break');
+            coinFace.classList.remove('coin-win-state', 'coin-lose-state');
+            coinWrap.classList.remove('coin-idle');
+            coinWrap.classList.add('coin-flipping');
+            coinIcon.innerHTML = '<i class="fa-solid fa-bolt"></i>';
+
+            Sound.coinRing();
+            btn.disabled = true;
+            btnTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> FLIPPING STREAK #${currentStep}...`;
+            cbtn.disabled = true;
+
+            try {
+                const res = await fetch('/coin_streak/play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stake: activeRunStake, step: currentStep })
+                });
+                const d = await res.json();
+
+                if (!d.success) {
+                    showToast(d.error || 'Unable to flip coin', 'error');
+                    resetToStart();
+                    return;
+                }
+
+                if (currentStep === 1) {
+                    balEl.innerText = d.new_total.toFixed(2);
+                }
+
+                setTimeout(() => {
+                    coinWrap.classList.remove('coin-flipping');
+                    coinWrap.classList.add('coin-idle');
+                    isFlipping = false;
+                    totalFlipsCount++;
+                    document.getElementById('stat-flips').innerText = totalFlipsCount;
+
+                    if (d.win) {
+                        Sound.streakHit(currentStep);
+                        if (currentStep > bestStreakCount) {
+                            bestStreakCount = currentStep;
+                            document.getElementById('stat-best-streak').innerText = `${bestStreakCount} 🔥`;
+                        }
+
+                        coinFace.classList.add('coin-win-state');
+                        coinIcon.innerHTML = '<i class="fa-solid fa-check text-white"></i>';
+                        document.getElementById('coin-sub-label').innerText = `${calledSide} HIT!`;
+
+                        if (currentStep >= 2) arenaFrame.classList.add('arena-hot');
+
+                        currentWinnings = d.winnings;
+                        document.getElementById('streak-counter').innerText = currentStep;
+                        document.getElementById('current-mult').innerText = d.multiplier + 'x';
+                        document.getElementById('current-win').innerText = '₹' + d.winnings.toFixed(2);
+
+                        const nextM = calcStreakMult(currentStep + 1);
+                        document.getElementById('next-flip-preview').innerText = `₹${(activeRunStake * nextM).toFixed(2)} (${nextM.toFixed(2)}x)`;
+
+                        const msg = document.getElementById('result-msg');
+                        msg.innerText = `STREAK ${currentStep} HIT (${d.multiplier}X)! FLIP FOR ${nextM.toFixed(2)}X OR CASH OUT!`;
+                        msg.className = "text-xs sm:text-sm font-black italic uppercase tracking-wider text-brand";
+
+                        highlightStreakLadder(currentStep);
+
+                        btn.disabled = false;
+                        btnTitle.innerHTML = `<i class="fa-solid fa-fire"></i> FLIP FOR ${nextM.toFixed(2)}X`;
+
+                        cbtn.disabled = false;
+                        cbtn.className = "w-full py-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:brightness-110 text-black font-black text-sm sm:text-base rounded-2xl uppercase tracking-wider shadow-[0_8px_25px_rgba(245,158,11,0.4)] border-b-4 border-amber-800 active:translate-y-0.5 active:border-b-0 transition cursor-pointer flex items-center justify-center gap-2";
+                        cbtn.innerHTML = `<i class="fa-solid fa-sack-dollar"></i> CASH OUT ₹${d.winnings.toFixed(2)}`;
+                    } else {
+                        Sound.streakBreak();
+                        arenaFrame.classList.remove('arena-hot');
+                        arenaFrame.classList.add('arena-broken', 'shake-break');
+                        coinFace.classList.add('coin-lose-state');
+                        coinIcon.innerHTML = '<i class="fa-solid fa-xmark text-white"></i>';
+                        document.getElementById('coin-sub-label').innerText = 'BROKEN';
+
+                        const msg = document.getElementById('result-msg');
+                        msg.innerText = `STREAK BROKEN AT STEP ${currentStep}!`;
+                        msg.className = "text-xs sm:text-sm font-black italic uppercase tracking-wider text-red-500";
+
+                        recordSessionPnL(-activeRunStake);
+                        showToast(`Streak broken at Flip #${currentStep}!`, 'error');
+                        setTimeout(resetToStart, 1700);
+                    }
+                }, 620);
+
+            } catch (e) {
+                showToast('Network Error flipping coin', 'error');
+                resetToStart();
+            }
+        }
+
+        async function cashout() {
+            initAudio();
+            if (!isPlaying || currentWinnings === 0 || isFlipping) return;
+            isFlipping = true;
+
+            const cbtn = document.getElementById('cashout-btn');
+            cbtn.disabled = true;
+
+            try {
+                const res = await fetch('/coin_streak/cashout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winnings: currentWinnings })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    Sound.cashoutFanfare();
+                    document.getElementById('bal').innerText = d.new_total.toFixed(2);
+                    triggerFloatingWin(currentWinnings);
+                    spawnConfetti(34);
+                    showToast(`Cashed Out ₹${currentWinnings.toFixed(2)} on a ${currentStep}-Flip Streak!`, 'success');
+                    recordSessionPnL(currentWinnings - activeRunStake);
+                    resetToStart();
+                }
+            } catch (e) {
+                showToast('Network error cashing out', 'error');
+                isFlipping = false;
+                cbtn.disabled = false;
+            }
+        }
+
         function resetToStart() {
-            isPlaying = false; currentStep = 0; currentWinnings = 0;
-            document.getElementById('coin').innerHTML = '<i class="fa-solid fa-bolt"></i>';
-            document.getElementById('streak-counter').innerText = '0'; document.getElementById('current-mult').innerText = '1.00x';
-            document.getElementById('current-win').innerText = '₹0.00'; document.getElementById('result-msg').innerText = "Guess to start";
-            document.getElementById('result-msg').className = "text-xl font-black italic uppercase tracking-widest text-center h-8 mb-6 text-gray-400";
-            const btn = document.getElementById('flip-btn'); btn.innerText = "FLIP COIN"; btn.disabled = false;
-            const cbtn = document.getElementById('cashout-btn'); cbtn.disabled = true; cbtn.className = "flex-1 py-4 bg-gray-600 text-gray-400 font-black text-lg rounded-xl uppercase cursor-not-allowed";
+            isPlaying = false;
+            isFlipping = false;
+            currentStep = 0;
+            currentWinnings = 0;
+
+            const stakeInput = document.getElementById('stake');
+            stakeInput.disabled = false;
+
+            const coinFace = document.getElementById('coin');
+            const coinWrap = document.getElementById('coin-3d-wrapper');
+            const arenaFrame = document.getElementById('streak-arena-frame');
+
+            arenaFrame.classList.remove('arena-hot', 'arena-broken', 'shake-break');
+            coinWrap.classList.remove('coin-flipping');
+            coinWrap.classList.add('coin-idle');
+            coinFace.classList.remove('coin-win-state', 'coin-lose-state');
+            document.getElementById('coin-main-icon').innerHTML = '<i class="fa-solid fa-bolt"></i>';
+            document.getElementById('coin-sub-label').innerText = calledSide;
+
+            document.getElementById('streak-counter').innerText = '0';
+            document.getElementById('current-mult').innerText = '1.00x';
+            document.getElementById('current-win').innerText = '₹0.00';
+
+            const msg = document.getElementById('result-msg');
+            msg.innerText = "CALL HEADS OR TAILS & FLIP TO START";
+            msg.className = "text-xs sm:text-sm font-black italic uppercase tracking-wider text-gray-300";
+
+            const btn = document.getElementById('flip-btn');
+            document.getElementById('flip-btn-title').innerHTML = `<i class="fa-solid fa-coins"></i> FLIP COIN`;
+            btn.disabled = false;
+
+            const cbtn = document.getElementById('cashout-btn');
+            cbtn.disabled = true;
+            cbtn.className = "w-full py-3.5 bg-gray-800 text-gray-500 font-black text-sm sm:text-base rounded-2xl uppercase tracking-wider border border-gray-700/80 transition cursor-not-allowed flex items-center justify-center gap-2";
+            cbtn.innerHTML = `<i class="fa-solid fa-lock"></i> CASH OUT (WIN 1 FLIP FIRST)`;
+
+            refreshStreakForecast();
         }
+
+        // =====================================================
+        // 5. TELEMETRY, FLOATING WIN & CONFETTI FX
+        // =====================================================
+        function recordSessionPnL(delta) {
+            sessionPnL += delta;
+            const pnlEl = document.getElementById('stat-pnl');
+            const sign = sessionPnL >= 0 ? '+' : '';
+            pnlEl.innerText = `${sign}₹${sessionPnL.toFixed(2)}`;
+            pnlEl.className = `text-xs font-mono font-black mt-0.5 ${sessionPnL >= 0 ? 'text-brand' : 'text-red-400'}`;
+        }
+
+        function triggerFloatingWin(winnings) {
+            const wrap = document.getElementById('balance-wrapper');
+            if (!wrap) return;
+            const floater = document.createElement('div');
+            floater.className = 'fixed z-[10000] font-black text-brand text-2xl drop-shadow-[0_0_15px_rgba(28,218,58,1)] pointer-events-none transition-all duration-[1300ms] ease-out';
+            floater.innerText = '+₹' + parseFloat(winnings).toFixed(2);
+            const rect = wrap.getBoundingClientRect();
+            floater.style.left = Math.max(10, rect.left - 25) + 'px';
+            floater.style.top = rect.top + 'px';
+            document.body.appendChild(floater);
+            void floater.offsetWidth;
+            floater.style.transform = 'translateY(-42px) scale(1.25)';
+            floater.style.opacity = '0';
+            setTimeout(() => floater.remove(), 1300);
+        }
+
+        function spawnConfetti(count) {
+            const container = document.getElementById('particle-container');
+            const colors = ['#1CDA3A', '#fbbf24', '#10b981', '#38bdf8', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'absolute w-2.5 h-2.5 rounded-full';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = '50%';
+                p.style.top = '45%';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 200;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 60;
+                container.appendChild(p);
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'forwards' });
+                setTimeout(() => p.remove(), 1500);
+            }
+        }
+
+        refreshStreakForecast();
+
+        // =====================================================
+        // 6. ANTI-INSPECT & DEVTOOLS SHIELD (MAC + WINDOWS)
+        // =====================================================
         (function() {
-    // 1. Block Right-Click Context Menu
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, false);
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
 
-    // 2. Block All DevTools & View-Source Keyboard Shortcuts (Windows + Mac)
-    document.addEventListener('keydown', function(e) {
-        const key = (e.key || '').toLowerCase();
-        const code = e.keyCode || e.which;
+            document.addEventListener('keydown', function(e) {
+                const key = (e.key || '').toLowerCase();
+                const code = e.keyCode || e.which;
 
-        // F12 (Windows / Laptop Fn+F12)
-        if (code === 123 || key === 'f12') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+                if (code === 123 || key === 'f12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
 
-        // Windows / Linux: Ctrl + Shift + (I, J, C, K)
-        if (e.ctrlKey && e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || [73, 74, 67, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-        // macOS: Cmd (metaKey) + Option (altKey) + (I, J, C, U, K)
-        if (e.metaKey && e.altKey && (['i', 'j', 'c', 'u', 'k'].includes(key) || [73, 74, 67, 85, 75].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-
-        // View Source & Save Page: Ctrl+U / Cmd+U / Ctrl+S / Cmd+S
-        if ((e.ctrlKey || e.metaKey) && (['u', 's'].includes(key) || [85, 83].includes(code))) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-
-    // 3. Disable Dragging Images/Elements
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-    });
-
-    // 4. Anti-Debugger Trap (Triggers if DevTools is opened via Browser Menu)
-    setInterval(function() {
-        const start = performance.now();
-        debugger;
-        if (performance.now() - start > 100) {
-            document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
-        }
-    }, 1500);
-})();
-
-
-
-
+            setInterval(function() {
+                const start = performance.now();
+                debugger;
+                if (performance.now() - start > 100) {
+                    document.body.innerHTML = '<div style="background:#05070c;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:0.1em;text-align:center;padding:20px;">SECURITY ALERT: DEVELOPER TOOLS ARE RESTRICTED ON NOVABETX.</div>';
+                }
+            }, 1500);
+        })();
     </script>
 </body>
 </html>
