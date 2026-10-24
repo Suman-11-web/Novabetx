@@ -4,8 +4,9 @@ import os
 import random
 import sqlite3
 import string
+import threading
 import time
-from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -14,6 +15,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get(
     "NOVABETX_SECRET_KEY", "nvx_ultra_pro_max_99x_vault_secret_key_2026"
 )
+
+# Resolve absolute paths so PythonAnywhere WSGI workers always find betting.db & uploads
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 USE_MYSQL = False
 if USE_MYSQL:
@@ -26,11 +30,15 @@ if USE_MYSQL:
       "database": "yourusername$betting",
   }
 else:
-  DB_NAME = "betting.db"
+  DB_NAME = os.path.join(BASE_DIR, "betting.db")
 
-UPLOAD_FOLDER = "static/uploads"
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Thread lock for multiplayer live game state machines & in-memory cache
+STATE_LOCK = threading.RLock()
+SITE_SETTINGS_CACHE = {"data": None, "timestamp": 0.0}
 
 # ==========================================
 # STEALTH ADMIN CREDENTIALS & SECRET ROUTES
@@ -407,47 +415,48 @@ ACTIVE_BETS = {}
 
 def update_aviator_state():
   global AVIATOR_STATE, ACTIVE_BETS, ADMIN_GAME_CONTROL
-  now = time.time()
-  elapsed = now - AVIATOR_STATE["start_time"]
-  if AVIATOR_STATE["state"] == "WAITING" and elapsed > 5.0:
-    AVIATOR_STATE["state"] = "FLYING"
-    AVIATOR_STATE["start_time"] = now
-    ctrl = get_ctrl("aviator")
-    if ctrl == "win":
-      crash = round(random.uniform(5.00, 15.00), 2)
-    elif ctrl == "loss":
-      crash = 1.00
-    elif ctrl is not None:
-      crash = float(ctrl)
-    else:
-      rand = random.random()
-      if rand < 0.60:
-        crash = round(random.uniform(1.00, 1.49), 2)
-      elif rand < 0.85:
-        crash = round(random.uniform(1.50, 1.99), 2)
-      elif rand < 0.95:
-        crash = round(random.uniform(2.00, 5.00), 2)
-      else:
-        crash = round(random.uniform(5.01, 35.00), 2)
-    AVIATOR_STATE["crash_point"] = crash
-  elif AVIATOR_STATE["state"] == "FLYING":
-    if 1.00 + (elapsed**1.4) * 0.08 >= AVIATOR_STATE["crash_point"]:
-      AVIATOR_STATE["state"] = "CRASHED"
+  with STATE_LOCK:
+    now = time.time()
+    elapsed = now - AVIATOR_STATE["start_time"]
+    if AVIATOR_STATE["state"] == "WAITING" and elapsed > 5.0:
+      AVIATOR_STATE["state"] = "FLYING"
       AVIATOR_STATE["start_time"] = now
-      AVIATOR_STATE["history"].insert(
-          0,
-          {
-              "id": f"{AVIATOR_STATE['match_number']:06d}",
-              "mult": AVIATOR_STATE["crash_point"],
-          },
-      )
-      if len(AVIATOR_STATE["history"]) > 15:
-        AVIATOR_STATE["history"].pop()
-      ACTIVE_BETS.clear()
-  elif AVIATOR_STATE["state"] == "CRASHED" and elapsed > 3.0:
-    AVIATOR_STATE["state"] = "WAITING"
-    AVIATOR_STATE["start_time"] = now
-    AVIATOR_STATE["match_number"] += 1
+      ctrl = get_ctrl("aviator")
+      if ctrl == "win":
+        crash = round(random.uniform(5.00, 15.00), 2)
+      elif ctrl == "loss":
+        crash = 1.00
+      elif ctrl is not None:
+        crash = float(ctrl)
+      else:
+        rand = random.random()
+        if rand < 0.60:
+          crash = round(random.uniform(1.00, 1.49), 2)
+        elif rand < 0.85:
+          crash = round(random.uniform(1.50, 1.99), 2)
+        elif rand < 0.95:
+          crash = round(random.uniform(2.00, 5.00), 2)
+        else:
+          crash = round(random.uniform(5.01, 35.00), 2)
+      AVIATOR_STATE["crash_point"] = crash
+    elif AVIATOR_STATE["state"] == "FLYING":
+      if 1.00 + (elapsed**1.4) * 0.08 >= AVIATOR_STATE["crash_point"]:
+        AVIATOR_STATE["state"] = "CRASHED"
+        AVIATOR_STATE["start_time"] = now
+        AVIATOR_STATE["history"].insert(
+            0,
+            {
+                "id": f"{AVIATOR_STATE['match_number']:06d}",
+                "mult": AVIATOR_STATE["crash_point"],
+            },
+        )
+        if len(AVIATOR_STATE["history"]) > 15:
+          AVIATOR_STATE["history"].pop()
+        ACTIVE_BETS.clear()
+    elif AVIATOR_STATE["state"] == "CRASHED" and elapsed > 3.0:
+      AVIATOR_STATE["state"] = "WAITING"
+      AVIATOR_STATE["start_time"] = now
+      AVIATOR_STATE["match_number"] += 1
 
 
 JETX_STATE = {
@@ -461,38 +470,39 @@ JETX_BETS = {}
 
 def update_jetx_state():
   global JETX_STATE, JETX_BETS, ADMIN_GAME_CONTROL
-  now = time.time()
-  elapsed = now - JETX_STATE["start_time"]
-  if JETX_STATE["state"] == "WAITING" and elapsed > 5.0:
-    JETX_STATE["state"] = "FLYING"
-    JETX_STATE["start_time"] = now
-    ctrl = get_ctrl("jetx")
-    if ctrl == "win":
-      JETX_STATE["crash_point"] = round(random.uniform(5.00, 15.00), 2)
-    elif ctrl == "loss":
-      JETX_STATE["crash_point"] = 1.00
-    elif ctrl is not None:
-      JETX_STATE["crash_point"] = float(ctrl)
-    else:
-      r = random.random()
-      JETX_STATE["crash_point"] = round(
-          1.01
-          + (
-              random.uniform(0.1, 15.0)
-              if r > 0.4
-              else random.uniform(0.01, 1.3)
-          ),
-          2,
-      )
-  elif JETX_STATE["state"] == "FLYING":
-    if 1.00 + (elapsed**1.35) * 0.09 >= JETX_STATE["crash_point"]:
-      JETX_STATE["state"] = "CRASHED"
+  with STATE_LOCK:
+    now = time.time()
+    elapsed = now - JETX_STATE["start_time"]
+    if JETX_STATE["state"] == "WAITING" and elapsed > 5.0:
+      JETX_STATE["state"] = "FLYING"
       JETX_STATE["start_time"] = now
-      JETX_BETS.clear()
-  elif JETX_STATE["state"] == "CRASHED" and elapsed > 3.0:
-    JETX_STATE["state"] = "WAITING"
-    JETX_STATE["start_time"] = now
-    JETX_STATE["match_number"] += 1
+      ctrl = get_ctrl("jetx")
+      if ctrl == "win":
+        JETX_STATE["crash_point"] = round(random.uniform(5.00, 15.00), 2)
+      elif ctrl == "loss":
+        JETX_STATE["crash_point"] = 1.00
+      elif ctrl is not None:
+        JETX_STATE["crash_point"] = float(ctrl)
+      else:
+        r = random.random()
+        JETX_STATE["crash_point"] = round(
+            1.01
+            + (
+                random.uniform(0.1, 15.0)
+                if r > 0.4
+                else random.uniform(0.01, 1.3)
+            ),
+            2,
+        )
+    elif JETX_STATE["state"] == "FLYING":
+      if 1.00 + (elapsed**1.35) * 0.09 >= JETX_STATE["crash_point"]:
+        JETX_STATE["state"] = "CRASHED"
+        JETX_STATE["start_time"] = now
+        JETX_BETS.clear()
+    elif JETX_STATE["state"] == "CRASHED" and elapsed > 3.0:
+      JETX_STATE["state"] = "WAITING"
+      JETX_STATE["start_time"] = now
+      JETX_STATE["match_number"] += 1
 
 
 DT_STATE = {
@@ -509,65 +519,67 @@ DT_BETS = {}
 
 def update_dt_state():
   global DT_STATE, DT_BETS, ADMIN_GAME_CONTROL
-  now = time.time()
-  elapsed = now - DT_STATE["start_time"]
-  if DT_STATE["state"] == "WAITING" and elapsed > 15.0:
-    DT_STATE["state"] = "REVEAL"
-    DT_STATE["start_time"] = now
-    forced = ADMIN_GAME_CONTROL.get("dt") or ADMIN_GAME_CONTROL.get(
-        "dragon_tiger"
-    )
-    f_low = forced.lower() if isinstance(forced, str) else None
-    if f_low in ["dragon", "win"]:
-      d_card = random.randint(3, 14)
-      t_card = random.randint(2, d_card - 1)
-      res = "Dragon"
-    elif f_low in ["tiger", "loss"]:
-      t_card = random.randint(3, 14)
-      d_card = random.randint(2, t_card - 1)
-      res = "Tiger"
-    elif f_low == "tie":
-      d_card = random.randint(2, 14)
-      t_card = d_card
-      res = "Tie"
-    else:
-      rand = random.random()
-      if rand < 0.45:
+  with STATE_LOCK:
+    now = time.time()
+    elapsed = now - DT_STATE["start_time"]
+    if DT_STATE["state"] == "WAITING" and elapsed > 15.0:
+      DT_STATE["state"] = "REVEAL"
+      DT_STATE["start_time"] = now
+      forced = ADMIN_GAME_CONTROL.get("dt") or ADMIN_GAME_CONTROL.get(
+          "dragon_tiger"
+      )
+      f_low = forced.lower() if isinstance(forced, str) else None
+      if f_low in ["dragon", "win"]:
         d_card = random.randint(3, 14)
         t_card = random.randint(2, d_card - 1)
         res = "Dragon"
-      elif rand < 0.90:
+      elif f_low in ["tiger", "loss"]:
         t_card = random.randint(3, 14)
         d_card = random.randint(2, t_card - 1)
         res = "Tiger"
-      else:
+      elif f_low == "tie":
         d_card = random.randint(2, 14)
         t_card = d_card
         res = "Tie"
-    DT_STATE["d_card"], DT_STATE["t_card"], DT_STATE["result"] = (
-        d_card,
-        t_card,
-        res,
-    )
-    DT_STATE["history"].insert(
-        0, {"id": f"{DT_STATE['match_number']:06d}", "val": res}
-    )
-    if len(DT_STATE["history"]) > 15:
-      DT_STATE["history"].pop()
-    if DT_BETS:
-      with get_db() as conn:
-        for uid, bet in DT_BETS.items():
-          if bet["target"] == res:
-            conn.execute(
-                "UPDATE users SET balance = balance + ? WHERE id = ?",
-                (bet["stake"] * (8.0 if res == "Tie" else 2.0), uid),
-            )
-        conn.commit()
-      DT_BETS.clear()
-  elif DT_STATE["state"] == "REVEAL" and elapsed > 6.0:
-    DT_STATE["state"] = "WAITING"
-    DT_STATE["start_time"] = now
-    DT_STATE["match_number"] += 1
+      else:
+        rand = random.random()
+        if rand < 0.45:
+          d_card = random.randint(3, 14)
+          t_card = random.randint(2, d_card - 1)
+          res = "Dragon"
+        elif rand < 0.90:
+          t_card = random.randint(3, 14)
+          d_card = random.randint(2, t_card - 1)
+          res = "Tiger"
+        else:
+          d_card = random.randint(2, 14)
+          t_card = d_card
+          res = "Tie"
+      DT_STATE["d_card"], DT_STATE["t_card"], DT_STATE["result"] = (
+          d_card,
+          t_card,
+          res,
+      )
+      DT_STATE["history"].insert(
+          0, {"id": f"{DT_STATE['match_number']:06d}", "val": res}
+      )
+      if len(DT_STATE["history"]) > 15:
+        DT_STATE["history"].pop()
+      if DT_BETS:
+        pending_payouts = list(DT_BETS.items())
+        DT_BETS.clear()
+        with get_db() as conn:
+          for uid, bet in pending_payouts:
+            if bet["target"] == res:
+              conn.execute(
+                  "UPDATE users SET balance = balance + ? WHERE id = ?",
+                  (bet["stake"] * (8.0 if res == "Tie" else 2.0), uid),
+              )
+          conn.commit()
+    elif DT_STATE["state"] == "REVEAL" and elapsed > 6.0:
+      DT_STATE["state"] = "WAITING"
+      DT_STATE["start_time"] = now
+      DT_STATE["match_number"] += 1
 
 
 HT_STATE = {
@@ -582,45 +594,47 @@ HT_BETS = {}
 
 def update_ht_state():
   global HT_STATE, HT_BETS, ADMIN_GAME_CONTROL
-  now = time.time()
-  elapsed = now - HT_STATE["start_time"]
-  if HT_STATE["state"] == "WAITING" and elapsed > 12.0:
-    HT_STATE["state"] = "FLIPPING"
-    HT_STATE["start_time"] = now
-    forced = ADMIN_GAME_CONTROL.get("ht") or ADMIN_GAME_CONTROL.get(
-        "heads_tails"
-    )
-    f_low = forced.lower() if isinstance(forced, str) else None
-    if f_low in ["heads", "win"]:
-      res = "Heads"
-    elif f_low in ["tails", "loss"]:
-      res = "Tails"
-    else:
-      res = "Heads" if random.random() < 0.5 else "Tails"
-    HT_STATE["result"] = res
-    HT_STATE["history"].insert(
-        0,
-        {
-            "id": f"{HT_STATE['match_number']:06d}",
-            "val": "H" if res == "Heads" else "T",
-        },
-    )
-    if len(HT_STATE["history"]) > 15:
-      HT_STATE["history"].pop()
-    if HT_BETS:
-      with get_db() as conn:
-        for uid, bet in HT_BETS.items():
-          if bet["target"] == res:
-            conn.execute(
-                "UPDATE users SET balance = balance + ? WHERE id = ?",
-                (bet["stake"] * 1.95, uid),
-            )
-        conn.commit()
-      HT_BETS.clear()
-  elif HT_STATE["state"] == "FLIPPING" and elapsed > 5.0:
-    HT_STATE["state"] = "WAITING"
-    HT_STATE["start_time"] = now
-    HT_STATE["match_number"] += 1
+  with STATE_LOCK:
+    now = time.time()
+    elapsed = now - HT_STATE["start_time"]
+    if HT_STATE["state"] == "WAITING" and elapsed > 12.0:
+      HT_STATE["state"] = "FLIPPING"
+      HT_STATE["start_time"] = now
+      forced = ADMIN_GAME_CONTROL.get("ht") or ADMIN_GAME_CONTROL.get(
+          "heads_tails"
+      )
+      f_low = forced.lower() if isinstance(forced, str) else None
+      if f_low in ["heads", "win"]:
+        res = "Heads"
+      elif f_low in ["tails", "loss"]:
+        res = "Tails"
+      else:
+        res = "Heads" if random.random() < 0.5 else "Tails"
+      HT_STATE["result"] = res
+      HT_STATE["history"].insert(
+          0,
+          {
+              "id": f"{HT_STATE['match_number']:06d}",
+              "val": "H" if res == "Heads" else "T",
+          },
+      )
+      if len(HT_STATE["history"]) > 15:
+        HT_STATE["history"].pop()
+      if HT_BETS:
+        pending_payouts = list(HT_BETS.items())
+        HT_BETS.clear()
+        with get_db() as conn:
+          for uid, bet in pending_payouts:
+            if bet["target"] == res:
+              conn.execute(
+                  "UPDATE users SET balance = balance + ? WHERE id = ?",
+                  (bet["stake"] * 1.95, uid),
+              )
+          conn.commit()
+    elif HT_STATE["state"] == "FLIPPING" and elapsed > 5.0:
+      HT_STATE["state"] = "WAITING"
+      HT_STATE["start_time"] = now
+      HT_STATE["match_number"] += 1
 
 
 CP_STATE = {
@@ -636,66 +650,68 @@ CP_BETS = {}
 
 def update_cp_state():
   global CP_STATE, CP_BETS, ADMIN_GAME_CONTROL
-  now = time.time()
-  elapsed = now - CP_STATE["start_time"]
-  if CP_STATE["state"] == "WAITING" and elapsed > 30.0:
-    CP_STATE["state"] = "REVEAL"
-    CP_STATE["start_time"] = now
-    forced = (
-        ADMIN_GAME_CONTROL.get("cp")
-        if ADMIN_GAME_CONTROL.get("cp") is not None
-        else ADMIN_GAME_CONTROL.get("color_prediction")
-    )
-    f_low = forced.lower() if isinstance(forced, str) else forced
-    if f_low == "win":
-      res_num = 1
-    elif f_low == "loss":
-      res_num = 0
-    elif isinstance(forced, int) or (
-        isinstance(forced, str) and forced.isdigit()
-    ):
-      res_num = int(forced)
-    else:
-      res_num = random.randint(0, 9)
-    res_color = (
-        "Green"
-        if res_num in [1, 3, 7, 9]
-        else ("Red" if res_num in [2, 4, 6, 8] else "Violet")
-    )
-    CP_STATE["result_number"], CP_STATE["result_color"] = res_num, res_color
-    CP_STATE["history"].insert(
-        0,
-        {
-            "id": f"{CP_STATE['match_number']:06d}",
-            "val": res_num,
-            "col": res_color,
-        },
-    )
-    if len(CP_STATE["history"]) > 15:
-      CP_STATE["history"].pop()
-    if CP_BETS:
-      with get_db() as conn:
-        for uid, bet in CP_BETS.items():
-          target, stake, win = str(bet["target"]), bet["stake"], 0
-          if target == str(res_num):
-            win = stake * 9.0
-          elif target == "Green" and res_color == "Green":
-            win = stake * 2.0
-          elif target == "Red" and res_color == "Red":
-            win = stake * 2.0
-          elif target == "Violet" and res_color == "Violet":
-            win = stake * 4.5
-          if win > 0:
-            conn.execute(
-                "UPDATE users SET balance = balance + ? WHERE id = ?",
-                (win, uid),
-            )
-        conn.commit()
-      CP_BETS.clear()
-  elif CP_STATE["state"] == "REVEAL" and elapsed > 5.0:
-    CP_STATE["state"] = "WAITING"
-    CP_STATE["start_time"] = now
-    CP_STATE["match_number"] += 1
+  with STATE_LOCK:
+    now = time.time()
+    elapsed = now - CP_STATE["start_time"]
+    if CP_STATE["state"] == "WAITING" and elapsed > 30.0:
+      CP_STATE["state"] = "REVEAL"
+      CP_STATE["start_time"] = now
+      forced = (
+          ADMIN_GAME_CONTROL.get("cp")
+          if ADMIN_GAME_CONTROL.get("cp") is not None
+          else ADMIN_GAME_CONTROL.get("color_prediction")
+      )
+      f_low = forced.lower() if isinstance(forced, str) else forced
+      if f_low == "win":
+        res_num = 1
+      elif f_low == "loss":
+        res_num = 0
+      elif isinstance(forced, int) or (
+          isinstance(forced, str) and forced.isdigit()
+      ):
+        res_num = int(forced)
+      else:
+        res_num = random.randint(0, 9)
+      res_color = (
+          "Green"
+          if res_num in [1, 3, 7, 9]
+          else ("Red" if res_num in [2, 4, 6, 8] else "Violet")
+      )
+      CP_STATE["result_number"], CP_STATE["result_color"] = res_num, res_color
+      CP_STATE["history"].insert(
+          0,
+          {
+              "id": f"{CP_STATE['match_number']:06d}",
+              "val": res_num,
+              "col": res_color,
+          },
+      )
+      if len(CP_STATE["history"]) > 15:
+        CP_STATE["history"].pop()
+      if CP_BETS:
+        pending_payouts = list(CP_BETS.items())
+        CP_BETS.clear()
+        with get_db() as conn:
+          for uid, bet in pending_payouts:
+            target, stake, win = str(bet["target"]), bet["stake"], 0
+            if target == str(res_num):
+              win = stake * 9.0
+            elif target == "Green" and res_color == "Green":
+              win = stake * 2.0
+            elif target == "Red" and res_color == "Red":
+              win = stake * 2.0
+            elif target == "Violet" and res_color == "Violet":
+              win = stake * 4.5
+            if win > 0:
+              conn.execute(
+                  "UPDATE users SET balance = balance + ? WHERE id = ?",
+                  (win, uid),
+              )
+          conn.commit()
+    elif CP_STATE["state"] == "REVEAL" and elapsed > 5.0:
+      CP_STATE["state"] = "WAITING"
+      CP_STATE["start_time"] = now
+      CP_STATE["match_number"] += 1
 
 
 # ==========================================
@@ -736,16 +752,76 @@ def calc_hand(hand):
   return val
 
 
-def get_db():
+# ==========================================
+# HIGH-CONCURRENCY DATABASE ENGINE (WAL + POOLING)
+# ==========================================
+class ManagedDBConnection:
+  """Context-manager wrapper that commits/rolls back cleanly and reuses request-scoped connections."""
+
+  def __init__(self, raw_conn, close_on_exit=False):
+    self._conn = raw_conn
+    self._close_on_exit = close_on_exit
+
+  def __getattr__(self, name):
+    return getattr(self._conn, name)
+
+  def __enter__(self):
+    return self._conn
+
+  def __exit__(self, exc_type, exc_val, exc_tb):
+    try:
+      if exc_type is not None:
+        self._conn.rollback()
+      else:
+        self._conn.commit()
+    except Exception:
+      pass
+    if self._close_on_exit:
+      try:
+        self._conn.close()
+      except Exception:
+        pass
+    return False
+
+
+def _create_raw_connection():
   if USE_MYSQL:
     conn = mysql.connector.connect(**DB_CONFIG)
     conn.row_factory = lambda cursor, row: dict(
         zip([col[0] for col in cursor.description], row)
     )
     return conn
-  conn = sqlite3.connect(DB_NAME)
+  conn = sqlite3.connect(DB_NAME, timeout=30.0, check_same_thread=False)
   conn.row_factory = sqlite3.Row
+  # High-Concurrency SQLite Tuning for Multiplayer Performance
+  conn.execute("PRAGMA journal_mode=WAL")
+  conn.execute("PRAGMA synchronous=NORMAL")
+  conn.execute("PRAGMA busy_timeout=30000")
+  conn.execute("PRAGMA cache_size=-64000")  # 64MB RAM cache
+  conn.execute("PRAGMA temp_store=MEMORY")
+  conn.execute("PRAGMA mmap_size=268435456")  # 256MB memory-mapped I/O
   return conn
+
+
+def get_db():
+  try:
+    # Reuse connection within the same Flask HTTP request
+    if "_db_conn" not in g or g._db_conn is None:
+      g._db_conn = _create_raw_connection()
+    return ManagedDBConnection(g._db_conn, close_on_exit=False)
+  except RuntimeError:
+    # Outside request context (e.g., startup init_db)
+    return ManagedDBConnection(_create_raw_connection(), close_on_exit=True)
+
+
+@app.teardown_appcontext
+def close_db_connection(exception=None):
+  conn = g.pop("_db_conn", None)
+  if conn is not None:
+    try:
+      conn.close()
+    except Exception:
+      pass
 
 
 def init_db():
@@ -756,8 +832,10 @@ def init_db():
         """CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, mobile TEXT, balance REAL DEFAULT 0.00, bonus_balance REAL DEFAULT 0.00, status TEXT DEFAULT 'Pending', referrer_id INTEGER, total_wagered REAL DEFAULT 0.00)"""
     )
     try:
-      conn.execute("ALTER TABLE users ADD COLUMN total_wagered REAL DEFAULT 0.00")
-    except:
+      conn.execute(
+          "ALTER TABLE users ADD COLUMN total_wagered REAL DEFAULT 0.00"
+      )
+    except Exception:
       pass
     conn.execute(
         """CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, sport TEXT, league TEXT, team1 TEXT, team2 TEXT, score TEXT, status TEXT, odds1 REAL, oddsX REAL, odds2 REAL, is_live INTEGER DEFAULT 0)"""
@@ -782,19 +860,81 @@ def init_db():
           "INSERT INTO site_settings (upi_id, bank_account, ifsc_code) VALUES"
           " ('your_upi@okbank', 'Account Number Here', 'IFSC Code Here')"
       )
+
+    # Non-destructive performance indexes for instant lookups under high player load
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)"
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_bets_user_id ON bets(user_id)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_bets_match_status ON bets(match_id,"
+        " match_status)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_deposits_user_status ON"
+        " deposits(user_id, status)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_withdrawals_user_status ON"
+        " withdrawals(user_id, status)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_matches_live ON matches(is_live,"
+        " status)"
+    )
     conn.commit()
+
+
+@app.before_request
+def verify_active_player_session():
+  """Prevents 'None has no attribute balance' 500 crashes across all routes if betting.db is reset."""
+  if request.endpoint in (
+      "static",
+      "login",
+      "register",
+      "fast_track_deposit",
+      "logout",
+      "admin_login",
+      "admin",
+      "decoy_admin_trap",
+  ):
+    return
+  if "user_id" in session and not session.get("is_admin"):
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT id FROM users WHERE id = ?", (session["user_id"],)
+      ).fetchone()
+      if not u:
+        session.clear()
+        if request.method == "POST" or request.is_json:
+          return jsonify(
+              {"success": False, "error": "Session expired. Please log in."}
+          )
+        flash(
+            "Session expired or database reset. Please log in again.", "error"
+        )
+        return redirect(url_for("login"))
 
 
 @app.context_processor
 def inject_global_settings():
+  now = time.time()
+  if (
+      SITE_SETTINGS_CACHE["data"] is not None
+      and (now - SITE_SETTINGS_CACHE["timestamp"]) < 30.0
+  ):
+    return dict(site_settings=SITE_SETTINGS_CACHE["data"])
   try:
     with get_db() as conn:
-      return dict(
-          site_settings=conn.execute(
-              "SELECT * FROM site_settings ORDER BY id DESC LIMIT 1"
-          ).fetchone()
-      )
-  except:
+      row = conn.execute(
+          "SELECT * FROM site_settings ORDER BY id DESC LIMIT 1"
+      ).fetchone()
+      if row:
+        SITE_SETTINGS_CACHE["data"] = dict(row)
+        SITE_SETTINGS_CACHE["timestamp"] = now
+      return dict(site_settings=row)
+  except Exception:
     return dict(
         site_settings={
             "upi_id": "Updating...",
@@ -919,7 +1059,7 @@ def fast_track_deposit():
     uid, amt = int(request.form["user_id"]), float(request.form["amount"])
     if amt <= 0:
       raise ValueError
-  except:
+  except Exception:
     flash("Invalid deposit amount.", "error")
     return redirect(url_for("login"))
   utr = request.form["utr"].strip()
@@ -957,13 +1097,10 @@ def home():
         "SELECT balance, bonus_balance FROM users WHERE id = ?",
         (session["user_id"],),
     ).fetchone()
-    
-    # Null check safety block
     if not u:
       session.clear()
       flash("Session expired or database reset. Please log in again.", "error")
       return redirect(url_for("login"))
-
     l = conn.execute(
         "SELECT * FROM matches WHERE is_live = 1 AND (status IS NULL OR status"
         ' NOT LIKE "Winner:%") LIMIT 4'
@@ -1141,7 +1278,7 @@ def deposit():
     amt = float(request.form["amount"])
     if amt < 10:
       raise ValueError
-  except:
+  except Exception:
     flash("Invalid minimum amount.", "error")
     return redirect(url_for("profile"))
   file = request.files.get("screenshot")
@@ -1178,7 +1315,7 @@ def withdraw():
     amt = float(request.form["amount"])
     if amt < 50:
       raise ValueError
-  except:
+  except Exception:
     flash("Minimum withdrawal is ₹50.", "error")
     return redirect(url_for("profile"))
   with get_db() as conn:
@@ -1237,7 +1374,7 @@ def place_bet():
     )
     if stake < 10:
       raise ValueError
-  except:
+  except Exception:
     return jsonify({"success": False, "error": "Invalid bet details."})
   with get_db() as conn:
     if not USE_MYSQL:
@@ -1310,6 +1447,8 @@ def spin_claim():
     return jsonify({"success": False})
   uid = session["user_id"]
   with get_db() as conn:
+    if not USE_MYSQL:
+      conn.execute("BEGIN IMMEDIATE")
     spin_data = conn.execute(
         "SELECT last_spin_time FROM daily_spins WHERE user_id = ?", (uid,)
     ).fetchone()
@@ -1394,26 +1533,29 @@ def aviator_bet():
   update_aviator_state()
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False, "error": "Min bet 10"})
-  if AVIATOR_STATE["state"] != "WAITING" or session["user_id"] in ACTIVE_BETS:
-    return jsonify({"success": False, "error": "Closed"})
-  with get_db() as conn:
-    u = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    if (u["balance"] + u["bonus_balance"]) < stake:
-      return jsonify({"success": False, "error": "Insufficient balance"})
-    deduct_stake(conn, session["user_id"], stake, u["balance"], u["bonus_balance"])
-    conn.commit()
-    ACTIVE_BETS[session["user_id"]] = stake
-    un = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
+  with STATE_LOCK:
+    if AVIATOR_STATE["state"] != "WAITING" or session["user_id"] in ACTIVE_BETS:
+      return jsonify({"success": False, "error": "Closed"})
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      if (u["balance"] + u["bonus_balance"]) < stake:
+        return jsonify({"success": False, "error": "Insufficient balance"})
+      deduct_stake(
+          conn, session["user_id"], stake, u["balance"], u["bonus_balance"]
+      )
+      conn.commit()
+      ACTIVE_BETS[session["user_id"]] = stake
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
   return jsonify(
       {"success": True, "new_total": un["balance"] + un["bonus_balance"]}
   )
@@ -1424,15 +1566,16 @@ def aviator_cashout():
   if "user_id" not in session:
     return jsonify({"success": False})
   update_aviator_state()
-  if (
-      AVIATOR_STATE["state"] != "FLYING"
-      or session["user_id"] not in ACTIVE_BETS
-  ):
-    return jsonify({"success": False})
-  m = 1.00 + ((time.time() - AVIATOR_STATE["start_time"]) ** 1.4) * 0.08
-  if m >= AVIATOR_STATE["crash_point"]:
-    return jsonify({"success": False})
-  win = round(ACTIVE_BETS.pop(session["user_id"]) * m, 2)
+  with STATE_LOCK:
+    if (
+        AVIATOR_STATE["state"] != "FLYING"
+        or session["user_id"] not in ACTIVE_BETS
+    ):
+      return jsonify({"success": False})
+    m = 1.00 + ((time.time() - AVIATOR_STATE["start_time"]) ** 1.4) * 0.08
+    if m >= AVIATOR_STATE["crash_point"]:
+      return jsonify({"success": False})
+    win = round(ACTIVE_BETS.pop(session["user_id"]) * m, 2)
   with get_db() as conn:
     conn.execute(
         "UPDATE users SET balance = balance + ? WHERE id = ?",
@@ -1489,28 +1632,31 @@ def jetx_bet():
   if "user_id" not in session:
     return jsonify({"success": False})
   update_jetx_state()
-  if JETX_STATE["state"] != "WAITING":
-    return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
-  with get_db() as conn:
-    u = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    if (u["balance"] + u["bonus_balance"]) < stake:
+  with STATE_LOCK:
+    if JETX_STATE["state"] != "WAITING":
       return jsonify({"success": False})
-    deduct_stake(conn, session["user_id"], stake, u["balance"], u["bonus_balance"])
-    conn.commit()
-    JETX_BETS[session["user_id"]] = stake
-    un = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      if (u["balance"] + u["bonus_balance"]) < stake:
+        return jsonify({"success": False})
+      deduct_stake(
+          conn, session["user_id"], stake, u["balance"], u["bonus_balance"]
+      )
+      conn.commit()
+      JETX_BETS[session["user_id"]] = stake
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
   return jsonify(
       {"success": True, "new_total": un["balance"] + un["bonus_balance"]}
   )
@@ -1518,16 +1664,17 @@ def jetx_bet():
 
 @app.route("/jetx/cashout", methods=["POST"])
 def jetx_cashout():
-  if "user_id" not in session or session["user_id"] not in JETX_BETS:
+  if "user_id" not in session:
     return jsonify({"success": False})
   update_jetx_state()
-  if JETX_STATE["state"] != "FLYING":
-    return jsonify({"success": False})
-  elapsed = time.time() - JETX_STATE["start_time"]
-  mult = round(1.00 + (elapsed**1.35) * 0.09, 2)
-  if mult >= JETX_STATE["crash_point"]:
-    return jsonify({"success": False})
-  winnings = round(JETX_BETS.pop(session["user_id"]) * mult, 2)
+  with STATE_LOCK:
+    if session["user_id"] not in JETX_BETS or JETX_STATE["state"] != "FLYING":
+      return jsonify({"success": False})
+    elapsed = time.time() - JETX_STATE["start_time"]
+    mult = round(1.00 + (elapsed**1.35) * 0.09, 2)
+    if mult >= JETX_STATE["crash_point"]:
+      return jsonify({"success": False})
+    winnings = round(JETX_BETS.pop(session["user_id"]) * mult, 2)
   with get_db() as conn:
     conn.execute(
         "UPDATE users SET balance = balance + ? WHERE id = ?",
@@ -1564,7 +1711,7 @@ def plinko_drop():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -1626,7 +1773,7 @@ def bj_deal():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -1671,21 +1818,21 @@ def bj_hit():
   uid = session.get("user_id")
   if uid not in ACTIVE_BLACKJACK:
     return jsonify({"success": False})
-  g = ACTIVE_BLACKJACK[uid]
+  g_state = ACTIVE_BLACKJACK[uid]
   ctrl = get_ctrl("blackjack")
   if ctrl == "loss":
-    g["player"].append(draw_card("K"))
+    g_state["player"].append(draw_card("K"))
   elif ctrl == "win":
-    need = max(2, min(10, 21 - calc_hand(g["player"])))
-    g["player"].append(draw_card(str(need)))
+    need = max(2, min(10, 21 - calc_hand(g_state["player"])))
+    g_state["player"].append(draw_card(str(need)))
   else:
-    g["player"].append(draw_card())
-  s = calc_hand(g["player"])
+    g_state["player"].append(draw_card())
+  s = calc_hand(g_state["player"])
   if s > 21:
     del ACTIVE_BLACKJACK[uid]
   return jsonify({
       "success": True,
-      "player": g["player"] if s <= 21 else [],
+      "player": g_state["player"] if s <= 21 else [],
       "score": s,
       "bust": s > 21,
   })
@@ -1696,30 +1843,30 @@ def bj_stand():
   uid = session.get("user_id")
   if uid not in ACTIVE_BLACKJACK:
     return jsonify({"success": False})
-  g = ACTIVE_BLACKJACK.pop(uid)
-  p_s, d_s = calc_hand(g["player"]), calc_hand(g["dealer"])
+  g_state = ACTIVE_BLACKJACK.pop(uid)
+  p_s, d_s = calc_hand(g_state["player"]), calc_hand(g_state["dealer"])
   ctrl = get_ctrl("blackjack")
   if ctrl == "win" and d_s >= p_s:
-    g["dealer"] = [g["dealer"][0], draw_card("6"), draw_card("K")]
-    d_s = calc_hand(g["dealer"])
+    g_state["dealer"] = [g_state["dealer"][0], draw_card("6"), draw_card("K")]
+    d_s = calc_hand(g_state["dealer"])
   elif ctrl == "loss" and d_s < p_s:
-    g["dealer"] = [
-        g["dealer"][0],
+    g_state["dealer"] = [
+        g_state["dealer"][0],
         draw_card("A")
-        if calc_hand([g["dealer"][0], draw_card("A")]) <= 21
+        if calc_hand([g_state["dealer"][0], draw_card("A")]) <= 21
         else draw_card("10"),
     ]
-    d_s = max(p_s + 1, min(21, calc_hand(g["dealer"])))
+    d_s = max(p_s + 1, min(21, calc_hand(g_state["dealer"])))
   else:
     while d_s < 17:
-      g["dealer"].append(draw_card())
-      d_s = calc_hand(g["dealer"])
+      g_state["dealer"].append(draw_card())
+      d_s = calc_hand(g_state["dealer"])
   win, push, mult = False, False, 2.0
   if p_s <= 21 and (d_s > 21 or p_s > d_s):
     win = True
   elif p_s == d_s:
     push = True
-  w = (g["stake"] * mult) if win else (g["stake"] if push else 0)
+  w = (g_state["stake"] * mult) if win else (g_state["stake"] if push else 0)
   with get_db() as conn:
     if w > 0:
       conn.execute(
@@ -1731,7 +1878,7 @@ def bj_stand():
     ).fetchone()
   return jsonify({
       "success": True,
-      "dealer": g["dealer"],
+      "dealer": g_state["dealer"],
       "dealer_score": d_s,
       "win": win,
       "push": push,
@@ -1758,7 +1905,7 @@ def roulette_spin():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   bet_type, target = request.json.get("type"), request.json.get("target")
   if stake < 10:
@@ -1839,7 +1986,7 @@ def baccarat_deal():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   choice = request.json.get("choice")
   if stake < 10:
@@ -1914,7 +2061,7 @@ def craps_roll():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   choice = request.json.get("choice")
   if stake < 10:
@@ -1976,7 +2123,7 @@ def poker_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2058,7 +2205,7 @@ def andar_bahar_deal():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   side = request.json.get("side")
   if stake < 10:
@@ -2119,7 +2266,7 @@ def teen_patti_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2179,7 +2326,7 @@ def limbo_play():
     stake, target = float(request.json.get("stake", 0)), float(
         request.json.get("target", 2.0)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10 or target < 1.01 or target > 1000:
     return jsonify({"success": False})
@@ -2258,30 +2405,33 @@ def dragon_tiger_bet():
   update_dt_state()
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   target = request.json.get("target")
-  if (
-      stake < 10
-      or target not in ["Dragon", "Tiger", "Tie"]
-      or DT_STATE["state"] != "WAITING"
-      or session["user_id"] in DT_BETS
-  ):
-    return jsonify({"success": False})
-  with get_db() as conn:
-    u = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    if (u["balance"] + u["bonus_balance"]) < stake:
+  with STATE_LOCK:
+    if (
+        stake < 10
+        or target not in ["Dragon", "Tiger", "Tie"]
+        or DT_STATE["state"] != "WAITING"
+        or session["user_id"] in DT_BETS
+    ):
       return jsonify({"success": False})
-    deduct_stake(conn, session["user_id"], stake, u["balance"], u["bonus_balance"])
-    conn.commit()
-    un = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    DT_BETS[session["user_id"]] = {"target": target, "stake": stake}
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      if (u["balance"] + u["bonus_balance"]) < stake:
+        return jsonify({"success": False})
+      deduct_stake(
+          conn, session["user_id"], stake, u["balance"], u["bonus_balance"]
+      )
+      conn.commit()
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      DT_BETS[session["user_id"]] = {"target": target, "stake": stake}
   return jsonify(
       {"success": True, "new_total": un["balance"] + un["bonus_balance"]}
   )
@@ -2318,30 +2468,33 @@ def heads_tails_bet():
   update_ht_state()
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   target = request.json.get("target")
-  if (
-      stake < 10
-      or target not in ["Heads", "Tails"]
-      or HT_STATE["state"] != "WAITING"
-      or session["user_id"] in HT_BETS
-  ):
-    return jsonify({"success": False})
-  with get_db() as conn:
-    u = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    if (u["balance"] + u["bonus_balance"]) < stake:
+  with STATE_LOCK:
+    if (
+        stake < 10
+        or target not in ["Heads", "Tails"]
+        or HT_STATE["state"] != "WAITING"
+        or session["user_id"] in HT_BETS
+    ):
       return jsonify({"success": False})
-    deduct_stake(conn, session["user_id"], stake, u["balance"], u["bonus_balance"])
-    conn.commit()
-    un = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    HT_BETS[session["user_id"]] = {"target": target, "stake": stake}
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      if (u["balance"] + u["bonus_balance"]) < stake:
+        return jsonify({"success": False})
+      deduct_stake(
+          conn, session["user_id"], stake, u["balance"], u["bonus_balance"]
+      )
+      conn.commit()
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      HT_BETS[session["user_id"]] = {"target": target, "stake": stake}
   return jsonify(
       {"success": True, "new_total": un["balance"] + un["bonus_balance"]}
   )
@@ -2383,25 +2536,32 @@ def color_prediction_bet():
   update_cp_state()
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   target = request.json.get("target")
-  if stake < 10 or CP_STATE["state"] != "WAITING" or session["user_id"] in CP_BETS:
-    return jsonify({"success": False})
-  with get_db() as conn:
-    u = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    if (u["balance"] + u["bonus_balance"]) < stake:
+  with STATE_LOCK:
+    if (
+        stake < 10
+        or CP_STATE["state"] != "WAITING"
+        or session["user_id"] in CP_BETS
+    ):
       return jsonify({"success": False})
-    deduct_stake(conn, session["user_id"], stake, u["balance"], u["bonus_balance"])
-    conn.commit()
-    un = conn.execute(
-        "SELECT balance, bonus_balance FROM users WHERE id = ?",
-        (session["user_id"],),
-    ).fetchone()
-    CP_BETS[session["user_id"]] = {"target": target, "stake": stake}
+    with get_db() as conn:
+      u = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      if (u["balance"] + u["bonus_balance"]) < stake:
+        return jsonify({"success": False})
+      deduct_stake(
+          conn, session["user_id"], stake, u["balance"], u["bonus_balance"]
+      )
+      conn.commit()
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?",
+          (session["user_id"],),
+      ).fetchone()
+      CP_BETS[session["user_id"]] = {"target": target, "stake": stake}
   return jsonify(
       {"success": True, "new_total": un["balance"] + un["bonus_balance"]}
   )
@@ -2428,7 +2588,7 @@ def mines_start():
     stake, mines_count = float(request.json.get("stake", 0)), int(
         request.json.get("mines", 3)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10 or mines_count not in [3, 5, 10] or uid in ACTIVE_MINES:
     return jsonify({"success": False})
@@ -2448,11 +2608,11 @@ def mines_start():
         random.choices(string.ascii_letters + string.digits, k=16)
     )
     server_hash = hashlib.sha256(server_seed.encode()).hexdigest()
-    random.seed(f"{server_seed}-{client_seed}")
+    # Thread-safe isolated RNG instance so concurrent players never collide
+    local_rng = random.Random(f"{server_seed}-{client_seed}")
     grid = [0] * 25
-    for i in random.sample(range(25), mines_count):
+    for i in local_rng.sample(range(25), mines_count):
       grid[i] = 1
-    random.seed()
     ACTIVE_MINES[uid] = {
         "grid": grid,
         "stake": stake,
@@ -2475,7 +2635,7 @@ def mines_click():
   uid = session["user_id"]
   try:
     idx = int(request.json.get("index"))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if idx < 0 or idx > 24 or uid not in ACTIVE_MINES:
     return jsonify({"success": False})
@@ -2555,7 +2715,7 @@ def dice_roll():
     stake, target = float(request.json.get("stake", 0)), float(
         request.json.get("target", 50)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   condition = request.json.get("condition")
   if condition not in ["over", "under"] or stake < 10 or target < 2 or target > 98:
@@ -2634,7 +2794,7 @@ def seven_up_down_roll():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   target = request.json.get("choice")
   if stake < 10:
@@ -2703,7 +2863,7 @@ def penalty_shoot():
     stake, target_zone = float(request.json.get("stake", 0)), int(
         request.json.get("zone", 1)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2765,7 +2925,7 @@ def hilo_play():
         request.json.get("guess"),
         int(request.json.get("current_card", 7)),
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2841,7 +3001,7 @@ def slots_spin():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2917,7 +3077,7 @@ def thimbles_play():
     stake, guess_cup = float(request.json.get("stake", 0)), int(
         request.json.get("cup", 0)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -2982,7 +3142,7 @@ def tower_step():
         int(request.json.get("tier", 1)),
         int(request.json.get("tile", 0)),
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if tier < 1 or tier > 8 or pick_tile not in [0, 1]:
     return jsonify({"success": False})
@@ -3039,6 +3199,18 @@ def tower_cashout():
   if "user_id" not in session:
     return jsonify({"success": False})
   uid = session["user_id"]
+  # Also support Coin Field cashout calls that hit /tower/cashout
+  if uid not in ACTIVE_TOWER and uid in ACTIVE_COIN_FIELD:
+    cf_game = ACTIVE_COIN_FIELD.pop(uid, None)
+    with get_db() as conn:
+      un = conn.execute(
+          "SELECT balance, bonus_balance FROM users WHERE id = ?", (uid,)
+      ).fetchone()
+    return jsonify({
+        "success": True,
+        "winnings": cf_game["winnings"] if cf_game else 0,
+        "new_total": un["balance"] + un["bonus_balance"],
+    })
   if uid not in ACTIVE_TOWER or ACTIVE_TOWER[uid]["winnings"] <= 0:
     return jsonify({"success": False, "error": "No active tower winnings"})
   game = ACTIVE_TOWER.pop(uid)
@@ -3079,7 +3251,7 @@ def keno_draw():
         float(request.json.get("stake", 0)),
         [int(n) for n in request.json.get("numbers", [])][:5],
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10 or len(chosen_numbers) != 5:
     return jsonify({"success": False})
@@ -3140,7 +3312,7 @@ def wheel_spin():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3196,7 +3368,7 @@ def jhandi_munda_roll():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   choice = request.json.get("symbol")
   if stake < 10:
@@ -3266,7 +3438,7 @@ def coin_field_step():
         int(request.json.get("lane", 0)),
         int(request.json.get("step", 1)),
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if step_num < 1 or step_num > 10 or lane not in [0, 1, 2]:
     return jsonify({"success": False})
@@ -3367,7 +3539,7 @@ def scratch_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3439,7 +3611,7 @@ def casino_war_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3516,7 +3688,7 @@ def horse_racing_race():
     stake, horse = float(request.json.get("stake", 0)), int(
         request.json.get("horse", 1)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3579,7 +3751,7 @@ def russian_roulette_play():
     stake, step = float(request.json.get("stake", 0)), int(
         request.json.get("step", 1)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if step < 1 or step > 5:
     return jsonify({"success": False})
@@ -3671,7 +3843,7 @@ def safes_open():
     stake, safe_choice = float(request.json.get("stake", 0)), int(
         request.json.get("safe", 0)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3728,7 +3900,7 @@ def rps_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   choice = request.json.get("choice")
   if stake < 10:
@@ -3797,7 +3969,7 @@ def red_dog_play():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3873,7 +4045,7 @@ def pharaoh_slot_spin():
     return jsonify({"success": False})
   try:
     stake = float(request.json.get("stake", 0))
-  except:
+  except Exception:
     return jsonify({"success": False})
   if stake < 10:
     return jsonify({"success": False})
@@ -3939,7 +4111,7 @@ def hilo_dice_play():
     stake, current = float(request.json.get("stake", 0)), int(
         request.json.get("current", 7)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   guess = request.json.get("guess")
   if stake < 10:
@@ -4015,7 +4187,7 @@ def coin_streak_play():
     stake, step = float(request.json.get("stake", 0)), int(
         request.json.get("step", 1)
     )
-  except:
+  except Exception:
     return jsonify({"success": False})
   if step < 1 or step > 15:
     return jsonify({"success": False})
@@ -4123,6 +4295,7 @@ def admin():
             (upi, acct, ifsc),
         )
         conn.commit()
+        SITE_SETTINGS_CACHE["timestamp"] = 0.0  # Invalidate RAM cache immediately
         flash("Global Payment Details Updated successfully!", "success")
         return redirect(url_for("admin"))
 
@@ -4149,7 +4322,7 @@ def admin():
           else:
             try:
               ADMIN_GAME_CONTROL[game] = float(request.form.get("value"))
-            except:
+            except Exception:
               flash(f"Invalid {game.upper()} multiplier.", "error")
         elif game in ["dt", "dragon_tiger"]:
           val = (
@@ -4180,7 +4353,7 @@ def admin():
               ADMIN_GAME_CONTROL["cp"] = ADMIN_GAME_CONTROL[
                   "color_prediction"
               ] = v
-            except:
+            except Exception:
               flash("Invalid Color Prediction number.", "error")
         elif game in ADMIN_GAME_CONTROL:
           ADMIN_GAME_CONTROL[game] = (
@@ -4310,7 +4483,7 @@ def admin():
         target_uid = request.form["user_id"]
         try:
           amount = float(request.form["amount"])
-        except:
+        except Exception:
           flash("Invalid amount.", "error")
           return redirect(url_for("admin"))
         mode = request.form["mode"]
@@ -4413,9 +4586,10 @@ def admin():
       cp_state=CP_STATE,
   )
 
+
 init_db()
 if __name__ == "__main__":
   with app.app_context():
     init_db()
   print(f"🔒 Stealth Admin Login: http://localhost:5050{SECRET_ADMIN_LOGIN_PATH}")
-  app.run(host="0.0.0.0", debug=False, port=5050)
+  app.run(host="0.0.0.0", debug=False, port=5050, threaded=True)
